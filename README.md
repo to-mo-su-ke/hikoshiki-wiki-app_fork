@@ -93,3 +93,4 @@ npx create-expo-app@latest --template
 ```
 
 app-name: hikoshikiWiki
+template: blank
