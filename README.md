@@ -76,7 +76,9 @@ git push origin <branch name>
 git push origin feat-message-screen-ui
 ```
 
-といった感じです．ただし，以下のコマンドは安易に実行しないでください．
+といった感じです．
+
+`git push`と調べるとよくでてきますが，以下のコマンドは安易に実行しないでください．
 
 ```: console
 git push origin main
