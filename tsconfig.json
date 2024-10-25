@@ -2,5 +2,7 @@
   "compilerOptions": {
     "types": ["jest", "node"]
   },
-  "extends": "expo/tsconfig.base"
+  "extends": "expo/tsconfig.base",
+  "allowJs": true,
+  "include": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"]
 }
