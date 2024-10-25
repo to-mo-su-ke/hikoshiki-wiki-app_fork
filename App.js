@@ -1,14 +1,15 @@
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View } from "react-native";
-import AppNavigator from "./component/messagerouting"; // AppNavigatorのパスを確認
+// import AppNavigator from "./component/messagerouting"; // AppNavigatorのパスを確認
 import LoginWithEmail from "./login";
+import SignUpWithEmail from "./signup"
 
 export default function App() {
   return (
     <View style={styles.container}>
-      <Text>Hello</Text>
-
-      <AppNavigator />
+      {/* <Text>Hello</Text> */}
+      <SignUpWithEmail/>
+      {/* <AppNavigator /> */}
       <StatusBar style="auto" />
     </View>
   );
