@@ -1,18 +1,39 @@
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View } from "react-native";
-import AppNavigator from "./component/messagerouting"; // AppNavigatorのパスを確認
-import LoginWithEmail from "./login";
+import { StyleSheet, View } from "react-native";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import LoginWithEmail from "./login"; // ログインコンポーネント
+import SearchScreen from "./component0/namesearch"; // 名前検索コンポーネント
+import TagSearch from "./component0/tagsearch"; // タグ検索コンポーネント
+
+const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>Hello</Text>
-
-      <AppNavigator />
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName="Home">
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="TagSearch" component={TagSearch} />
+      </Stack.Navigator>
       <StatusBar style="auto" />
-    </View>
+    </NavigationContainer>
   );
 }
+
+// HomeScreenコンポーネントの作成
+const HomeScreen = ({ navigation }) => {
+  return (
+    <View style={styles.container}>
+      <Text>Hello</Text>
+      <Button
+        title="Go to Tag Search"
+        onPress={() =>
+          navigation.navigate("TagSearch", { yourCollectionName: "test" })
+        }
+      />
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
