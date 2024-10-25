@@ -10,34 +10,36 @@ import {
 } from "react-native";
 import {
   getAuth,
-  signInWithEmailAndPassword,
   setPersistence,
   browserLocalPersistence,
-  SignInMethod,
+  createUserWithEmailAndPassword,
 } from "firebase/auth";
 import { initializeApp } from "firebase/app";
 import { firebaseConfig } from "./lib/firebase"; // これが正しく設定されていることを確認
 import { useNavigation } from "@react-navigation/native";
 
 // Firebaseアプリの初期化
-const app = initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig); //バグったら初回時のみ初期化するようにして関数内に入れる
 const auth = getAuth(app);
 
-export default function LoginScreen() {
+
+export default function SignUpScreen() {
+  
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   // const navigation = useNavigation(); // ホーム画面への遷移に使用
 
   // 永続化をbrowserLocalPersistenceで設定
-  setPersistence(auth, browserLocalPersistence)
-    .then(() => {
-      console.log("Persistence set to local.");
-    })
-    .catch((error) => {
-      console.error("Error setting persistence:", error);
-    });
+  // setPersistence(auth, browserLocalPersistence)
+  //   .then(() => {
+  //     console.log("Persistence set to local.");
+  //   })
+  //   .catch((error) => {
+  //     console.error("Error setting persistence:", error);
+  //   });
 
-  const LoginWithEmail = (email: string, password: string) => {
+  const SignUpWithEmail = (email: string, password: string) => {
     if (!email.endsWith("s.thers.ac.jp")) {
       Alert.alert(
         "エラー",
@@ -46,23 +48,23 @@ export default function LoginScreen() {
       return;
     }
 
-    SignUpWithEmailAndPassword(auth, email, password)
+    createUserWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
-        // サインイン成功
-        console.log("User signed in:", userCredential.user);
+        // サインアップ成功
+        console.log("User signed up:", userCredential.user);
         // navigation.navigate(""); // ホーム画面に遷移
       })
       .catch((error) => {
         const errorCode = error.code;
         const errorMessage = error.message;
-        console.error("Error signing in:", errorCode, errorMessage);
-        Alert.alert("ログインエラー", errorMessage);
+        console.error("Error signing up:", errorCode, errorMessage);
+        Alert.alert("サインアップエラー", errorMessage);
       });
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>ログイン</Text>
+      <Text style={styles.title}>新規登録</Text>
       <TextInput
         style={styles.input}
         placeholder="メールアドレス"
@@ -82,8 +84,8 @@ export default function LoginScreen() {
         placeholderTextColor="#aaa"
       />
       <Button
-        title="ログイン"
-        onPress={() => SignUp(email, password)}
+        title="新規登録"
+        onPress={() => SignUpWithEmail(email, password)}
       />
     </SafeAreaView>
   );
