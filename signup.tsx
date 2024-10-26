@@ -1,3 +1,6 @@
+//どこに置けばいいのかわからないのでとりあえず1番上に置いておきます。画面遷移担当の方は勝手に動かしてもらって大丈夫です。
+//このファイル内の関数では登録は行われません。
+
 import React, { useState } from "react";
 import {
   StyleSheet,
@@ -19,11 +22,11 @@ import { firebaseConfig } from "./lib/firebase"; // これが正しく設定さ�
 import { useNavigation } from "@react-navigation/native";
 
 // Firebaseアプリの初期化
-const app = initializeApp(firebaseConfig); //バグったら初回時のみ初期化するようにして関数内に入れる
-const auth = getAuth(app);
+// const app = initializeApp(firebaseConfig); //バグったら初回時のみ初期化するようにして関数内に入れる
+// const auth = getAuth(app);
 
 
-export default function SignUpScreen() {
+export default function SignUpScreen({ navigation }) { //分割代入
   
 
   const [email, setEmail] = useState("");
@@ -39,7 +42,7 @@ export default function SignUpScreen() {
   //     console.error("Error setting persistence:", error);
   //   });
 
-  const SignUpWithEmail = (email: string, password: string) => {
+  const InputEmailAndPasswordScreen = (email: string, password: string) => {
     if (!email.endsWith("s.thers.ac.jp")) {
       Alert.alert(
         "エラー",
@@ -47,19 +50,8 @@ export default function SignUpScreen() {
       );
       return;
     }
-
-    createUserWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        // サインアップ成功
-        console.log("User signed up:", userCredential.user);
-        // navigation.navigate(""); // ホーム画面に遷移
-      })
-      .catch((error) => {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        console.error("Error signing up:", errorCode, errorMessage);
-        Alert.alert("サインアップエラー", errorMessage);
-      });
+    
+    navigation.navigate("InputPersonalInformationScreen", { email, password });
   };
 
   return (
@@ -83,9 +75,10 @@ export default function SignUpScreen() {
         autoCapitalize="none"
         placeholderTextColor="#aaa"
       />
+
       <Button
-        title="新規登録"
-        onPress={() => SignUpWithEmail(email, password)}
+        title="認証" //個人情報入力画面へ
+        onPress={() => InputEmailAndPasswordScreen(email, password)}
       />
     </SafeAreaView>
   );
