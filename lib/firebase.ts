@@ -27,7 +27,7 @@ if (!getApps().length) {
 const app = initializeApp(firebaseConfig);
 // Firestoreインスタンスを取得
 export const db = getFirestore(firebaseApp);
-const auth = getAuth(app); // Authインスタンスを取得
+export const auth = getAuth(app); // Authインスタンスを取得
 export const firestore = getFirestore(app);
 
 // メッセージのドキュメント参照を取得する関数
