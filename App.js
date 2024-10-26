@@ -1,23 +1,37 @@
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import React, { useState, useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
-// import HomeScreen from "./pages/HomeScreen";
-// import PhotoUploadPage from "./pages/PhotoUploadPage";
-// import InformationForm from "./pages/InformationForm";
-import SignUpScreen from "./signup"; //デバッグ用
+import { createStackNavigator } from "@react-navigation/stack";
+import LoadingScreen from "./pages/LoadingScreen";
+import HomeScreen from "./pages/HomeScreen";
+import InputScreen from "./pages/InputScreen";
 
-const Stack = createNativeStackNavigator();
+const Stack = createStackNavigator();
 
-export default function App() {
+const App = () => {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadApp = async () => {
+      // ロード処理をここで行う（例: APIのフェッチやデータの準備など）
+      await new Promise((resolve) => setTimeout(resolve, 2000)); // 2秒待つ
+      setLoading(false);
+    };
+
+    loadApp();
+  }, []);
+
+  if (loading) {
+    return <LoadingScreen />;
+  }
+
   return (
-    <>
-      <SignUpScreen/>
-    </>
-    // <NavigationContainer>
-    //   <Stack.Navigator initialRouteName="Home">
-    //     <Stack.Screen name="Home" component={HomeScreen} />
-    //     <Stack.Screen name="PhotoUpload" component={PhotoUploadPage} />
-    //     <Stack.Screen name="InformationForm" component={InformationForm} />
-    //   </Stack.Navigator>
-    // </NavigationContainer>
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName="Home">
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Input" component={InputScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
-}
+};
+
+export default App;
