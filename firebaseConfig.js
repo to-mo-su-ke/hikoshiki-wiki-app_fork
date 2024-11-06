@@ -2,13 +2,16 @@ import firebase from "firebase/compat/app";
 import "firebase/compat/firestore";
 
 // Firebaseの設定情報を取得して設定する
-const firebaseConfig = {
-  apiKey: "AIzaSyABT5pEPk4QpsxElFk3E1IElr4Y3ICuYYs",
-  authDomain: "rio-s-tets.firebaseapp.com",
-  projectId: "rio-s-tets",
-  storageBucket: "rio-s-tets.appspot.com",
-  messagingSenderId: "1087006869767",
-  appId: "1:1087006869767:web:e9a796972e40dd10d15da2",
+export const firebaseConfig = {
+  apiKey: "AIzaSyDBUTuJaOcEdQvT2jAaoEdZV52IPQDKqH4",
+  authDomain: "unofficialwikigroup4.firebaseapp.com",
+  databaseURL:
+    "https://unofficialwikigroup4-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "unofficialwikigroup4",
+  storageBucket: "unofficialwikigroup4.appspot.com",
+  messagingSenderId: "942892902022",
+  appId: "1:942892902022:web:d0432a88360497a12e1307",
+  measurementId: "G-CGSGNBQ2GD",
 };
 
 // Firebaseアプリが初期化されていない場合は初期化
