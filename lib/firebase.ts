@@ -1,10 +1,7 @@
-// lib/firebase.ts
-import { initializeApp, getApps, FirebaseApp } from "firebase/app";
-import { getFirestore, collection, doc } from "firebase/firestore";
-import { getAuth, signInAnonymously } from "firebase/auth"; // signInAnonymouslyをインポート
-import ReactNativeAsyncStorage from "@react-native-async-storage/async-storage";
+import firebase from "firebase/compat/app";
+import "firebase/compat/firestore";
 
-// Firebaseの設定オブジェクト
+// Firebaseの設定情報を取得して設定する
 export const firebaseConfig = {
   apiKey: "AIzaSyDBUTuJaOcEdQvT2jAaoEdZV52IPQDKqH4",
   authDomain: "unofficialwikigroup4.firebaseapp.com",
@@ -17,30 +14,20 @@ export const firebaseConfig = {
   measurementId: "G-CGSGNBQ2GD",
 };
 
-// Firebaseアプリの初期化
-let firebaseApp: FirebaseApp;
-if (!getApps().length) {
-  firebaseApp = initializeApp(firebaseConfig);
-} else {
-  firebaseApp = getApps()[0];
+// Firebaseアプリが初期化されていない場合は初期化
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
 }
 
-// Firestoreインスタンスを取得
-export const db = getFirestore(firebaseApp);
-const auth = getAuth(firebaseApp); // Authインスタンスを取得
+const firestore = firebase.firestore();
 
-// メッセージのドキュメント参照を取得する関数
-export const getMessageDocRef = async () => {
-  return doc(collection(db, "messages"));
-};
+export { firestore };
 
-// ユーザーIDを取得する関数
-export const getUserId = async (): Promise<string | undefined> => {
+export const submitDataToFirestore = async (data, collectionName) => {
   try {
-    const userCredential = await signInAnonymously(auth); // authを使ってサインイン
-    return userCredential.user?.uid; // uidがない場合はundefinedが返る
+    await firestore.collection(collectionName).add(data); // 引数で受け取ったコレクション名を使用
+    console.log("データが正常に送信されました");
   } catch (error) {
-    console.error("Error signing in anonymously:", error);
-    return undefined; // nullではなくundefinedを返す
+    console.error("Firestoreへの送信エラー: ", error);
   }
 };
