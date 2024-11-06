@@ -7,6 +7,8 @@ import {
   Button,
   FlatList,
   Alert,
+  Text,
+  TouchableOpacity
 } from "react-native";
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 import {
@@ -20,11 +22,13 @@ import {
 import { getMessageDocRef, db, getUserId } from "../lib/firebase";
 import { Message } from "../types/message";
 import { MessageItem } from "../component/messageitem"; // 修正箇所
+import { useNavigation } from "@react-navigation/native";
 
 export const ChatAdmin = () => {
   const [text, setText] = useState<string>("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [userId, setUserId] = useState<string | undefined>();
+  const navigation = useNavigation();
 
   // ユーザーIDを取得
   const signin = async () => {
@@ -72,6 +76,14 @@ export const ChatAdmin = () => {
   return (
     <SafeAreaView style={styles.container}>
       <ExpoStatusBar style="light" />
+      {/* 戻るボタン */}
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => navigation.goBack()} // 戻るボタンを押すと前の画面に戻る
+      >
+        <Text style={styles.backButtonText}>戻る</Text>
+      </TouchableOpacity>
+
       <FlatList
         data={messages}
         renderItem={({ item }) => (
@@ -101,6 +113,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#333",
+  },
+  backButton: {
+    padding: 10,
+    backgroundColor: "#4a90e2",
+    borderRadius: 8,
+    margin: 10,
+  },
+  backButtonText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "bold",
   },
   inputTextContainer: {
     width: "100%",
