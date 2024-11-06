@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { TextInput } from 'react-native';
 import { Message } from  '../types/message';
 import { MessageItem } from '../pages/messageitem';
@@ -12,14 +12,14 @@ import { Timestamp, collection, addDoc, getDocs, QueryDocumentSnapshot, Document
 // <types>
 // データ型の定義 本来ここでするべきものではない気もする．
 type Thread = {
-    id: string;
+    ref: string;
     // スレッドの最終更新日時等を表すシグネチャ
     // 更新のたびに変化することによって，クライアントが更新を検知できる
     signature: string;
     initialMessage: Message;
 }
 type Assignment = {
-    id: string|undefined;
+    ref: string|undefined;
     name: string;
     dueDate: Timestamp;
 }
@@ -29,21 +29,26 @@ type Assignment = {
 
 // <main component>
 // exportするコンポーネント．つまり，このファイルに記述されるコンポーネントの中で一番外側に来るもの．
-// ここでは画面遷移などを扱い，内容はここには書かない.CourseBulletin(授業掲示板)Screenの内容はCourseBulletinContentに書く．
+// ここでは画面遷移などを扱い，内容はここには書かない.SubjectBulletin(授業掲示板)Screenの内容はSubjectBulletinContentに書く．
 
 
 // RootのStack.Navigatorに次の記述を追加すればこのページに遷移できます．
-// <Stack.Screen name="SubjectBulletinScreen" component={SubjectBulletinScreen} options={{courseId: 'xxx'}}/>
+// <Stack.Screen name="SubjectBulletinScreen" component={SubjectBulletinScreen} options={{subjectRef: 'xxx'}}/>
 // 動作確認時はinitialRouteNameをSubjectBulletinScreenにするのが楽です
+// subjectIdではなく，subjectRefを用いているので注意してください．
+// subjectRefはReferenceを意味し，subjectRef = 'zyugyo/<subjectId>'です．これはFirestore内のドキュメントパスに対応します．
 
+// 以下はIdからReferenceを生成する関数です．
+export const subjectIdToRef = (subjectId: string) => `zyugyo/${subjectId}`;
 
+// [SubjectBulletinScreenProps]を定義するためのダミー．実際は呼び出し元のコンポーネントの定義による．
 type RootStackParamList = {
-    SubjectBulletinScreen: { subjectId: string };
+    SubjectBulletinScreen: { subjectRef: string };
     Home: undefined;
 }
 type SubjectBulletinScreenProps = {
     navigation: NativeStackNavigationProp<RootStackParamList, 'SubjectBulletinScreen'>,
-    subjectId: string,
+    subjectRef: string,
 }
 
 // ページごとにrouteに格納されるパラメータの設定
@@ -54,7 +59,7 @@ type StackParamList = {
 const Stack = createStackNavigator<StackParamList>();
 
 // 参考: https://reactnavigation.org/docs/hello-react-navigation
-export const SubjectBulletinScreen = ({navigation, subjectId: courseId}: SubjectBulletinScreenProps) => {
+export const SubjectBulletinScreen = ({navigation, subjectRef}: SubjectBulletinScreenProps) => {
     return (
         <Stack.Navigator initialRouteName="BulletinContent" screenOptions={
             {headerShown: false,}
@@ -63,16 +68,18 @@ export const SubjectBulletinScreen = ({navigation, subjectId: courseId}: Subject
                 (props)=>
                 <CourseBulletinContent 
                     {...props} 
-                    subjectId={courseId} 
+                    subjectRef={subjectRef} 
                     goBack={
-                        () => navigation.navigate('Home')
-            }/>}</Stack.Screen>
+                        () => navigation.replace('Home')
+                }/>
+            }
+            </Stack.Screen>
+
             <Stack.Screen name="ThreadScreen" component={ThreadScreen}/>
         </Stack.Navigator>
     )
 }
 // </main component>
-
 
 
 // <data>
@@ -83,17 +90,17 @@ interface CurrentUser {
     get name(): string;
 }
 interface CourseInfoRepository {
-    getSubjectName(subjectId: string): Promise<string>;
+    getSubjectName(subjectRef: string): Promise<string>;
 }
 interface AssignmentInfoRepository {
-    getAssignments(subjectId: string): Promise<Assignment[]>;
-    saveAssignment(subjectId: string, assignment: Assignment): Promise<void>;
+    getAssignments(subjectRef: string): Promise<Assignment[]>;
+    saveAssignment(subjectRef: string, assignment: Assignment): Promise<void>;
 }
 interface ForumRepository {
-    getThreads(subjectId: string): Promise<Thread[]>;
+    getThreads(subjectRef: string): Promise<Thread[]>;
     // Messege型はここで定義せずにtypes/message.tsを参照している
-    getMessages(threadId: string): Promise<Message[]>;
-    sendMessage(threadId: string, message: Message): Promise<void>;
+    getMessages(threadRef: string): Promise<Message[]>;
+    sendMessage(threadRef: string, message: Message): Promise<void>;
 }
 // </data>
 
@@ -124,19 +131,22 @@ class CurrentUserImpl implements CurrentUser {
     }
 }
 class AssignmentInfoRepositoryImpl implements AssignmentInfoRepository {
-    async getTargetDocForSubject(subjectId: string) {
-        let docs = await getDocs(collection(db, "zyugyou"));
+    async getTargetDocForSubject(subjectRef: string) {
+        let directories = subjectRef.split('/');
+        console.log(directories);
+        let docs = await getDocs(collection(db, directories[0]));
+        console.log(docs);
         let target: QueryDocumentSnapshot<DocumentData, DocumentData> | null = null;
         for (const doc of docs.docs) {
-            if (doc.id == subjectId) {
+            if (doc.id == subjectRef) {
                 target = doc;
                 break;
             }
         }
         return target;
     }
-    async getAssignments(subjectId: string): Promise<Assignment[]> {
-        let zyugyouDoc = await this.getTargetDocForSubject(subjectId);
+    async getAssignments(subjectRef: string): Promise<Assignment[]> {
+        let zyugyouDoc = await this.getTargetDocForSubject(subjectRef);
         // asita??????? 何だそれ???
         let asitaDocs = await getDocs(zyugyouDoc.data().asita);
 
@@ -148,15 +158,15 @@ class AssignmentInfoRepositoryImpl implements AssignmentInfoRepository {
         for (const doc of asitaDocs.docs) {
             const data = doc.data() as Assignment_variant;
             assignments.push({
-                id: doc.id,
+                ref: doc.id,
                 name: data.homework,
                 dueDate: Timestamp.now(),
             });
         }
         return assignments;
     }
-    async saveAssignment(subjectId: string, assignment: Assignment): Promise<void> {
-        let zyugyouDoc = await this.getTargetDocForSubject(subjectId);
+    async saveAssignment(subjectRef: string, assignment: Assignment): Promise<void> {
+        let zyugyouDoc = await this.getTargetDocForSubject(subjectRef);
         // asita???????
         addDoc(zyugyouDoc.data().asita, {'homework': assignment.name});
     }
@@ -186,12 +196,12 @@ class MockAssignmentInfoRepository implements AssignmentInfoRepository {
         const yesterday = Timestamp.fromMillis(now.toMillis() - 24 * 60 * 60 * 1000);
         return [
             {
-                id: '1',
+                ref: '1',
                 name: '課題1',
                 dueDate: yesterday,
             },
             {
-                id: '2',
+                ref: '2',
                 name: '課題2',
                 dueDate: now,
             },
@@ -202,12 +212,12 @@ class MockAssignmentInfoRepository implements AssignmentInfoRepository {
     }
 }
 class MockForumRepository implements ForumRepository {
-    async getThreads(contextId: string): Promise<Thread[]> {
+    async getThreads(contextRef: string): Promise<Thread[]> {
         const now = Timestamp.now();
         const yesterday = Timestamp.fromMillis(now.toMillis() - 24 * 60 * 60 * 1000);
         return [
             {
-                id: '1',
+                ref: '1',
                 signature: '',
                 initialMessage: {
                     id: '1',
@@ -218,7 +228,7 @@ class MockForumRepository implements ForumRepository {
                 }
             },
             {
-                id: '2',
+                ref: '2',
                 signature: '',
                 initialMessage: {
                     id: '2',
@@ -230,11 +240,11 @@ class MockForumRepository implements ForumRepository {
             },
         ]
     }
-    async getMessages(threadId: string): Promise<Message[]> {
+    async getMessages(threadRef: string): Promise<Message[]> {
         const now = Timestamp.now();
         const yesterday = Timestamp.fromMillis(now.toMillis() - 24 * 60 * 60 * 1000);
         const aMomentLater = Timestamp.fromMillis(yesterday.toMillis() + 60 * 1000);
-        if (threadId === '1') {
+        if (threadRef === '1') {
             return [
                 {
                     id: '1',
@@ -263,17 +273,17 @@ class MockForumRepository implements ForumRepository {
             ]
         }
     }
-    async sendMessage(threadId: string, message: Message): Promise<void> {
+    async sendMessage(threadRef: string, message: Message): Promise<void> {
         return;
     }
 }
 class MockForumRepository1 implements ForumRepository {
-    async getThreads(contextId: string): Promise<Thread[]> {
+    async getThreads(context: string): Promise<Thread[]> {
         const now = Timestamp.now();
         const yesterday = Timestamp.fromMillis(now.toMillis() - 24 * 60 * 60 * 1000);
         return [
             {
-                id: '1',
+                ref: '1',
                 signature: '',
                 initialMessage: {
                     id: '1',
@@ -284,7 +294,7 @@ class MockForumRepository1 implements ForumRepository {
                 }
             },
             {
-                id: '2',
+                ref: '2',
                 signature: '',
                 initialMessage: {
                     id: '2',
@@ -296,11 +306,11 @@ class MockForumRepository1 implements ForumRepository {
             },
         ]
     }
-    async getMessages(threadId: string): Promise<Message[]> {
+    async getMessages(threadRef: string): Promise<Message[]> {
         const now = Timestamp.now();
         const yesterday = Timestamp.fromMillis(now.toMillis() - 24 * 60 * 60 * 1000);
         const aMomentLater = Timestamp.fromMillis(yesterday.toMillis() + 60 * 1000);
-        if (threadId === '1') {
+        if (threadRef === '1') {
             return [
                 {
                     id: '1',
@@ -329,17 +339,17 @@ class MockForumRepository1 implements ForumRepository {
             ]
         }
     }
-    async sendMessage(threadId: string, message: Message): Promise<void> {
+    async sendMessage(threadRef: string, message: Message): Promise<void> {
         return;
     }
 }
 class MockForumRepository2 implements ForumRepository {
-    async getThreads(contextId: string): Promise<Thread[]> {
+    async getThreads(contextRef: string): Promise<Thread[]> {
         const now = Timestamp.now();
         const yesterday = Timestamp.fromMillis(now.toMillis() - 24 * 60 * 60 * 1000);
         return [
             {
-                id: '1',
+                ref: '1',
                 signature: '',
                 initialMessage: {
                     id: '1',
@@ -350,7 +360,7 @@ class MockForumRepository2 implements ForumRepository {
                 }
             },
             {
-                id: '2',
+                ref: '2',
                 signature: '',
                 initialMessage: {
                     id: '2',
@@ -362,11 +372,11 @@ class MockForumRepository2 implements ForumRepository {
             },
         ]
     }
-    async getMessages(threadId: string): Promise<Message[]> {
+    async getMessages(threadRef: string): Promise<Message[]> {
         const now = Timestamp.now();
         const yesterday = Timestamp.fromMillis(now.toMillis() - 24 * 60 * 60 * 1000);
         const aMomentLater = Timestamp.fromMillis(yesterday.toMillis() + 60 * 1000);
-        if (threadId === '1') {
+        if (threadRef === '1') {
             return [
                 {
                     id: '1',
@@ -395,7 +405,7 @@ class MockForumRepository2 implements ForumRepository {
             ]
         }
     }
-    async sendMessage(threadId: string, message: Message): Promise<void> {
+    async sendMessage(threadRef: string, message: Message): Promise<void> {
         return;
     }
 }
@@ -418,14 +428,14 @@ const freeForumRepository: ForumRepository = new MockForumRepository2();
 // 掲示板/BulletinBoard: フォーラムの集まり
 // CourseBulletinContent: 
 type CourseBulletinContentProps = {
-    navigation: NativeStackNavigationProp<StackParamList, 'BulletinContent'>;
-    goBack: () => void;
-    subjectId: string;
+    navigation: NativeStackNavigationProp<StackParamList, 'BulletinContent'>; // 掲示板画面内遷移用
+    goBack: () => void; // 掲示板画面(本ファイル内で定義される画面領域)から退出する
+    subjectRef: string;
 }
-const CourseBulletinContent = ({navigation, goBack, subjectId}: CourseBulletinContentProps) => {
+const CourseBulletinContent = ({navigation, goBack, subjectRef}: CourseBulletinContentProps) => {
     const [courseName, setCourseName] = useState('');
     useEffect(() => {
-        courseInfoRepository.getSubjectName(subjectId).then((name) => {
+        courseInfoRepository.getSubjectName(subjectRef).then((name) => {
             setCourseName(name);
         })
     }, []);
@@ -433,22 +443,23 @@ const CourseBulletinContent = ({navigation, goBack, subjectId}: CourseBulletinCo
         <View>
             <Button title='back' onPress={goBack}/>
             <Text>{courseName} 掲示板</Text>
-            <AssignmentInfoView subjectId={subjectId}/>
-            <Forum title='テストの詳細' forumRepo={testForumRepository} subjectId={subjectId} navigation={navigation}></Forum>
-            <Forum title='教室移動などの連絡事項' forumRepo={infoForumRepository} subjectId={subjectId} navigation={navigation}/>
-            <Forum title='掲示板' forumRepo={freeForumRepository} subjectId={subjectId} navigation={navigation}/>
+            <AssignmentInfoView subjectRef={subjectRef}/>
+            <Forum title='テストの詳細' forumRepo={testForumRepository} subjectRef={subjectRef} navigation={navigation}></Forum>
+            <Forum title='教室移動などの連絡事項' forumRepo={infoForumRepository} subjectRef={subjectRef} navigation={navigation}/>
+            <Forum title='掲示板' forumRepo={freeForumRepository} subjectRef={subjectRef} navigation={navigation}/>
         </View>
     )
 }
 
 // AssignmentInfoView: 課題の情報を表示する
 type AssignmentInfoViewProps = {
-    subjectId: string;
+    subjectRef: string;
 }
-const AssignmentInfoView = ({subjectId}: AssignmentInfoViewProps) => {
+const AssignmentInfoView = ({subjectRef}: AssignmentInfoViewProps) => {
+    // データベースからの読み込みに時間がかかる可能性があるので遅延取得する
     const [assignments, setAssignments] = useState<Assignment[]>([]);
     useEffect(() => {
-        assignmentInfoRepository.getAssignments(subjectId).then((assignments) => {
+        assignmentInfoRepository.getAssignments(subjectRef).then((assignments) => {
             setAssignments(assignments);
         })
     }, []);
@@ -456,7 +467,7 @@ const AssignmentInfoView = ({subjectId}: AssignmentInfoViewProps) => {
         <Text>現在提示中の課題</Text>
         <View>
             {assignments.map((assignment) => (
-                <Text key={assignment.id}>{assignment.name} {assignment.dueDate.toDate().toString()}</Text>
+                <Text key={assignment.ref}>{assignment.name} {assignment.dueDate.toDate().toString()}</Text>
             ))}
         </View>
     </>);
@@ -466,22 +477,24 @@ const AssignmentInfoView = ({subjectId}: AssignmentInfoViewProps) => {
 type ForumProps = {
     title: string;
     forumRepo: ForumRepository;
-    subjectId: string;
+    subjectRef: string;
     navigation: NativeStackNavigationProp<StackParamList, "BulletinContent", undefined>;
 }
-const Forum = ({title, subjectId, forumRepo, navigation}: ForumProps) => {
+const Forum = ({title, subjectRef, forumRepo, navigation}: ForumProps) => {
+    // データベースからの読み込みに時間がかかる可能性があるので遅延取得する
     const [threads, setThreads] = useState<Thread[]>([]);
     useEffect(() => {
-        forumRepo.getThreads(subjectId).then((threads) => {
+        forumRepo.getThreads(subjectRef).then((threads) => {
             setThreads(threads);
         })
     }, []);
+
     return (
         <>
             <Text>{title}</Text>
             <View>
                 {threads.map((thread) => (
-                    <ThreadTitle thread={thread} threadRepo={freeForumRepository} navigation={navigation} key={thread.id}/>
+                    <ThreadTitle thread={thread} threadRepo={freeForumRepository} navigation={navigation} key={thread.ref}/>
                 ))}
             </View>
         </>
@@ -506,12 +519,13 @@ const ThreadTitle = ({thread, threadRepo, navigation} :ThreadTitleProps) => {
 const ThreadScreen = ({navigation, route}: NativeStackScreenProps<StackParamList, 'ThreadScreen'>) => {
     const {thread, threadRepo} = route.params;
 
+    // データベースからの読み込みに時間がかかる可能性があるので遅延取得する
     const [messages, setMessages] = useState<Message[]>([]);
     useEffect(() => {
-        threadRepo.getMessages(thread.id).then((messages) => {
+        threadRepo.getMessages(thread.ref).then((messages) => {
             setMessages(messages);
         })
-    }, [thread.id, thread.signature]);
+    }, [thread.ref, thread.signature]);
     
     return (
         <>
@@ -534,13 +548,13 @@ const ThreadScreen = ({navigation, route}: NativeStackScreenProps<StackParamList
                 ))}
             </View>
 
-            <MessagePostForm threadId={thread.id} threadRepo={threadRepo}/>
+            <MessagePostForm threadRef={thread.ref} threadRepo={threadRepo}/>
         </>
     )
 }
 
-type MessagePostFormProps = {threadId: string, threadRepo: ForumRepository}
-const MessagePostForm = ({threadId, threadRepo}: MessagePostFormProps) => {
+type MessagePostFormProps = {threadRef: string, threadRepo: ForumRepository}
+const MessagePostForm = ({threadRef, threadRepo}: MessagePostFormProps) => {
     const [newMessage, setNewMessage] = useState('');
     return <>
     <TextInput
@@ -558,7 +572,7 @@ const MessagePostForm = ({threadId, threadRepo}: MessagePostFormProps) => {
     />
     <Button title='post' onPress={
         () => {
-            testForumRepository.sendMessage(threadId, {
+            threadRepo.sendMessage(threadRef, {
                 id: '',
                 text: newMessage,
                 createdAt: Timestamp.now(),
