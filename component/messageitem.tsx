@@ -26,6 +26,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({
       <Text style={styles.messageTime}>
         {message.createdAt.toDate().toLocaleString()}
       </Text>
+      <Text style={styles.read}>{message.isread && isSentByCurrentUser ? "既読" : ""}</Text>
     </View>
   );
 };
@@ -51,5 +52,9 @@ const styles = StyleSheet.create({
     color: "#777",
     fontSize: 12,
     marginTop: 5,
+  },
+  read: {
+    color: "#fff",
+    fontSize: 12,
   },
 });
