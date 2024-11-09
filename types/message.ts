@@ -7,4 +7,5 @@ export type Message = {
   createdAt: Timestamp; // 送信時間
   userId: string; // 送信者のユーザーID
   userName: string; // 送信者の名前
+  isread: boolean; //既読かどうか
 };

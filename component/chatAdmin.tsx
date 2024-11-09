@@ -46,6 +46,7 @@ export const ChatAdmin = () => {
         createdAt: Timestamp.now(),
         userId: userId,
         userName: "YOUR_USER_NAME",
+        isread: false,
       } as Message;
       await setDoc(docRef, newMessage);
       setText("");

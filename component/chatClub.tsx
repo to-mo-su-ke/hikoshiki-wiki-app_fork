@@ -46,6 +46,7 @@ export const Chatclub = () => {
         createdAt: Timestamp.now(),
         userId: userId,
         userName: "YOUR_USER_NAME", // ユーザー名の設定（必要に応じて変更）
+        isread: false,
       } as Message;
       await setDoc(docRef, newMessage);
       setText(""); // 送信後に入力フィールドをリセット
