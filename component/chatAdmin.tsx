@@ -23,6 +23,7 @@ import { getMessageDocRef, db, getUserId } from "../lib/firebase";
 import { Message } from "../types/message";
 import { MessageItem } from "../component/messageitem"; // 修正箇所
 import { useNavigation } from "@react-navigation/native";
+import { markReadMessages } from "./readfunction";
 
 export const ChatAdmin = () => {
   const [text, setText] = useState<string>("");
@@ -64,6 +65,7 @@ export const ChatAdmin = () => {
         ...doc.data(),
       })) as Message[];
       setMessages(newMessages);
+      markReadMessages(newMessages, userId);
     });
 
     return () => unsubscribe();

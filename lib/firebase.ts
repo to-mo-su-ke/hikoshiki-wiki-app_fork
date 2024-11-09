@@ -34,6 +34,11 @@ export const getMessageDocRef = async () => {
   return doc(collection(db, "messages"));
 };
 
+// 特定のidのメッセージのドキュメント参照を取得する関数
+export const getSpecificMessageDocRef = async (id: string) => {
+  return doc(collection(db, "messages"), id)
+}
+
 // ユーザーIDを取得する関数
 export const getUserId = async (): Promise<string | undefined> => {
   try {

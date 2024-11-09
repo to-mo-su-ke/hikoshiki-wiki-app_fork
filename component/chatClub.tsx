@@ -23,6 +23,7 @@ import { getMessageDocRef, db, getUserId } from "../lib/firebase";
 import { Message } from "../types/message";
 import { MessageItem } from "./messageitem"; // 修正箇所
 import { useNavigation } from "@react-navigation/native"; // ナビゲーションフックをインポート
+import { markReadMessages } from "./readfunction";
 
 export const Chatclub = () => {
   const [text, setText] = useState<string>(""); // 入力されたメッセージ
@@ -64,6 +65,7 @@ export const Chatclub = () => {
         ...doc.data(),
       })) as Message[];
       setMessages(newMessages); // メッセージを更新
+      markReadMessages(newMessages, userId);
     });
 
     return () => unsubscribe();
