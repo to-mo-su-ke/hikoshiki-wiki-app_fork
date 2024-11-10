@@ -4,10 +4,11 @@ import { Message } from  '../types/message';
 import { MessageItem } from '../pages/messageitem';
 import { createStackNavigator } from "@react-navigation/stack";
 import { NativeStackScreenProps, NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { Text, Button, View } from "react-native";
+import { Text, Button, View, FlatList } from "react-native";
 
-import { db, getUserId } from '../lib/firebase'; 
+import { firestore } from '../lib/firebase'; 
 import { Timestamp, collection, addDoc, getDocs, QueryDocumentSnapshot, DocumentData } from "firebase/firestore";
+import { ScrollView } from 'react-native-gesture-handler';
 
 // <types>
 // データ型の定義 本来ここでするべきものではない気もする．
@@ -16,11 +17,11 @@ type Thread = {
     // スレッドの最終更新日時等を表すシグネチャ
     // 更新のたびに変化することによって，クライアントが更新を検知できる
     signature: string;
-    initialMessage: Message;
+    initialMessageRef: Message;
 }
 type Assignment = {
     ref: string|undefined;
-    name: string;
+    title: string;
     dueDate: Timestamp;
 }
 // </types>
@@ -33,22 +34,23 @@ type Assignment = {
 
 
 // RootのStack.Navigatorに次の記述を追加すればこのページに遷移できます．
-// <Stack.Screen name="SubjectBulletinScreen" component={SubjectBulletinScreen} options={{subjectRef: 'xxx'}}/>
+/**  
+ * <Stack.Screen name="SubjectBulletinScreen"> {
+ *    (props) => <SubjectBulletinScreen subjectId='[subjectId]' {...props}/>
+ * } </Stack.Screen>
+ * 
+*/
 // 動作確認時はinitialRouteNameをSubjectBulletinScreenにするのが楽です
-// subjectIdではなく，subjectRefを用いているので注意してください．
-// subjectRefはReferenceを意味し，subjectRef = 'zyugyo/<subjectId>'です．これはFirestore内のドキュメントパスに対応します．
 
-// 以下はIdからReferenceを生成する関数です．
-export const subjectIdToRef = (subjectId: string) => `zyugyo/${subjectId}`;
 
 // [SubjectBulletinScreenProps]を定義するためのダミー．実際は呼び出し元のコンポーネントの定義による．
 type RootStackParamList = {
-    SubjectBulletinScreen: { subjectRef: string };
+    SubjectBulletinScreen: { subjectId: string };
     Home: undefined;
 }
 type SubjectBulletinScreenProps = {
     navigation: NativeStackNavigationProp<RootStackParamList, 'SubjectBulletinScreen'>,
-    subjectRef: string,
+    subjectId: string,
 }
 
 // ページごとにrouteに格納されるパラメータの設定
@@ -59,7 +61,7 @@ type StackParamList = {
 const Stack = createStackNavigator<StackParamList>();
 
 // 参考: https://reactnavigation.org/docs/hello-react-navigation
-export const SubjectBulletinScreen = ({navigation, subjectRef}: SubjectBulletinScreenProps) => {
+export const SubjectBulletinScreen = ({navigation, subjectId}: SubjectBulletinScreenProps) => {
     return (
         <Stack.Navigator initialRouteName="BulletinContent" screenOptions={
             {headerShown: false,}
@@ -67,11 +69,12 @@ export const SubjectBulletinScreen = ({navigation, subjectRef}: SubjectBulletinS
             <Stack.Screen name="BulletinContent">{
                 (props)=>
                 <CourseBulletinContent 
-                    {...props} 
-                    subjectRef={subjectRef} 
+                    subjectRef={`zyugyou/${subjectId}`} 
                     goBack={
                         () => navigation.replace('Home')
-                }/>
+                    }
+                    {...props} 
+                />
             }
             </Stack.Screen>
 
@@ -89,86 +92,197 @@ interface CurrentUser {
     get id(): string;
     get name(): string;
 }
-interface CourseInfoRepository {
+interface SubjectInfoRepository {
     getSubjectName(subjectRef: string): Promise<string>;
 }
 interface AssignmentInfoRepository {
     getAssignments(subjectRef: string): Promise<Assignment[]>;
     saveAssignment(subjectRef: string, assignment: Assignment): Promise<void>;
+    isChangedByOthers(subjectRef: string): Promise<boolean>;
 }
 interface ForumRepository {
     getThreads(subjectRef: string): Promise<Thread[]>;
+    getThread(threadRef: string): Promise<Thread>;
+    makeThread(subjectRef: string, initialMessage: Message): Promise<Thread>;
     // Messege型はここで定義せずにtypes/message.tsを参照している
     getMessages(threadRef: string): Promise<Message[]>;
     sendMessage(threadRef: string, message: Message): Promise<void>;
+    isChangedByOthers(subjectRef: string): Promise<boolean>;
 }
 // </data>
 
 
 
 // <repository implementations>
-class CurrentUserImpl implements CurrentUser {
-    _id: string = '';
-    _name: string = '';
-    initialized: boolean = false;
-    constructor() {
-        getUserId().then((userId) => {
-            this._id = userId;
-            return getDocs(collection(db, "user"));
-        }).then((docs)=>{
-            docs.forEach((doc) => {
-                if (doc.id != this._id) {return;}
-                this._name = doc.data().username;
-            })
-            this.initialized = true;
-        });
-    }
-    get id(): string {
-        return this._id;
-    }
-    get name(): string {
-        return this._name;
+const newSignature = () => Date.now().toString() + Math.random().toString();
+class SubjectInfoRepositoryImpl implements SubjectInfoRepository {
+    async getSubjectName(subjectRef: string) {
+        let subjectDoc = await firestore.doc(subjectRef).get();
+        let syllabus_ref = subjectDoc.get('syllabus');
+        let syllabusDoc = await firestore.doc(syllabus_ref).get();
+        return syllabusDoc.get('courseTitle');
     }
 }
-class AssignmentInfoRepositoryImpl implements AssignmentInfoRepository {
-    async getTargetDocForSubject(subjectRef: string) {
-        let directories = subjectRef.split('/');
-        console.log(directories);
-        let docs = await getDocs(collection(db, directories[0]));
-        console.log(docs);
-        let target: QueryDocumentSnapshot<DocumentData, DocumentData> | null = null;
-        for (const doc of docs.docs) {
-            if (doc.id == subjectRef) {
-                target = doc;
-                break;
+abstract class ChangeDetector {
+    signature: string = '';
+    isChangeDetected: boolean = false;
+    abstract get signatureName(): string;
+
+    /** 初回呼び出し時にもメモリ上にsignatureが設定されていないのでtrueを吐きます */
+    async isChangedByOthers(subjectRef: string): Promise<boolean> {
+        if (this.isChangeDetected) {
+            this.isChangeDetected = false;
+            return true;
+        } else {
+            await this._detectChange(subjectRef);
+            if (this.isChangeDetected) {
+                this.isChangeDetected = false;
+                return true;
+            } else {
+                return false;
             }
         }
-        return target;
     }
-    async getAssignments(subjectRef: string): Promise<Assignment[]> {
-        let zyugyouDoc = await this.getTargetDocForSubject(subjectRef);
-        // asita??????? 何だそれ???
-        let asitaDocs = await getDocs(zyugyouDoc.data().asita);
 
-        type Assignment_variant = {
-            homework: string;
+    async _detectChange(subjectRef: string) {
+        let subjectDoc = await firestore.doc(subjectRef).get();
+        let dbSignature = subjectDoc.get(this.signatureName);
+        if (dbSignature !== this.signature) {
+            this.signature = dbSignature;
+            this.isChangeDetected = true;
         }
-
-        const assignments: Assignment[] = [];
-        for (const doc of asitaDocs.docs) {
-            const data = doc.data() as Assignment_variant;
+    }
+    async _updateDBSignature(subjectRef: string) {
+        this.signature = newSignature();
+        await firestore.doc(subjectRef).update({
+            [this.signatureName]: this.signature,
+        });
+    }
+}
+class AssignmentInfoRepositoryImpl extends ChangeDetector implements AssignmentInfoRepository{
+    /**
+     * @param subjectRef zyugyou/[subjectId]
+     *  */
+    signatureName: string = 'homeworkSignature';
+    async getAssignments(subjectRef: string) {
+        let homework_collection = 
+            await firestore
+                .collection(`${subjectRef}/homework`)
+                .orderBy('dueDate')
+                .get();
+        // データベースから取得した課題情報をAssignment型に変換
+        let assignments: Assignment[] = [];
+        for (let doc of homework_collection.docs) {
             assignments.push({
-                ref: doc.id,
-                name: data.homework,
-                dueDate: Timestamp.now(),
+                ref: `${subjectRef}/homework/${doc.id}`,
+                title: doc.get('title'),
+                dueDate: doc.get('dueDate'),
             });
         }
         return assignments;
     }
     async saveAssignment(subjectRef: string, assignment: Assignment): Promise<void> {
-        let zyugyouDoc = await this.getTargetDocForSubject(subjectRef);
-        // asita???????
-        addDoc(zyugyouDoc.data().asita, {'homework': assignment.name});
+        let homework_collection = firestore.collection(`${subjectRef}/homework`);
+        if (assignment.ref) {
+            firestore.doc(assignment.ref).set({
+                title: assignment.title,
+                dueDate: assignment.dueDate,
+            });
+        } else {
+            await homework_collection.add({
+                title: assignment.title,
+                dueDate: assignment.dueDate,
+            });
+        }
+        this._detectChange(subjectRef);
+        this._updateDBSignature(subjectRef);
+    }
+}
+abstract class ForumRepositoryImpl extends ChangeDetector implements ForumRepository {
+    signature: string = '';
+    isChangeDetected: boolean = false;
+    get signatureName() {
+        return this.threadName + 'Signature';
+    };
+    abstract threadName: string;
+    /**
+     * @param subjectRef zyugyou/[subjectId]
+     *  */
+    async getThreads(subjectRef: string): Promise<Thread[]> {
+        let threadCollection = firestore.collection(`${subjectRef}/${this.threadName}`).orderBy('createdAt');
+        let threads: Thread[] = [];
+        let threadDocs = await threadCollection.get();
+        for (let doc of threadDocs.docs) {
+            threads.push({
+                ref: `${subjectRef}/${this.threadName}/${doc.id}`,
+                signature: doc.get('signature'),
+                initialMessageRef: doc.get('initialMessageRef'),
+            });
+        }
+        return threads.reverse();
+    }
+    async getThread(threadRef: string): Promise<Thread> {
+        let threadDoc = await firestore.doc(threadRef).get();
+        return {
+            ref: threadRef,
+            signature: threadDoc.get('signature'),
+            initialMessageRef: threadDoc.get('initialMessageRef'),
+        }
+    }
+    async makeThread(subjectRef: string, initialMessage: Message): Promise<Thread> {
+        let threadCollection = firestore.collection(`${subjectRef}/${this.threadName}`);
+        let threadDoc = threadCollection.doc();
+        let threadSignature = newSignature();
+        await threadDoc.set({
+            signature: threadSignature,
+            initialMessageRef: '',
+            createdAt: Timestamp.now(),
+        });
+        let messageCollection = firestore.collection(`${threadDoc.path}/messages`);
+        let initialMessageDoc = await messageCollection.add({
+            content: initialMessage.text,
+            createdAt: initialMessage.createdAt,
+            userRef: `/user/${initialMessage.userId}`,
+        });
+        await threadDoc.update({
+            initialMessageRef: initialMessageDoc.path,
+        });
+        return {
+            ref: threadDoc.id,
+            signature: threadSignature,
+            initialMessageRef: initialMessage,
+        }
+    }
+    // Messege型はここで定義せずにtypes/message.tsを参照している
+    async getMessages(threadRef: string): Promise<Message[]> {
+        let messageCollection = firestore
+            .collection(`${threadRef}/messages`)
+            .orderBy('createdAt');
+        let messages: Message[] = [];
+        let messageDocs = await messageCollection.get();
+        messages = await Promise.all(messageDocs.docs.map(async (doc)=>{
+            let userRef = doc.get('userRef');
+            let userDoc = await firestore.doc(userRef).get();
+            return {
+                id: doc.id,
+                text: doc.get('content'),
+                createdAt: doc.get('createdAt'),
+                userId: userDoc.id,
+                userName: userDoc.get('username'),
+            }
+        }));
+        return messages;
+    }
+    sendMessage(threadRef: string, message: Message): Promise<void> {
+        let messageCollection = firestore.collection(`${threadRef}/messages`);
+        return messageCollection.add({
+            content: message.text,
+            createdAt: message.createdAt,
+            userRef: `/user/${message.userId}`,
+        }).then(async () => {
+            await this._detectChange(threadRef);
+            await this._updateDBSignature(threadRef);
+        });
     }
 }
 // </repository implementations>
@@ -185,24 +299,24 @@ class MockCurrentUser implements CurrentUser {
         return 'Alice';
     }
 }
-class MockCourseInfoRepository implements CourseInfoRepository {
-    async getSubjectName(courseId: string): Promise<string> {
+class MockCourseInfoRepository implements SubjectInfoRepository {
+    async getSubjectName(subjectRef: string): Promise<string> {
         return 'コンピュータサイエンス';
     }
 }
 class MockAssignmentInfoRepository implements AssignmentInfoRepository {
-    async getAssignments(courseId: string): Promise<Assignment[]> {
+    async getAssignments(subjectRef: string): Promise<Assignment[]> {
         const now = Timestamp.now();
         const yesterday = Timestamp.fromMillis(now.toMillis() - 24 * 60 * 60 * 1000);
         return [
             {
                 ref: '1',
-                name: '課題1',
+                title: '課題1',
                 dueDate: yesterday,
             },
             {
                 ref: '2',
-                name: '課題2',
+                title: '課題2',
                 dueDate: now,
             },
         ]
@@ -210,17 +324,33 @@ class MockAssignmentInfoRepository implements AssignmentInfoRepository {
     async saveAssignment(courseId: string, assignment: Assignment): Promise<void> {
         return;
     }
+    async isChangedByOthers(subjectRef: string): Promise<boolean> {
+        return false;
+    }
 }
 class MockForumRepository implements ForumRepository {
-    async getThreads(contextRef: string): Promise<Thread[]> {
+    async getThread(threadRef: string): Promise<Thread> {
+        return {
+            ref: 'dummy',
+            signature: '',
+            initialMessageRef: {
+                id: 'dummy',
+                text: '最初のメッセージ',
+                createdAt: Timestamp.now(),
+                userId: 'user1',
+                userName: 'Alice',
+            }
+        };
+    }
+    async getThreads(subjectRef: string): Promise<Thread[]> {
         const now = Timestamp.now();
         const yesterday = Timestamp.fromMillis(now.toMillis() - 24 * 60 * 60 * 1000);
         return [
             {
-                ref: '1',
+                ref: 'dummy',
                 signature: '',
-                initialMessage: {
-                    id: '1',
+                initialMessageRef: {
+                    id: 'dummy',
                     text: '最初のメッセージ',
                     createdAt: yesterday,
                     userId: 'user1',
@@ -228,10 +358,10 @@ class MockForumRepository implements ForumRepository {
                 }
             },
             {
-                ref: '2',
+                ref: 'dummy',
                 signature: '',
-                initialMessage: {
-                    id: '2',
+                initialMessageRef: {
+                    id: 'dummy',
                     text: '最初のメッセージ',
                     createdAt: yesterday,
                     userId: 'user2',
@@ -247,14 +377,14 @@ class MockForumRepository implements ForumRepository {
         if (threadRef === '1') {
             return [
                 {
-                    id: '1',
+                    id: 'dummy',
                     text: '最初のメッセージ',
                     createdAt: yesterday,
                     userId: 'user1',
                     userName: 'Alice',
                 },
                 {
-                    id: '3',
+                    id: 'dummy',
                     text: 'メッセージ2',
                     createdAt: aMomentLater,
                     userId: 'user2',
@@ -264,7 +394,7 @@ class MockForumRepository implements ForumRepository {
         } else {
             return [
                 {
-                    id: '2',
+                    id: 'dummy',
                     text: '最初のメッセージ',
                     createdAt: yesterday,
                     userId: 'user2',
@@ -276,137 +406,15 @@ class MockForumRepository implements ForumRepository {
     async sendMessage(threadRef: string, message: Message): Promise<void> {
         return;
     }
-}
-class MockForumRepository1 implements ForumRepository {
-    async getThreads(context: string): Promise<Thread[]> {
-        const now = Timestamp.now();
-        const yesterday = Timestamp.fromMillis(now.toMillis() - 24 * 60 * 60 * 1000);
-        return [
-            {
-                ref: '1',
-                signature: '',
-                initialMessage: {
-                    id: '1',
-                    text: '最初のメッセージ',
-                    createdAt: yesterday,
-                    userId: 'user1',
-                    userName: 'Alice',
-                }
-            },
-            {
-                ref: '2',
-                signature: '',
-                initialMessage: {
-                    id: '2',
-                    text: '最初のメッセージ',
-                    createdAt: yesterday,
-                    userId: 'user2',
-                    userName: 'Bob',
-                }
-            },
-        ]
+    async isChangedByOthers(subjectRef: string): Promise<boolean> {
+        return false;
     }
-    async getMessages(threadRef: string): Promise<Message[]> {
-        const now = Timestamp.now();
-        const yesterday = Timestamp.fromMillis(now.toMillis() - 24 * 60 * 60 * 1000);
-        const aMomentLater = Timestamp.fromMillis(yesterday.toMillis() + 60 * 1000);
-        if (threadRef === '1') {
-            return [
-                {
-                    id: '1',
-                    text: '最初のメッセージ',
-                    createdAt: yesterday,
-                    userId: 'user1',
-                    userName: 'Alice',
-                },
-                {
-                    id: '3',
-                    text: 'メッセージ2',
-                    createdAt: aMomentLater,
-                    userId: 'user2',
-                    userName: 'Bob',
-                },
-            ]
-        } else {
-            return [
-                {
-                    id: '2',
-                    text: '最初のメッセージ',
-                    createdAt: yesterday,
-                    userId: 'user2',
-                    userName: 'Bob',
-                }
-            ]
+    async makeThread(subjectRef: string, initialMessage: Message): Promise<Thread> {
+        return {
+            ref: 'dummy',
+            signature: '',
+            initialMessageRef: initialMessage,
         }
-    }
-    async sendMessage(threadRef: string, message: Message): Promise<void> {
-        return;
-    }
-}
-class MockForumRepository2 implements ForumRepository {
-    async getThreads(contextRef: string): Promise<Thread[]> {
-        const now = Timestamp.now();
-        const yesterday = Timestamp.fromMillis(now.toMillis() - 24 * 60 * 60 * 1000);
-        return [
-            {
-                ref: '1',
-                signature: '',
-                initialMessage: {
-                    id: '1',
-                    text: '最初のメッセージ',
-                    createdAt: yesterday,
-                    userId: 'user1',
-                    userName: 'Alice',
-                }
-            },
-            {
-                ref: '2',
-                signature: '',
-                initialMessage: {
-                    id: '2',
-                    text: '最初のメッセージ',
-                    createdAt: yesterday,
-                    userId: 'user2',
-                    userName: 'Bob',
-                }
-            },
-        ]
-    }
-    async getMessages(threadRef: string): Promise<Message[]> {
-        const now = Timestamp.now();
-        const yesterday = Timestamp.fromMillis(now.toMillis() - 24 * 60 * 60 * 1000);
-        const aMomentLater = Timestamp.fromMillis(yesterday.toMillis() + 60 * 1000);
-        if (threadRef === '1') {
-            return [
-                {
-                    id: '1',
-                    text: '最初のメッセージ',
-                    createdAt: yesterday,
-                    userId: 'user1',
-                    userName: 'Alice',
-                },
-                {
-                    id: '3',
-                    text: 'メッセージ2',
-                    createdAt: aMomentLater,
-                    userId: 'user2',
-                    userName: 'Bob',
-                },
-            ]
-        } else {
-            return [
-                {
-                    id: '2',
-                    text: '最初のメッセージ',
-                    createdAt: yesterday,
-                    userId: 'user2',
-                    userName: 'Bob',
-                }
-            ]
-        }
-    }
-    async sendMessage(threadRef: string, message: Message): Promise<void> {
-        return;
     }
 }
 // </mock data>
@@ -414,12 +422,12 @@ class MockForumRepository2 implements ForumRepository {
 
 
 // <repository instance>
-const currentUser: CurrentUser = new CurrentUserImpl();
-const courseInfoRepository: CourseInfoRepository = new MockCourseInfoRepository();
+const currentUser: CurrentUser = new MockCurrentUser();
+const subjectInfoRepository: SubjectInfoRepository = new SubjectInfoRepositoryImpl();
 const assignmentInfoRepository: AssignmentInfoRepository = new AssignmentInfoRepositoryImpl();
 const testForumRepository: ForumRepository = new MockForumRepository();
-const infoForumRepository: ForumRepository = new MockForumRepository1();
-const freeForumRepository: ForumRepository = new MockForumRepository2();
+const infoForumRepository: ForumRepository = new MockForumRepository();
+const freeForumRepository: ForumRepository = new MockForumRepository();
 // </repository instance>
 
 
@@ -435,19 +443,19 @@ type CourseBulletinContentProps = {
 const CourseBulletinContent = ({navigation, goBack, subjectRef}: CourseBulletinContentProps) => {
     const [courseName, setCourseName] = useState('');
     useEffect(() => {
-        courseInfoRepository.getSubjectName(subjectRef).then((name) => {
+        subjectInfoRepository.getSubjectName(subjectRef).then((name) => {
             setCourseName(name);
         })
     }, []);
     return (
-        <View>
+        <ScrollView>
             <Button title='back' onPress={goBack}/>
             <Text>{courseName} 掲示板</Text>
             <AssignmentInfoView subjectRef={subjectRef}/>
             <Forum title='テストの詳細' forumRepo={testForumRepository} subjectRef={subjectRef} navigation={navigation}></Forum>
             <Forum title='教室移動などの連絡事項' forumRepo={infoForumRepository} subjectRef={subjectRef} navigation={navigation}/>
             <Forum title='掲示板' forumRepo={freeForumRepository} subjectRef={subjectRef} navigation={navigation}/>
-        </View>
+        </ScrollView>
     )
 }
 
@@ -467,7 +475,7 @@ const AssignmentInfoView = ({subjectRef}: AssignmentInfoViewProps) => {
         <Text>現在提示中の課題</Text>
         <View>
             {assignments.map((assignment) => (
-                <Text key={assignment.ref}>{assignment.name} {assignment.dueDate.toDate().toString()}</Text>
+                <Text key={assignment.ref}>{assignment.title} {assignment.dueDate.toDate().toString()}</Text>
             ))}
         </View>
     </>);
@@ -509,7 +517,7 @@ type ThreadTitleProps = {
 }
 const ThreadTitle = ({thread, threadRepo, navigation} :ThreadTitleProps) => {   
     return (
-        <Button title={thread.initialMessage.text} onPress={
+        <Button title={thread.initialMessageRef.text} onPress={
             () => navigation.navigate('ThreadScreen', {thread: thread, threadRepo: threadRepo})
         }/>
     )
@@ -536,9 +544,9 @@ const ThreadScreen = ({navigation, route}: NativeStackScreenProps<StackParamList
             </View>
             
             <View>
-            <Text>{thread.initialMessage.text}</Text>
-            <Text>{thread.initialMessage.userName}</Text>
-            <Text>{thread.initialMessage.createdAt.toString()}</Text>
+            <Text>{thread.initialMessageRef.text}</Text>
+            <Text>{thread.initialMessageRef.userName}</Text>
+            <Text>{thread.initialMessageRef.createdAt.toString()}</Text>
             </View>
 
             <View>
