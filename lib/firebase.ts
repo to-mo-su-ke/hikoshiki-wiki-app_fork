@@ -1,33 +1,46 @@
-import firebase from "firebase/compat/app";
-import "firebase/compat/firestore";
+// lib/firebase.ts
+import { initializeApp, getApps, FirebaseApp } from "firebase/app";
+import { getFirestore, collection, doc } from "firebase/firestore";
+import { getAuth, signInAnonymously } from "firebase/auth"; // signInAnonymouslyをインポート
+import ReactNativeAsyncStorage from "@react-native-async-storage/async-storage";
 
-// Firebaseの設定情報を取得して設定する
+// Firebaseの設定オブジェクト
 export const firebaseConfig = {
-  apiKey: "AIzaSyDBUTuJaOcEdQvT2jAaoEdZV52IPQDKqH4",
-  authDomain: "unofficialwikigroup4.firebaseapp.com",
-  databaseURL:
-    "https://unofficialwikigroup4-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "unofficialwikigroup4",
-  storageBucket: "unofficialwikigroup4.appspot.com",
-  messagingSenderId: "942892902022",
-  appId: "1:942892902022:web:d0432a88360497a12e1307",
-  measurementId: "G-CGSGNBQ2GD",
-};
-
-// Firebaseアプリが初期化されていない場合は初期化
-if (!firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
+    apiKey: "AIzaSyDBUTuJaOcEdQvT2jAaoEdZV52IPQDKqH4",
+    authDomain: "unofficialwikigroup4.firebaseapp.com",
+    databaseURL:
+      "https://unofficialwikigroup4-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "unofficialwikigroup4",
+    storageBucket: "unofficialwikigroup4.appspot.com",
+    messagingSenderId: "942892902022",
+    appId: "1:942892902022:web:d0432a88360497a12e1307",
+    measurementId: "G-CGSGNBQ2GD",
+  };
+  
+// Firebaseアプリの初期化
+let firebaseApp: FirebaseApp;
+if (!getApps().length) {
+  firebaseApp = initializeApp(firebaseConfig);
+} else {
+  firebaseApp = getApps()[0];
 }
 
-const firestore = firebase.firestore();
+// Firestoreインスタンスを取得
+export const db = getFirestore(firebaseApp);
+const auth = getAuth(firebaseApp); // Authインスタンスを取得
 
-export { firestore };
+// メッセージのドキュメント参照を取得する関数
+export const getMessageDocRef = async () => {
+  return doc(collection(db, "messages"));
+};
 
-export const submitDataToFirestore = async (data, collectionName) => {
+// ユーザーIDを取得する関数
+export const getUserId = async (): Promise<string | undefined> => {
   try {
-    await firestore.collection(collectionName).add(data); // 引数で受け取ったコレクション名を使用
-    console.log("データが正常に送信されました");
+    const userCredential = await signInAnonymously(auth); // authを使ってサインイン
+    return userCredential.user?.uid; // uidがない場合はundefinedが返る
   } catch (error) {
-    console.error("Firestoreへの送信エラー: ", error);
+    console.error("Error signing in anonymously:", error);
+    return undefined; // nullではなくundefinedを返す
   }
 };

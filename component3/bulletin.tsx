@@ -6,7 +6,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import { NativeStackScreenProps, NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Text, Button, View, FlatList } from "react-native";
 
-import { firestore } from '../lib/firebase'; 
+import { firestore } from '../lib/firestore'; 
 import { Timestamp, collection, addDoc, getDocs, QueryDocumentSnapshot, DocumentData } from "firebase/firestore";
 import { ScrollView } from 'react-native-gesture-handler';
 
