@@ -11,11 +11,8 @@ const firebaseConfig = {
   appId: "1:1087006869767:web:e9a796972e40dd10d15da2",
 };
 
-// Firebaseアプリが初期化されていない場合は初期化
-if (!firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
-}
+const app=firebase.initializeApp(firebaseConfig);
 
 const firestore = firebase.firestore();
 
-export { firestore };
+export { app,firestore };
