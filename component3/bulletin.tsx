@@ -35,9 +35,7 @@ type Assignment = {
 
 // RootのStack.Navigatorに次の記述を追加すればこのページに遷移できます．
 /**  
- * <Stack.Screen name="SubjectBulletinScreen"> {
- *    (props) => <SubjectBulletinScreen subjectId='[subjectId]' {...props}/>
- * } </Stack.Screen>
+ * <Stack.Screen name="SubjectBulletinScreen" component={SubjectBulletinScreen} options={subjectId='[subjectId]'}/>
  * 
 */
 // 動作確認時はinitialRouteNameをSubjectBulletinScreenにするのが楽です
