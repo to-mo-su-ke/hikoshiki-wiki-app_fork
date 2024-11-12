@@ -6,9 +6,9 @@ import { ChatRoomSelection } from "./ChatRoomSelection";
 import { ChatAdmin } from "./chatAdmin";
 import { Chatclub } from "./chatClub";
 
-const Stack = createStackNavigator();
 
-const AppNavigator = () => {
+export const AppNavigator = () => {
+  const Stack = createStackNavigator();
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="ChatRoomSelection">
