@@ -56,7 +56,8 @@ const TagSearch: React.FC<TagSearchProps> = ({
         setSelectedTags(tagsData);
         setResults(data);
       } catch (error) {
-        Alert.alert("Error", error.message);
+        const errorMessage = (error as string);
+        console.error(errorMessage);
       }
     };
 

@@ -6,13 +6,13 @@ const HomeScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Button
-        title="写真をアップロード"
-        onPress={() => navigation.navigate("PhotoUpload")}
+        title="カレンダー"
+        onPress={() => navigation.navigate("Calendar")}
       />
       <View style={styles.buttonSpacing}>
         <Button
-          title="情報送信フォーム"
-          onPress={() => navigation.navigate("InformationForm")}
+          title="ワンデイ"
+          onPress={() => navigation.navigate("DayEvents")}
         />
       </View>
     </View>
