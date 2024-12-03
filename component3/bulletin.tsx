@@ -211,17 +211,20 @@ abstract class ForumRepositoryImpl extends ChangeDetector implements ForumReposi
         let threads: Thread[] = [];
         let threadDocs = await threadCollection.get();
         for (let doc of threadDocs.docs) {
+            let initialMessageDoc = doc.get('initialMessageRef');
+            let initial = await firestore.doc(initialMessageDoc).get();
+            let userRef = initial.get('userRef');
+            let userDoc = await firestore.doc(userRef).get();
             threads.push({
                 ref: `${subjectRef}/${this.threadName}/${doc.id}`,
                 signature: doc.get('signature'),
                 initialMessage: {
-                    id: 'dummy',
-                    text: '最初のメッセージ',
-                    createdAt: Timestamp.now(),
-                    userId: 'user1',
-                    userName: 'Alice',
+                    id: initial.id,
+                    text: initial.get('content'),
+                    createdAt: initial.get('createdAt'),
+                    userId: userDoc.id,
+                    userName: userDoc.get("username"),
                 }
-              //変更の必要あり
             });
         }
         return threads.reverse();
@@ -287,6 +290,11 @@ abstract class ForumRepositoryImpl extends ChangeDetector implements ForumReposi
 class TestForumRepository extends ForumRepositoryImpl
 {
     threadName="test";
+}
+
+class InfoForumRepository extends ForumRepositoryImpl
+{
+    threadName="info";
 }
 
 // <mock data>
@@ -413,7 +421,7 @@ const currentUser: CurrentUser = new MockCurrentUser(); //変更の必要あり
 const subjectInfoRepository: SubjectInfoRepository = new SubjectInfoRepositoryImpl();
 const assignmentInfoRepository: AssignmentInfoRepository = new AssignmentInfoRepositoryImpl();
 const testForumRepository: ForumRepository = new TestForumRepository();
-const infoForumRepository: ForumRepository = new MockForumRepository();
+const infoForumRepository: ForumRepository = new InfoForumRepository();
 const freeForumRepository: ForumRepository = new MockForumRepository();
 // </repository instance>
 
