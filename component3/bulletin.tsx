@@ -17,7 +17,7 @@ type Thread = {
     // スレッドの最終更新日時等を表すシグネチャ
     // 更新のたびに変化することによって，クライアントが更新を検知できる
     signature: string;
-    initialMessageRef: Message;
+    initialMessage: Message;
 }
 type Assignment = {
     ref: string|undefined;
@@ -60,6 +60,7 @@ const Stack = createStackNavigator<StackParamList>();
 
 // 参考: https://reactnavigation.org/docs/hello-react-navigation
 export const SubjectBulletinScreen = ({navigation, subjectId}: SubjectBulletinScreenProps) => {
+    subjectId="dummy2" //変更の必要あり
     return (
         <Stack.Navigator initialRouteName="BulletinContent" screenOptions={
             {headerShown: false,}
@@ -100,7 +101,6 @@ interface AssignmentInfoRepository {
 }
 interface ForumRepository {
     getThreads(subjectRef: string): Promise<Thread[]>;
-    getThread(threadRef: string): Promise<Thread>;
     makeThread(subjectRef: string, initialMessage: Message): Promise<Thread>;
     // Messege型はここで定義せずにtypes/message.tsを参照している
     getMessages(threadRef: string): Promise<Message[]>;
@@ -214,18 +214,17 @@ abstract class ForumRepositoryImpl extends ChangeDetector implements ForumReposi
             threads.push({
                 ref: `${subjectRef}/${this.threadName}/${doc.id}`,
                 signature: doc.get('signature'),
-                initialMessageRef: doc.get('initialMessageRef'),
+                initialMessage: {
+                    id: 'dummy',
+                    text: '最初のメッセージ',
+                    createdAt: Timestamp.now(),
+                    userId: 'user1',
+                    userName: 'Alice',
+                }
+              //変更の必要あり
             });
         }
         return threads.reverse();
-    }
-    async getThread(threadRef: string): Promise<Thread> {
-        let threadDoc = await firestore.doc(threadRef).get();
-        return {
-            ref: threadRef,
-            signature: threadDoc.get('signature'),
-            initialMessageRef: threadDoc.get('initialMessageRef'),
-        }
     }
     async makeThread(subjectRef: string, initialMessage: Message): Promise<Thread> {
         let threadCollection = firestore.collection(`${subjectRef}/${this.threadName}`);
@@ -248,7 +247,7 @@ abstract class ForumRepositoryImpl extends ChangeDetector implements ForumReposi
         return {
             ref: threadDoc.id,
             signature: threadSignature,
-            initialMessageRef: initialMessage,
+            initialMessage: initialMessage,
         }
     }
     // Messege型はここで定義せずにtypes/message.tsを参照している
@@ -276,7 +275,7 @@ abstract class ForumRepositoryImpl extends ChangeDetector implements ForumReposi
         return messageCollection.add({
             content: message.text,
             createdAt: message.createdAt,
-            userRef: `/user/${message.userId}`,
+            userRef: `/user/${message.userId}`, 
         }).then(async () => {
             await this._detectChange(threadRef);
             await this._updateDBSignature(threadRef);
@@ -285,13 +284,16 @@ abstract class ForumRepositoryImpl extends ChangeDetector implements ForumReposi
 }
 // </repository implementations>
 
-
+class TestForumRepository extends ForumRepositoryImpl
+{
+    threadName="test";
+}
 
 // <mock data>
 // インターフェイスの実装として，ダミーのデータを返すクラス（動作確認用）
 class MockCurrentUser implements CurrentUser {
     get id(): string {
-        return 'user1';
+        return 'APZO4rGLegV9OwSogBVN';
     }
     get name(): string {
         return 'Alice';
@@ -327,19 +329,6 @@ class MockAssignmentInfoRepository implements AssignmentInfoRepository {
     }
 }
 class MockForumRepository implements ForumRepository {
-    async getThread(threadRef: string): Promise<Thread> {
-        return {
-            ref: 'dummy',
-            signature: '',
-            initialMessageRef: {
-                id: 'dummy',
-                text: '最初のメッセージ',
-                createdAt: Timestamp.now(),
-                userId: 'user1',
-                userName: 'Alice',
-            }
-        };
-    }
     async getThreads(subjectRef: string): Promise<Thread[]> {
         const now = Timestamp.now();
         const yesterday = Timestamp.fromMillis(now.toMillis() - 24 * 60 * 60 * 1000);
@@ -347,7 +336,7 @@ class MockForumRepository implements ForumRepository {
             {
                 ref: 'dummy',
                 signature: '',
-                initialMessageRef: {
+                initialMessage: {
                     id: 'dummy',
                     text: '最初のメッセージ',
                     createdAt: yesterday,
@@ -358,7 +347,7 @@ class MockForumRepository implements ForumRepository {
             {
                 ref: 'dummy',
                 signature: '',
-                initialMessageRef: {
+                initialMessage: {
                     id: 'dummy',
                     text: '最初のメッセージ',
                     createdAt: yesterday,
@@ -411,7 +400,7 @@ class MockForumRepository implements ForumRepository {
         return {
             ref: 'dummy',
             signature: '',
-            initialMessageRef: initialMessage,
+            initialMessage: initialMessage,
         }
     }
 }
@@ -420,10 +409,10 @@ class MockForumRepository implements ForumRepository {
 
 
 // <repository instance>
-const currentUser: CurrentUser = new MockCurrentUser();
+const currentUser: CurrentUser = new MockCurrentUser(); //変更の必要あり
 const subjectInfoRepository: SubjectInfoRepository = new SubjectInfoRepositoryImpl();
 const assignmentInfoRepository: AssignmentInfoRepository = new AssignmentInfoRepositoryImpl();
-const testForumRepository: ForumRepository = new MockForumRepository();
+const testForumRepository: ForumRepository = new TestForumRepository();
 const infoForumRepository: ForumRepository = new MockForumRepository();
 const freeForumRepository: ForumRepository = new MockForumRepository();
 // </repository instance>
@@ -472,8 +461,8 @@ const AssignmentInfoView = ({subjectRef}: AssignmentInfoViewProps) => {
     return (<>
         <Text>現在提示中の課題</Text>
         <View>
-            {assignments.map((assignment) => (
-                <Text key={assignment.ref}>{assignment.title} {assignment.dueDate.toDate().toString()}</Text>
+            {assignments.map((assignment,index) => (
+                <Text key={index}>{assignment.title} {assignment.dueDate.toDate().toString()}</Text>
             ))}
         </View>
     </>);
@@ -499,8 +488,8 @@ const Forum = ({title, subjectRef, forumRepo, navigation}: ForumProps) => {
         <>
             <Text>{title}</Text>
             <View>
-                {threads.map((thread) => (
-                    <ThreadTitle thread={thread} threadRepo={freeForumRepository} navigation={navigation} key={thread.ref}/>
+                {threads.map((thread,index) => (
+                    <ThreadTitle thread={thread} threadRepo={forumRepo} navigation={navigation} key={index}/>
                 ))}
             </View>
         </>
@@ -515,7 +504,7 @@ type ThreadTitleProps = {
 }
 const ThreadTitle = ({thread, threadRepo, navigation} :ThreadTitleProps) => {   
     return (
-        <Button title={thread.initialMessageRef.text} onPress={
+        <Button title={thread.initialMessage.text} onPress={
             () => navigation.navigate('ThreadScreen', {thread: thread, threadRepo: threadRepo})
         }/>
     )
@@ -542,15 +531,15 @@ const ThreadScreen = ({navigation, route}: NativeStackScreenProps<StackParamList
             </View>
             
             <View>
-            <Text>{thread.initialMessageRef.text}</Text>
-            <Text>{thread.initialMessageRef.userName}</Text>
-            <Text>{thread.initialMessageRef.createdAt.toString()}</Text>
+            <Text>{thread.initialMessage.text}</Text>
+            <Text>{thread.initialMessage.userName}</Text>
+            <Text>{thread.initialMessage.createdAt.toString()}</Text>
             </View>
 
             <View>
-                {messages.map((message) => (
+                {messages.map((message,index) => (
                     // MessageItemはこのファイル内では定義されていない（pages内のものを呼び出している）
-                    <MessageItem message={message} userId={currentUser.id} key={message.id}/>
+                    <MessageItem message={message} userId={currentUser.id} key={index}/>
                 ))}
             </View>
 

@@ -28,7 +28,7 @@ const App = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="SubjectBulletinScreen">
-        <Stack.Screen name="SubjectBulletinScreen" component={SubjectBulletinScreen} options={subjectId='[subjectId]'}/>
+        <Stack.Screen name="SubjectBulletinScreen" component={SubjectBulletinScreen} options={subjectId='dummy2'}/>
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Input" component={InputScreen} />
       </Stack.Navigator>
