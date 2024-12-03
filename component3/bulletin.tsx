@@ -297,6 +297,10 @@ class InfoForumRepository extends ForumRepositoryImpl
     threadName="info";
 }
 
+class FreeForumRepository extends ForumRepositoryImpl
+{
+    threadName="free";
+}
 // <mock data>
 // インターフェイスの実装として，ダミーのデータを返すクラス（動作確認用）
 class MockCurrentUser implements CurrentUser {
@@ -422,7 +426,7 @@ const subjectInfoRepository: SubjectInfoRepository = new SubjectInfoRepositoryIm
 const assignmentInfoRepository: AssignmentInfoRepository = new AssignmentInfoRepositoryImpl();
 const testForumRepository: ForumRepository = new TestForumRepository();
 const infoForumRepository: ForumRepository = new InfoForumRepository();
-const freeForumRepository: ForumRepository = new MockForumRepository();
+const freeForumRepository: ForumRepository = new FreeForumRepository();
 // </repository instance>
 
 
