@@ -1,5 +1,19 @@
-//どこに置けばいいのかわからないのでとりあえず1番上に置いておきます。画面遷移担当の方は勝手に動かしてもらって大丈夫です。
+/*
+作成したファイルは以下の通りです
+backend
+|submitPersonalInformation
+pages
+|signupOrLogin
+|signUp1
+|signUp2
+|selectClub
+routes
+|signUpRouting
 
+メールアドレスとパスワードを入力する画面です
+名前にログインと入っていますがまだログイン機能は追加していません
+
+*/
 import React, { useState } from "react";
 import {
   StyleSheet,
@@ -17,20 +31,18 @@ import {
   createUserWithEmailAndPassword,
 } from "firebase/auth";
 import { initializeApp } from "firebase/app";
-import { firebaseConfig } from "./lib/firebase"; // これが正しく設定されていることを確認
-import InputScreen from "./pages/InputScreen";
-
-// Firebaseアプリの初期化
-const app = initializeApp(firebaseConfig); //バグったら初回時のみ初期化するようにして関数内に入れる
-const auth = getAuth(app);
+import { firebaseConfig } from "../lib/firebase"; // これが正しく設定されていることを確認
+import { useNavigation } from "@react-navigation/native";
 
 
-export default function InputPersonalInformationScreen({ route }) {
-    const email = route.params.email;
-    const password = route.params.password;
-  // const navigation = useNavigation(); // ホーム画面への遷移に使用
 
-  // 永続化をbrowserLocalPersistenceで設定
+export default function SignUpScreen({ navigation }) { //分割代入
+  
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  // 永続化をbrowserLocalPersistenceで設定　ともすけの環境ではうまくいかなかったので一時的にコメントアウトしています
   // setPersistence(auth, browserLocalPersistence)
   //   .then(() => {
   //     console.log("Persistence set to local.");
@@ -39,27 +51,24 @@ export default function InputPersonalInformationScreen({ route }) {
   //     console.error("Error setting persistence:", error);
   //   });
 
-  const SignUpWithEmail = (email: string, password: string) => {
-
-    createUserWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        // サインアップ成功
-        console.log("User signed up:", userCredential.user);
-        // navigation.navigate(""); // ホーム画面に遷移
-      })
-      .catch((error) => {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        console.error("Error signing up:", errorCode, errorMessage);
-        Alert.alert("サインアップエラー", errorMessage);
-      });
+  //ルーティングの関数です
+  const InputEmailAndPasswordScreen = (email: string, password: string) => {
+    if (!email.endsWith("s.thers.ac.jp")) {
+      Alert.alert(
+        "エラー",
+        "メールアドレスは s.thers.ac.jp で終わる必要があります"
+      );
+      return;
+    }
+    //パスワードの条件を追加する
+    
+    navigation.navigate("InputPersonalInformationScreen1", { email, password });
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>新規登録</Text>
-      <InputScreen/>
-      {/* <TextInput
+      <TextInput
         style={styles.input}
         placeholder="メールアドレス"
         value={email}
@@ -77,10 +86,11 @@ export default function InputPersonalInformationScreen({ route }) {
         autoCapitalize="none"
         placeholderTextColor="#aaa"
       />
+
       <Button
         title="認証" //個人情報入力画面へ
-        onPress={() => SignUpWithEmail(email, password)}
-      /> */}
+        onPress={() => InputEmailAndPasswordScreen(email, password)}
+      />
     </SafeAreaView>
   );
 }

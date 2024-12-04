@@ -24,11 +24,11 @@ if (!getApps().length) {
 } else {
   firebaseApp = getApps()[0];
 }
-const app = initializeApp(firebaseConfig);
+// const app = initializeApp(firebaseConfig); 初期化が2回行われるのを防ぐためにコメントアウトしました
 // Firestoreインスタンスを取得
 export const db = getFirestore(firebaseApp);
-export const auth = getAuth(app); // Authインスタンスを取得
-export const firestore = getFirestore(app);
+export const auth = getAuth(firebaseApp); // Authインスタンスを取得
+export const firestore = getFirestore(firebaseApp);
 
 // メッセージのドキュメント参照を取得する関数
 export const getMessageDocRef = async () => {

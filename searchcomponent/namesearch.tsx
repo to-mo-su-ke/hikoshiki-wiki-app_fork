@@ -13,9 +13,22 @@ import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 import { Timestamp, collection, query, getDocs } from "firebase/firestore";
 import { firestore } from "../lib/firebase"; // Firebase設定ファイルからfirestoreをインポート
 
-const SearchScreen = ({ yourCollectionName, yourFieldName }) => {
+// 各アイテムの型定義
+interface Item {
+  id: string;
+  name: any;
+  [key: string]: any;
+}
+
+// Propsの型定義
+interface SearchScreenProps {
+  yourCollectionName: string;
+  yourFieldName: string;
+}
+
+const SearchScreen: React.FC<SearchScreenProps> = ({ yourCollectionName, yourFieldName }) => {
   const [queryText, setQueryText] = useState("");
-  const [results, setResults] = useState([]);
+  const [results, setResults] = useState<Item[]>([]); // 型を明示的に指定
 
   const handleSearch = async () => {
     try {
@@ -36,7 +49,8 @@ const SearchScreen = ({ yourCollectionName, yourFieldName }) => {
 
       setResults(filteredResults);
     } catch (error) {
-      Alert.alert("Error", error.message);
+      const errorMessage = (error as string);
+      console.error(errorMessage);
     }
   };
 
@@ -58,10 +72,9 @@ const SearchScreen = ({ yourCollectionName, yourFieldName }) => {
             {/* idとname以外のフィールドを表示 */}
             {Object.entries(item).map(([key, value]) => {
               if (key !== "id") {
-                // idとnameを除外
                 return (
                   <Text key={key}>
-                    {key}:{""}
+                    {key}:{" "}
                     {typeof value === "object"
                       ? JSON.stringify(value)
                       : String(value)}

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { TextInput, Text, View } from "react-native";
-import { styles } from "../styles/styles";
+import { styles } from "../styles/sytles";
 
 const TextInputComponent = () => {
   const [text, setText] = useState("");

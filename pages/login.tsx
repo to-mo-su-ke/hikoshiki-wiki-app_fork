@@ -1,6 +1,3 @@
-//どこに置けばいいのかわからないのでとりあえず1番上に置いておきます。画面遷移担当の方は勝手に動かしてもらって大丈夫です。
-//このファイル内の関数では登録は行われません。
-
 import React, { useState } from "react";
 import {
   StyleSheet,
@@ -13,36 +10,33 @@ import {
 } from "react-native";
 import {
   getAuth,
+  signInWithEmailAndPassword,
   setPersistence,
   browserLocalPersistence,
-  createUserWithEmailAndPassword,
 } from "firebase/auth";
 import { initializeApp } from "firebase/app";
-import { firebaseConfig } from "./lib/firebase"; // これが正しく設定されていることを確認
+import { firebaseConfig } from "../lib/firebase"; // これが正しく設定されていることを確認
 import { useNavigation } from "@react-navigation/native";
 
 // Firebaseアプリの初期化
-// const app = initializeApp(firebaseConfig); //バグったら初回時のみ初期化するようにして関数内に入れる
-// const auth = getAuth(app);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 
-
-export default function SignUpScreen({ navigation }) { //分割代入
-  
-
+export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  // const navigation = useNavigation(); // ホーム画面への遷移に使用
+  const navigation = useNavigation(); // ホーム画面への遷移に使用
 
   // 永続化をbrowserLocalPersistenceで設定
-  // setPersistence(auth, browserLocalPersistence)
-  //   .then(() => {
-  //     console.log("Persistence set to local.");
-  //   })
-  //   .catch((error) => {
-  //     console.error("Error setting persistence:", error);
-  //   });
+  setPersistence(auth, browserLocalPersistence)
+    .then(() => {
+      console.log("Persistence set to local.");
+    })
+    .catch((error) => {
+      console.error("Error setting persistence:", error);
+    });
 
-  const InputEmailAndPasswordScreen = (email: string, password: string) => {
+  const LoginWithEmail = (email: string, password: string) => {
     if (!email.endsWith("s.thers.ac.jp")) {
       Alert.alert(
         "エラー",
@@ -50,13 +44,24 @@ export default function SignUpScreen({ navigation }) { //分割代入
       );
       return;
     }
-    
-    navigation.navigate("InputPersonalInformationScreen", { email, password });
+
+    signInWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        // サインイン成功
+        console.log("User signed in:", userCredential.user);
+        // navigation.navigate(""); // ホーム画面に遷移
+      })
+      .catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        console.error("Error signing in:", errorCode, errorMessage);
+        Alert.alert("ログインエラー", errorMessage);
+      });
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>新規登録</Text>
+      <Text style={styles.title}>ログイン</Text>
       <TextInput
         style={styles.input}
         placeholder="メールアドレス"
@@ -75,10 +80,9 @@ export default function SignUpScreen({ navigation }) { //分割代入
         autoCapitalize="none"
         placeholderTextColor="#aaa"
       />
-
       <Button
-        title="認証" //個人情報入力画面へ
-        onPress={() => InputEmailAndPasswordScreen(email, password)}
+        title="ログイン"
+        onPress={() => LoginWithEmail(email, password)}
       />
     </SafeAreaView>
   );
