@@ -55,6 +55,7 @@ type SubjectBulletinScreenProps = {
 type StackParamList = {
     BulletinContent: {};
     ThreadScreen: { thread: Thread, threadRepo: ForumRepository };
+    MakeThreadScreen: {subjectRef: string,threadRepo: ForumRepository};
 }
 const Stack = createStackNavigator<StackParamList>();
 
@@ -78,6 +79,7 @@ export const SubjectBulletinScreen = ({navigation, subjectId}: SubjectBulletinSc
             </Stack.Screen>
 
             <Stack.Screen name="ThreadScreen" component={ThreadScreen}/>
+            <Stack.Screen name="MakeThreadScreen" component={MakeThreadScreen}/>
         </Stack.Navigator>
     )
 }
@@ -499,6 +501,9 @@ const Forum = ({title, subjectRef, forumRepo, navigation}: ForumProps) => {
     return (
         <>
             <Text>{title}</Text>
+            <Button title="+" onPress={
+            () => navigation.navigate('MakeThreadScreen', {subjectRef: subjectRef, threadRepo: forumRepo})
+        }/>           
             <View>
                 {threads.map((thread,index) => (
                     <ThreadTitle thread={thread} threadRepo={forumRepo} navigation={navigation} key={index}/>
@@ -580,6 +585,53 @@ const MessagePostForm = ({threadRef, threadRepo}: MessagePostFormProps) => {
     <Button title='post' onPress={
         () => {
             threadRepo.sendMessage(threadRef, {
+                id: '',
+                text: newMessage,
+                createdAt: Timestamp.now(),
+                userId: currentUser.id,
+                userName: currentUser.name,
+            }).then(() => {
+                setNewMessage('');
+            })
+        }
+    }/>
+    </>
+}
+
+const MakeThreadScreen = ({navigation, route}: NativeStackScreenProps<StackParamList, 'MakeThreadScreen'>) => {
+    const {subjectRef,threadRepo} = route.params;
+    return (
+        <>
+            <View>
+                <Button title='back' onPress={
+                    () => navigation.goBack()
+                }/>
+            </View>
+            <ThreadPostForm subjectRef={subjectRef} threadRepo={threadRepo}/>
+        </>
+    )
+}
+
+type ThreadPostFormProps = {subjectRef: string, threadRepo: ForumRepository}
+const ThreadPostForm = ({subjectRef,threadRepo}: ThreadPostFormProps) => {
+    const [newMessage, setNewMessage] = useState('');
+    return <>
+    <TextInput
+        style={{
+          borderColor: "gray",
+          borderWidth: 1,
+          marginBottom: 20,
+          height: 100,
+          textAlignVertical: "top",
+        }}
+        placeholder="メッセージを入力"
+        value={newMessage}
+        onChangeText={(text) => setNewMessage(text)}
+        multiline
+    />
+    <Button title='post' onPress={
+        () => {
+            threadRepo.makeThread(subjectRef,{
                 id: '',
                 text: newMessage,
                 createdAt: Timestamp.now(),
