@@ -1,10 +1,11 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState ,useCallback} from 'react';
 import { TextInput } from 'react-native';
 import { Message } from  '../types/message';
 import { MessageItem } from '../pages/messageitem';
 import { createStackNavigator } from "@react-navigation/stack";
 import { NativeStackScreenProps, NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Text, Button, View, FlatList } from "react-native";
+import {useFocusEffect} from '@react-navigation/native';
 
 import { firestore } from '../lib/firestore'; 
 import { Timestamp, collection, addDoc, getDocs, QueryDocumentSnapshot, DocumentData } from "firebase/firestore";
@@ -492,11 +493,17 @@ type ForumProps = {
 const Forum = ({title, subjectRef, forumRepo, navigation}: ForumProps) => {
     // データベースからの読み込みに時間がかかる可能性があるので遅延取得する
     const [threads, setThreads] = useState<Thread[]>([]);
-    useEffect(() => {
-        forumRepo.getThreads(subjectRef).then((threads) => {
-            setThreads(threads);
-        })
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            let Active=true;
+            forumRepo.getThreads(subjectRef).then((threads) => {
+                if(Active){
+                    setThreads(threads);
+                }
+            })
+            return ()=>{Active=false;}
+        },[])
+    );
 
     return (
         <>
@@ -530,14 +537,19 @@ const ThreadTitle = ({thread, threadRepo, navigation} :ThreadTitleProps) => {
 // ThreadScreen: スレッド画面
 const ThreadScreen = ({navigation, route}: NativeStackScreenProps<StackParamList, 'ThreadScreen'>) => {
     const {thread, threadRepo} = route.params;
-
+    const [key,setKey]=useState(0);
     // データベースからの読み込みに時間がかかる可能性があるので遅延取得する
     const [messages, setMessages] = useState<Message[]>([]);
     useEffect(() => {
         threadRepo.getMessages(thread.ref).then((messages) => {
             setMessages(messages);
         })
-    }, [thread.ref, thread.signature]);
+    }, [thread.ref, thread.signature,key]);
+
+    const ReloadScreen =()=>
+    {
+        setKey(key + 1)
+    }
     
     return (
         <>
@@ -560,13 +572,13 @@ const ThreadScreen = ({navigation, route}: NativeStackScreenProps<StackParamList
                 ))}
             </View>
 
-            <MessagePostForm threadRef={thread.ref} threadRepo={threadRepo}/>
+            <MessagePostForm threadRef={thread.ref} threadRepo={threadRepo} ReloadScreen={ReloadScreen}/>
         </>
     )
 }
 
-type MessagePostFormProps = {threadRef: string, threadRepo: ForumRepository}
-const MessagePostForm = ({threadRef, threadRepo}: MessagePostFormProps) => {
+type MessagePostFormProps = {threadRef: string, threadRepo: ForumRepository,ReloadScreen: ()=>void}
+const MessagePostForm = ({threadRef, threadRepo,ReloadScreen}: MessagePostFormProps) => {
     const [newMessage, setNewMessage] = useState('');
     return <>
     <TextInput
@@ -580,7 +592,7 @@ const MessagePostForm = ({threadRef, threadRepo}: MessagePostFormProps) => {
         placeholder="メッセージを入力"
         value={newMessage}
         onChangeText={(text) => setNewMessage(text)}
-        multiline
+        // 改行する場合はmultilineをいれる
     />
     <Button title='post' onPress={
         () => {
@@ -592,6 +604,7 @@ const MessagePostForm = ({threadRef, threadRepo}: MessagePostFormProps) => {
                 userName: currentUser.name,
             }).then(() => {
                 setNewMessage('');
+                ReloadScreen();
             })
         }
     }/>
@@ -599,7 +612,7 @@ const MessagePostForm = ({threadRef, threadRepo}: MessagePostFormProps) => {
 }
 
 const MakeThreadScreen = ({navigation, route}: NativeStackScreenProps<StackParamList, 'MakeThreadScreen'>) => {
-    const {subjectRef,threadRepo} = route.params;
+    const {subjectRef,threadRepo} = route.params; 
     return (
         <>
             <View>
@@ -627,7 +640,7 @@ const ThreadPostForm = ({subjectRef,threadRepo}: ThreadPostFormProps) => {
         placeholder="メッセージを入力"
         value={newMessage}
         onChangeText={(text) => setNewMessage(text)}
-        multiline
+        //改行する場合はmultilineを入れる
     />
     <Button title='post' onPress={
         () => {
@@ -638,7 +651,7 @@ const ThreadPostForm = ({subjectRef,threadRepo}: ThreadPostFormProps) => {
                 userId: currentUser.id,
                 userName: currentUser.name,
             }).then(() => {
-                setNewMessage('');
+                setNewMessage('')
             })
         }
     }/>
