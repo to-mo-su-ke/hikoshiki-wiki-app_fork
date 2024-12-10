@@ -57,12 +57,13 @@ type StackParamList = {
     BulletinContent: {};
     ThreadScreen: { thread: Thread, threadRepo: ForumRepository };
     MakeThreadScreen: {subjectRef: string,threadRepo: ForumRepository};
+    SaveAssignmentScreen: {subjectRef: string};
 }
 const Stack = createStackNavigator<StackParamList>();
 
 // 参考: https://reactnavigation.org/docs/hello-react-navigation
 export const SubjectBulletinScreen = ({navigation, subjectId}: SubjectBulletinScreenProps) => {
-    subjectId="dummy2" //変更の必要あり
+    subjectId="dummy3" //変更の必要あり
     return (
         <Stack.Navigator initialRouteName="BulletinContent" screenOptions={
             {headerShown: false,}
@@ -81,6 +82,7 @@ export const SubjectBulletinScreen = ({navigation, subjectId}: SubjectBulletinSc
 
             <Stack.Screen name="ThreadScreen" component={ThreadScreen}/>
             <Stack.Screen name="MakeThreadScreen" component={MakeThreadScreen}/>
+            <Stack.Screen name="SaveAssignmentScreen" component={SaveAssignmentScreen}/>
         </Stack.Navigator>
     )
 }
@@ -314,112 +316,6 @@ class MockCurrentUser implements CurrentUser {
         return 'Alice';
     }
 }
-class MockCourseInfoRepository implements SubjectInfoRepository {
-    async getSubjectName(subjectRef: string): Promise<string> {
-        return 'コンピュータサイエンス';
-    }
-}
-class MockAssignmentInfoRepository implements AssignmentInfoRepository {
-    async getAssignments(subjectRef: string): Promise<Assignment[]> {
-        const now = Timestamp.now();
-        const yesterday = Timestamp.fromMillis(now.toMillis() - 24 * 60 * 60 * 1000);
-        return [
-            {
-                ref: '1',
-                title: '課題1',
-                dueDate: yesterday,
-            },
-            {
-                ref: '2',
-                title: '課題2',
-                dueDate: now,
-            },
-        ]
-    }
-    async saveAssignment(courseId: string, assignment: Assignment): Promise<void> {
-        return;
-    }
-    async isChangedByOthers(subjectRef: string): Promise<boolean> {
-        return false;
-    }
-}
-class MockForumRepository implements ForumRepository {
-    async getThreads(subjectRef: string): Promise<Thread[]> {
-        const now = Timestamp.now();
-        const yesterday = Timestamp.fromMillis(now.toMillis() - 24 * 60 * 60 * 1000);
-        return [
-            {
-                ref: 'dummy',
-                signature: '',
-                initialMessage: {
-                    id: 'dummy',
-                    text: '最初のメッセージ',
-                    createdAt: yesterday,
-                    userId: 'user1',
-                    userName: 'Alice',
-                }
-            },
-            {
-                ref: 'dummy',
-                signature: '',
-                initialMessage: {
-                    id: 'dummy',
-                    text: '最初のメッセージ',
-                    createdAt: yesterday,
-                    userId: 'user2',
-                    userName: 'Bob',
-                }
-            },
-        ]
-    }
-    async getMessages(threadRef: string): Promise<Message[]> {
-        const now = Timestamp.now();
-        const yesterday = Timestamp.fromMillis(now.toMillis() - 24 * 60 * 60 * 1000);
-        const aMomentLater = Timestamp.fromMillis(yesterday.toMillis() + 60 * 1000);
-        if (threadRef === '1') {
-            return [
-                {
-                    id: 'dummy',
-                    text: '最初のメッセージ',
-                    createdAt: yesterday,
-                    userId: 'user1',
-                    userName: 'Alice',
-                },
-                {
-                    id: 'dummy',
-                    text: 'メッセージ2',
-                    createdAt: aMomentLater,
-                    userId: 'user2',
-                    userName: 'Bob',
-                },
-            ]
-        } else {
-            return [
-                {
-                    id: 'dummy',
-                    text: '最初のメッセージ',
-                    createdAt: yesterday,
-                    userId: 'user2',
-                    userName: 'Bob',
-                }
-            ]
-        }
-    }
-    async sendMessage(threadRef: string, message: Message): Promise<void> {
-        return;
-    }
-    async isChangedByOthers(subjectRef: string): Promise<boolean> {
-        return false;
-    }
-    async makeThread(subjectRef: string, initialMessage: Message): Promise<Thread> {
-        return {
-            ref: 'dummy',
-            signature: '',
-            initialMessage: initialMessage,
-        }
-    }
-}
-// </mock data>
 
 
 
@@ -453,7 +349,7 @@ const CourseBulletinContent = ({navigation, goBack, subjectRef}: CourseBulletinC
         <ScrollView>
             <Button title='back' onPress={goBack}/>
             <Text>{courseName} 掲示板</Text>
-            <AssignmentInfoView subjectRef={subjectRef}/>
+            <AssignmentForum subjectRef={subjectRef} navigation={navigation}/>
             <Forum title='テストの詳細' forumRepo={testForumRepository} subjectRef={subjectRef} navigation={navigation}></Forum>
             <Forum title='教室移動などの連絡事項' forumRepo={infoForumRepository} subjectRef={subjectRef} navigation={navigation}/>
             <Forum title='掲示板' forumRepo={freeForumRepository} subjectRef={subjectRef} navigation={navigation}/>
@@ -461,26 +357,102 @@ const CourseBulletinContent = ({navigation, goBack, subjectRef}: CourseBulletinC
     )
 }
 
-// AssignmentInfoView: 課題の情報を表示する
-type AssignmentInfoViewProps = {
+// AssignmentForum: 課題の情報を表示する
+type AssignmentForumProps = {
     subjectRef: string;
+    navigation: NativeStackNavigationProp<StackParamList, "BulletinContent", undefined>;
 }
-const AssignmentInfoView = ({subjectRef}: AssignmentInfoViewProps) => {
+const AssignmentForum = ({subjectRef,navigation}: AssignmentForumProps) => {
     // データベースからの読み込みに時間がかかる可能性があるので遅延取得する
     const [assignments, setAssignments] = useState<Assignment[]>([]);
-    useEffect(() => {
-        assignmentInfoRepository.getAssignments(subjectRef).then((assignments) => {
-            setAssignments(assignments);
-        })
-    }, []);
-    return (<>
+    useFocusEffect(
+        useCallback(() => {
+            let Active=true;
+            assignmentInfoRepository.getAssignments(subjectRef).then((assignments) => {
+                if(Active){
+                    setAssignments(assignments);
+                }
+            })
+            return ()=>{Active=false;}
+        },[]) 
+    ); //ページを開く度に更新されるように設定(gobackでも)(signatureに変更の必要あり)
+    return (
+    <>
         <Text>現在提示中の課題</Text>
+        <Button title="+" onPress={
+            () => navigation.navigate('SaveAssignmentScreen', {subjectRef: subjectRef})
+        }/>  
         <View>
             {assignments.map((assignment,index) => (
                 <Text key={index}>{assignment.title} {assignment.dueDate.toDate().toString()}</Text>
             ))}
         </View>
     </>);
+}
+
+//Threadをつくる画面
+const SaveAssignmentScreen = ({navigation, route}: NativeStackScreenProps<StackParamList, 'SaveAssignmentScreen'>) => {
+    const {subjectRef} = route.params; 
+    return (
+        <>
+            <View>
+                <Button title='back' onPress={
+                    () => navigation.goBack()
+                }/>
+            </View>
+            <SaveAssignmentForm subjectRef={subjectRef}/>
+        </>
+    )
+}
+
+//スレッドの最初のメッセージを入力するテキストボックス
+type SaveAssignmentFormProps = {subjectRef: string}
+const SaveAssignmentForm = ({subjectRef}: SaveAssignmentFormProps) => {
+    const [newMessage, setNewMessage] = useState<string>('');
+    const [newDueDate,setnewDueDate] = useState<string>(''); //変更の必要あり
+    return <>
+    <TextInput
+        style={{
+          borderColor: "gray",
+          borderWidth: 1,
+          marginBottom: 20,
+          height: 100,
+          textAlignVertical: "top",
+        }}
+        placeholder="メッセージを入力"
+        value={newMessage}
+        onChangeText={(text) => setNewMessage(text)}
+        //改行する場合はmultilineを入れる
+    />
+    <TextInput
+        style={{
+          borderColor: "gray",
+          borderWidth: 1,
+          marginBottom: 20,
+          height: 100,
+          textAlignVertical: "top",
+        }}
+        placeholder="2022-05-05T06:35:20"
+        value={newDueDate}
+        onChangeText={(text) => setnewDueDate(text)}
+        //改行する場合はmultilineを入れる
+    />
+    <Button title='post' onPress={
+        () => {
+            let newdueDate=new Date(newDueDate);
+            let dueDate=new Timestamp(Math.floor(newdueDate.getTime() / 1000),0)
+            assignmentInfoRepository.saveAssignment(subjectRef,{
+                
+                ref:"",
+                title: newMessage,
+                dueDate: dueDate,
+            }).then(() => {
+                setNewMessage('')
+                setnewDueDate('')
+            })
+        }
+    }/>
+    </>
 }
 
 // Forum: フォーラム ThreadTitleの集まり
@@ -502,9 +474,8 @@ const Forum = ({title, subjectRef, forumRepo, navigation}: ForumProps) => {
                 }
             })
             return ()=>{Active=false;}
-        },[])
-    );
-
+        },[]) 
+    ); //ページを開く度に更新されるように設定(gobackでも)(signatureに変更の必要あり)
     return (
         <>
             <Text>{title}</Text>
@@ -550,7 +521,7 @@ const ThreadScreen = ({navigation, route}: NativeStackScreenProps<StackParamList
     {
         setKey(key + 1)
     }
-    
+    //メッセージをpostしたときに, ページ全体の更新をかけるための関数(signatureに変更の必要あり)
     return (
         <>
             <View>
@@ -611,6 +582,7 @@ const MessagePostForm = ({threadRef, threadRepo,ReloadScreen}: MessagePostFormPr
     </>
 }
 
+//Threadをつくる画面
 const MakeThreadScreen = ({navigation, route}: NativeStackScreenProps<StackParamList, 'MakeThreadScreen'>) => {
     const {subjectRef,threadRepo} = route.params; 
     return (
@@ -625,6 +597,8 @@ const MakeThreadScreen = ({navigation, route}: NativeStackScreenProps<StackParam
     )
 }
 
+//スレッドの最初のメッセージを入力するテキストボックス
+//MessagePostFormとThreadPostFormの親をつくるように変更する必要あり
 type ThreadPostFormProps = {subjectRef: string, threadRepo: ForumRepository}
 const ThreadPostForm = ({subjectRef,threadRepo}: ThreadPostFormProps) => {
     const [newMessage, setNewMessage] = useState('');
@@ -658,3 +632,6 @@ const ThreadPostForm = ({subjectRef,threadRepo}: ThreadPostFormProps) => {
     </>
 }
 // </sub components>
+
+
+//その他の変更　編集機能
