@@ -7,7 +7,7 @@ import { NativeStackScreenProps, NativeStackNavigationProp } from "@react-naviga
 import { Text, Button, View, FlatList } from "react-native";
 import {useFocusEffect} from '@react-navigation/native';
 
-import { firestore } from '../lib/firestore'; 
+import { firestore,submitDataToFirestore } from '../lib/firestore'; 
 import { Timestamp, collection, addDoc, getDocs, QueryDocumentSnapshot, DocumentData } from "firebase/firestore";
 import { ScrollView } from 'react-native-gesture-handler';
 
@@ -96,7 +96,6 @@ export const SubjectBulletinScreen = ({navigation, route}) => { //型の指定�
                 />
             }
             </Stack.Screen>
-
             <Stack.Screen name="ThreadScreen" component={ThreadScreen}/>
             <Stack.Screen name="MakeThreadScreen" component={MakeThreadScreen}/>
             <Stack.Screen name="SaveAssignmentScreen" component={SaveAssignmentScreen}/>
