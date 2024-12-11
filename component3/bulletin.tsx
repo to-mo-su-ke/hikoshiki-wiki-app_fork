@@ -51,13 +51,23 @@ type Assignment = {
 
 // [SubjectBulletinScreenProps]を定義するためのダミー．実際は呼び出し元のコンポーネントの定義による．
 type RootStackParamList = {
+    DummyScreen: undefined;
     SubjectBulletinScreen: { subjectId: string };
     Home: undefined;
 }
-type SubjectBulletinScreenProps = {
-    navigation: NativeStackNavigationProp<RootStackParamList, 'SubjectBulletinScreen'>,
-    subjectId: string,
+
+//DummyScreen
+//教科選択のページのダミーをつくる(後で実際のページとつなげる用)
+export const DummyScreen=({navigation})=>
+{
+     return(
+        <>
+            <Button title="sport" onPress={()=>{navigation.navigate('SubjectBulletinScreen',{subjectId: "sport"})}}/>
+            <Button title="english" onPress={()=>{navigation.navigate('SubjectBulletinScreen',{subjectId: "english"})}}/>
+        </>
+    )
 }
+
 
 // ページごとにrouteに格納されるパラメータの設定
 type StackParamList = {
@@ -69,7 +79,8 @@ type StackParamList = {
 const Stack = createStackNavigator<StackParamList>();
 
 // 参考: https://reactnavigation.org/docs/hello-react-navigation
-export const SubjectBulletinScreen = ({navigation, subjectId}: SubjectBulletinScreenProps) => {
+export const SubjectBulletinScreen = ({navigation, route}) => { //型の指定をするように変更(エラー発生)
+    const {subjectId} = route.params; 
     return (
         <Stack.Navigator initialRouteName="BulletinContent" screenOptions={
             {headerShown: false,}
@@ -79,7 +90,7 @@ export const SubjectBulletinScreen = ({navigation, subjectId}: SubjectBulletinSc
                 <CourseBulletinContent 
                     subjectRef={`zyugyou/${subjectId}`} 
                     goBack={
-                        () => navigation.replace('Home')
+                        () => navigation.replace("DummyScreen")
                     }
                     {...props} 
                 />

@@ -4,7 +4,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import LoadingScreen from "./pages/LoadingScreen";
 import HomeScreen from "./pages/HomeScreen";
 import InputScreen from "./pages/InputScreen";
-import {SubjectBulletinScreen} from "./component3/bulletin";
+import {SubjectBulletinScreen,DummyScreen} from "./component3/bulletin";
 
 const Stack = createStackNavigator();
 
@@ -27,15 +27,9 @@ const App = () => {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="SubjectBulletinScreen">
-        <Stack.Screen name="SubjectBulletinScreen">{
-                (props)=>
-                <SubjectBulletinScreen
-                    subjectId={`dummy3`} 
-                    {...props} 
-                />
-            }
-            </Stack.Screen>
+      <Stack.Navigator initialRouteName="DummyScreen">
+      <Stack.Screen name="DummyScreen" component={DummyScreen} />
+      <Stack.Screen name="SubjectBulletinScreen" component={SubjectBulletinScreen} />
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Input" component={InputScreen} />
       </Stack.Navigator>
