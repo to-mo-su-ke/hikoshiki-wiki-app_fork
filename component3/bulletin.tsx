@@ -90,7 +90,7 @@ export const SubjectBulletinScreen = ({navigation, route}) => { //型の指定�
                 <CourseBulletinContent 
                     subjectRef={`zyugyou/${subjectId}`} 
                     goBack={
-                        () => navigation.replace("DummyScreen")
+                        () => navigation.goBack()
                     }
                     {...props} 
                 />
@@ -407,7 +407,7 @@ const AssignmentForum = ({subjectRef,navigation}: AssignmentForumProps) => {
     </>);
 }
 
-//Threadをつくる画面
+//Assignemntをつくる画面(本来は自動的に入力されるものになるかもしれないが, 一旦仮に作成)
 const SaveAssignmentScreen = ({navigation, route}: NativeStackScreenProps<StackParamList, 'SaveAssignmentScreen'>) => {
     const {subjectRef} = route.params; 
     return (
@@ -422,7 +422,7 @@ const SaveAssignmentScreen = ({navigation, route}: NativeStackScreenProps<StackP
     )
 }
 
-//スレッドの最初のメッセージを入力するテキストボックス
+//Assignmentの情報を入力するためのフォーム
 type SaveAssignmentFormProps = {subjectRef: string}
 const SaveAssignmentForm = ({subjectRef}: SaveAssignmentFormProps) => {
     const [newMessage, setNewMessage] = useState<string>('');
@@ -599,7 +599,7 @@ const MessagePostForm = ({threadRef, threadRepo,ReloadScreen}: MessagePostFormPr
     </>
 }
 
-//Threadをつくる画面
+//Thread作成画面
 const MakeThreadScreen = ({navigation, route}: NativeStackScreenProps<StackParamList, 'MakeThreadScreen'>) => {
     const {subjectRef,threadRepo} = route.params; 
     return (
@@ -649,6 +649,3 @@ const ThreadPostForm = ({subjectRef,threadRepo}: ThreadPostFormProps) => {
     </>
 }
 // </sub components>
-
-
-//その他の変更　編集機能
