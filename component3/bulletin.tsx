@@ -36,7 +36,14 @@ type Assignment = {
 
 // RootのStack.Navigatorに次の記述を追加すればこのページに遷移できます．
 /**  
- * <Stack.Screen name="SubjectBulletinScreen" component={SubjectBulletinScreen} options={subjectId='[subjectId]'}/>
+<Stack.Screen name="SubjectBulletinScreen">{
+    (props)=>
+        <SubjectBulletinScreen
+            subjectId={`dummy3`} 
+            {...props} 
+        />
+    }
+</Stack.Screen>
  * 
 */
 // 動作確認時はinitialRouteNameをSubjectBulletinScreenにするのが楽です
@@ -63,7 +70,6 @@ const Stack = createStackNavigator<StackParamList>();
 
 // 参考: https://reactnavigation.org/docs/hello-react-navigation
 export const SubjectBulletinScreen = ({navigation, subjectId}: SubjectBulletinScreenProps) => {
-    subjectId="dummy3" //変更の必要あり
     return (
         <Stack.Navigator initialRouteName="BulletinContent" screenOptions={
             {headerShown: false,}
