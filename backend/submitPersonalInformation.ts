@@ -33,17 +33,14 @@ interface PersonalInformation {
     major: string;
     researchroom:string;
     role:string;
-    club:string;
+    club:string[];
 }
 
-function GetPersonalInformation(uid: string) {
-    return doc(db, "user", uid);
-}
-
+//個人情報を登録する関数
 export default async function submitPersonalInformation(uid: string, personalInformation: PersonalInformation) {
-
     try {
-        await setDoc(GetPersonalInformation(uid), personalInformation);
+        const userDocRef = doc(db, "user", uid);
+        await setDoc(userDocRef, personalInformation);
     } catch (error) {
         console.error("Error submitting data:", error);
     }

@@ -51,7 +51,6 @@ export default function SignUpScreen({ navigation }) { //分割代入
   //     console.error("Error setting persistence:", error);
   //   });
 
-  //ルーティングの関数です
   const InputEmailAndPasswordScreen = (email: string, password: string) => {
     if (!email.endsWith("s.thers.ac.jp")) {
       Alert.alert(

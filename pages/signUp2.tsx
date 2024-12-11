@@ -80,73 +80,20 @@ const DropdownWithSearch = () => {
   );
 };
 
-const DynamicInputFields = () => {
-  const [open, setOpen] = useState([false]);
-  const [value, setValue] = useState([null]);
-  const [items, setItems] = useState([clubData]);
-
-  const [inputFields, setInputFields] = useState<string[]>(['']);
-
-  const addInputField = () => {
-    if (inputFields.length < 10) {
-      setInputFields([...inputFields, '']);
-    }
-  };
-
-  const removeInputField = (index: number) => {
-    const updatedFields = inputFields.filter((_, i) => i !== index);
-    setInputFields(updatedFields);
-  };
-
-  const updateInputField = (index: number, value: string) => {
-    const updatedFields = [...inputFields];
-
-    updatedFields[index] = value;
-    setInputFields(updatedFields);
-  };
-
-  return (
-    <View style={styles.container}>
-      {inputFields.map((field, index) => (
-        <View key={index} style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            value={field}
-            onChangeText={(value) => updateInputField(index, value)}
-            placeholder={`Input ${index + 1}`}
-          />
-          <DropDownPicker
-            open={open}
-            value={value}
-            items={items}
-            setOpen={setOpen}
-            setValue={setValue}
-            setItems={setItems}
-            searchable={true} // 検索機能を有効化
-            placeholder="選択してください"
-          />
-
-          <Button
-            title="−"
-            onPress={() => removeInputField(index)}
-            disabled={inputFields.length === 1}
-          />
-        </View>
-      ))}
-      <Button
-        title="+"
-        onPress={addInputField}
-        disabled={inputFields.length >= 10}
-      />
-    </View>
-  );
-};
 
 
 export default function InputPersonalInformationScreen2({ navigation, route }) {
   const [uid, setUid] = useState("");
   const email = route.params.email;
   const password = route.params.password;
+  const username = route.params.information.username;
+  const grade = route.params.information.grade;
+  const school = route.params.information.school;
+  const department = route.params.information.department;
+  const course = route.params.information.course;
+  const major = route.params.information.major;
+  const researchroom = route.params.information.researchroom;
+
   // const navigation = useNavigation(); // ホーム画面への遷移に使用
 
   // 永続化をbrowserLocalPersistenceで設定
@@ -158,21 +105,15 @@ export default function InputPersonalInformationScreen2({ navigation, route }) {
   //     console.error("Error setting persistence:", error);
   //   });
 
-  const SignUpWithEmail = (email: string, password: string) => {
+  const SignUpWithEmail = async (email: string, password: string) => {
 
-    createUserWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        // サインアップ成功
-        console.log("User signed up:", userCredential.user);
-        setUid(userCredential.user.uid);
-        // navigation.navigate(""); // ホーム画面に遷移
-      })
-      .catch((error) => {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        console.error("Error signing up:", errorCode, errorMessage);
-        Alert.alert("サインアップエラー", errorMessage);
-      });
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      return userCredential.user.uid;
+    } catch (error) {
+      console.error("Error signing up with email:", error);
+      throw error;
+    }
   };
 
 
@@ -188,16 +129,36 @@ export default function InputPersonalInformationScreen2({ navigation, route }) {
 
   
   
-  const [username, setUsername] = useState("");//
-  const [grade, setGrade] = useState(null);
-  const [school, setSchool] = useState(null);
-  const [department, setDepartment] = useState(null);
-  const [course, setCourse] = useState(null);
-  const [major, setMajor] = useState(null);
-  const [researchroom, setResearchroom] = useState(null);
   const [role, setRole] = useState("");
   const [rolePassword, SetRolePassword] = useState("");
-  const [club, setClub] = useState("");
+  const [clubTexts, setClubTexts] = useState([{ id: 1, value: "部活動を選択してください" }]);
+
+  const addClubText = () => {
+    if (clubTexts.length < 10) {
+      setClubTexts([...clubTexts, { id: clubTexts.length + 1, value: "部活動を選択してください" }]);
+    } else {
+      Alert.alert("テキストは10個までです");
+    }
+  };
+
+  const removeClubText = (id) => {
+    setClubTexts(clubTexts.filter((text) => text.id !== id));
+  };
+
+  const handleClubTextChange = (id, value) => {
+    setClubTexts(
+      clubTexts.map((text) =>
+        text.id === id ? { ...text, value: value } : text
+      )
+    );
+  };
+
+  const navigateToSelectClub = (id) => {
+    navigation.navigate("SelectClubScreen", {
+      clubId: id,
+      onSelect: (selectedValue) => handleClubTextChange(id, selectedValue),
+    });
+  };
 
   // ロール選択でパスワードが必要なロールをリスト化
   const rolesRequiringPassword = [
@@ -230,7 +191,8 @@ export default function InputPersonalInformationScreen2({ navigation, route }) {
     return true;
   }
 
-  const handleSubmit = async (uid: string) => {
+
+  const handleSubmit = async () => {
     if (
       !username ||
       !grade ||
@@ -240,8 +202,7 @@ export default function InputPersonalInformationScreen2({ navigation, route }) {
       !major ||
       !researchroom ||
       !role ||
-      !club
-    ) {
+      (requiresPassword && !rolePassword) ){
       Alert.alert("全てのフィールドを入力してください");
       return;
     }
@@ -250,7 +211,7 @@ export default function InputPersonalInformationScreen2({ navigation, route }) {
       return;
     }
 
-    const infomation = {
+    const information = {
       username,
       grade,
       school,
@@ -259,15 +220,20 @@ export default function InputPersonalInformationScreen2({ navigation, route }) {
       major,
       researchroom,
       role,
-      club,
-    };
+      club: clubTexts.map((text) => text.value),};
 
-    await submitPersonalInformation(uid, infomation);
-    Alert.alert("送信が完了しました");
+    try {
+      const uid = await SignUpWithEmail(email, password); // ここでuidを受け取る
+      await submitPersonalInformation(uid, information); // 受け取ったuidを使用
+      Alert.alert("送信が完了しました");
+    } catch (error) {
+      console.error("Error during sign up or submitting information:", error);
+      Alert.alert("エラーが発生しました。もう一度お試しください。");
+    }
   };
 
 
-  
+
 
   return (
     <View style={styles.container}>
@@ -298,13 +264,27 @@ export default function InputPersonalInformationScreen2({ navigation, route }) {
 
       {/*部活動選択*/}
       <Text>5. 部活動</Text>
-      <RNPickerSelect
-        onValueChange={(value) => setClub(value)}
-        items={clubData}
-        placeholder={{ label: "部活動を選択してください", value: null }}
-        value={club}
-      />
-      <DynamicInputFields/>
+
+      {clubTexts.map((text) => (
+        <View key={text.id} style={styles.inputContainer}>
+          <Text
+            style={{ flex: 1, borderWidth: 1, borderColor: '#ccc', borderRadius: 5, padding: 10, marginRight: 10 }}
+            onPress={() => navigateToSelectClub(text.id)}
+          >
+            {text.value}
+          </Text>
+          <TouchableOpacity onPress={() => removeClubText(text.id)}>
+            <Text style={{ color: "red" }}>−</Text>
+          </TouchableOpacity>
+        </View>
+      ))}
+      <TouchableOpacity onPress={addClubText}>
+        <Text style={{ color: "blue" }}>＋</Text>
+      </TouchableOpacity>
+
+      <Button title="送信" onPress={() => handleSubmit()} />
+
+      
     </View>
 
 

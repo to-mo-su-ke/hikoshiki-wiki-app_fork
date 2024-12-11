@@ -219,7 +219,7 @@ export default function InputPersonalInformationScreen1({ navigation, route }) {
     }
 
 
-    const infomation = {
+    const information = {
       username,
       grade,
       school,
@@ -227,215 +227,98 @@ export default function InputPersonalInformationScreen1({ navigation, route }) {
       course,
       major,
       researchroom,
-      role,
-    };
+        };
 
-    navigation.navigate("InputPersonalInformationScreen2", { email, password, infomation });
+    navigation.navigate("InputPersonalInformationScreen2", { email, password, information });
   };
 
 
   
 
   return (
-    <View style={styles.container}>
-      <Text>1.ユーザー名</Text>
-      <TextInput
-        style={{ borderColor: "gray", borderWidth: 1, marginBottom: 20 }}
-        placeholder="ユーザー名"
-        value={username}
-        onChangeText={setUsername}
-      />
+    <ScrollView>
+      <View style={styles.container}>
+        <Text>1.ユーザー名</Text>
+        <TextInput
+          style={{ borderColor: "gray", borderWidth: 1, marginBottom: 20 }}
+          placeholder="ユーザー名"
+          value={username}
+          onChangeText={setUsername}
+        />
 
-      <Text>2.学年</Text>
-      <RNPickerSelect
-        onValueChange={(value) => setGrade(value)}
-        items={[
-          { label: "学部1年", value: "1" },
-          { label: "学部2年", value: "2" },
-          { label: "学部3年", value: "3" },
-          { label: "学部4年", value: "4" },
-          { label: "修士1年", value: "5" },
-          { label: "修士2年", value: "6" },
-          { label: "博士1年", value: "7" },
-          { label: "博士2年", value: "8" },
-        ]}
-        placeholder={{ label: "選択してください", value: null,isDisabled: true, }}
-      />
+        <Text>2.学年</Text>
+        <RNPickerSelect
+          onValueChange={(value) => setGrade(value)}
+          items={[
+            { label: "学部1年", value: "1" },
+            { label: "学部2年", value: "2" },
+            { label: "学部3年", value: "3" },
+            { label: "学部4年", value: "4" },
+            { label: "修士1年", value: "5" },
+            { label: "修士2年", value: "6" },
+            { label: "博士1年", value: "7" },
+            { label: "博士2年", value: "8" },
+          ]}
+          placeholder={{ label: "選択してください", value: null,isDisabled: true, }}
+        />
 
-      {/* 学部選択 */}
-      <Text>3.1 学部</Text>
-      <RNPickerSelect
-        onValueChange={(value) => {
-          setSchool(value);
-          setDepartment(null); // 学部変更時に学科をリセット
-          setCourse(null); // 学部変更時にコースをリセット
-        }}
-        items={schoolData}
-        placeholder={{ label: '学部を選択してください', value: null} }
-        value={school}
-      />
+        {/* 学部選択 */}
+        <Text>3.1 学部</Text>
+        <RNPickerSelect
+          onValueChange={(value) => {
+            setSchool(value);
+            setDepartment(null); // 学部変更時に学科をリセット
+            setCourse(null); // 学部変更時にコースをリセット
+          }}
+          items={schoolData}
+          placeholder={{ label: '学部を選択してください', value: null} }
+          value={school}
+        />
 
-      {/* 学科選択 */}
-      <Text>3.2 学科</Text>
-      <RNPickerSelect
-        onValueChange={(value) => {
-          setDepartment(value);
-          setCourse(null); // 学科変更時にコースをリセット
-        }}
-        items={school ? departmentData[school] : []}
-        placeholder={{ label: '学科を選択してください', value: null }}
-        value={department}
-      />
+        {/* 学科選択 */}
+        <Text>3.2 学科</Text>
+        <RNPickerSelect
+          onValueChange={(value) => {
+            setDepartment(value);
+            setCourse(null); // 学科変更時にコースをリセット
+          }}
+          items={school ? departmentData[school] : []}
+          placeholder={{ label: '学科を選択してください', value: null }}
+          value={department}
+        />
 
-      {/* コース選択 */}
-      <Text>3.3 コース</Text>
-      <RNPickerSelect
-        onValueChange={(value) => setCourse(value)}
-        items={department ? courseData[department] : []}
-        placeholder={{ label: 'コースを選択してください', value: null }}
-        value={course}
-      />
+        {/* コース選択 */}
+        <Text>3.3 コース</Text>
+        <RNPickerSelect
+          onValueChange={(value) => setCourse(value)}
+          items={department ? courseData[department] : []}
+          placeholder={{ label: 'コースを選択してください', value: null }}
+          value={course}
+        />
 
-      {/* 専攻選択 */}
-      <Text>3.3 専攻</Text>
-      <RNPickerSelect
-        onValueChange={(value) => setMajor(value)}
-        items={course ? majorData[course] : []}
-        placeholder={{ label: '専攻を選択してください', value: null }}
-        value={major}
-      />
+        {/* 専攻選択 */}
+        <Text>3.3 専攻</Text>
+        <RNPickerSelect
+          onValueChange={(value) => setMajor(value)}
+          items={course ? majorData[course] : []}
+          placeholder={{ label: '専攻を選択してください', value: null }}
+          value={major}
+        />
 
-      {/* 院(研究室)選択 */}
-      <Text>3.4 院</Text>
-      <RNPickerSelect
-        onValueChange={(value) => setResearchroom(value)}
-        items={major ? researchroomData[major] : []}
-        placeholder={{ label: '院を選択してください', value: null }}
-        value={researchroom}
-      />
+        {/* 院(研究室)選択 */}
+        <Text>3.4 院</Text>
+        <RNPickerSelect
+          onValueChange={(value) => setResearchroom(value)}
+          items={major ? researchroomData[major] : []}
+          placeholder={{ label: '院を選択してください', value: null }}
+          value={researchroom}
+        />
 
-      <Button title="送信" onPress={handleSubmit} />
-    </View>
+        <Button title="送信" onPress={handleSubmit} />
+      </View>
+    </ScrollView>
 
 
-
-//     <View style={{ padding: 20 }}>
-//       <Text>文字を入力:</Text>
-//       <TextInput
-//         style={{ borderColor: "gray", borderWidth: 1, marginBottom: 20 }}
-//         placeholder="テキストを入力"
-//         value={textInput}
-//         onChangeText={setTextInput}
-//       />
-
-//       <Text>長文を入力:</Text>
-//       <TextInput
-//         style={{
-//           borderColor: "gray",
-//           borderWidth: 1,
-//           marginBottom: 20,
-//           height: 100,
-//           textAlignVertical: "top",
-//         }}
-//         placeholder="長文を入力"
-//         value={longTextInput}
-//         onChangeText={(text) => setLongTextInput(text)}
-//         multiline
-//       />
-//       <Text>文字数: {longTextInput.length}</Text>
-
-//       <Text>オプションを選択:</Text>
-//       <RNPickerSelect
-//         onValueChange={(value) => setSelectedOption(value)}
-//         items={[
-//           { label: "Option 1", value: "option1" },
-//           { label: "Option 2", value: "option2" },
-//           { label: "Option 3", value: "option3" },
-//         ]}
-//       />
-
-//       <Text>日付を選択:</Text>
-//       <View style={{ marginBottom: 20 }}>
-//         <Button title="日付を選択" onPress={() => setShowDatePicker(true)} />
-//         {showDatePicker && (
-//           <DateTimePicker
-//             value={selectedDate}
-//             mode="date"
-//             display="default"
-//             onChange={handleDateChange}
-//           />
-//         )}
-//         <Text>選択された日付: {selectedDate.toDateString()}</Text>
-//       </View>
-
-//       <Text>ラジオボタンを選択:</Text>
-//       <View style={{ flexDirection: "row", marginBottom: 20 }}>
-//         {["ラジオ1", "ラジオ2", "ラジオ3"].map((label, index) => (
-//           <TouchableOpacity
-//             key={index}
-//             onPress={() => setSelectedRadioButton(label)}
-//             style={{
-//               padding: 10,
-//               backgroundColor:
-//                 selectedRadioButton === label ? "lightblue" : "white",
-//               borderWidth: 1,
-//               borderColor: "gray",
-//               marginHorizontal: 5,
-//             }}
-//           >
-//             <Text>{label}</Text>
-//           </TouchableOpacity>
-//         ))}
-//       </View>
-
-//       <Text>リストボタンを選択:</Text>
-//       <View style={{ flexDirection: "column", marginBottom: 20 }}>
-//         {["リスト1", "リスト2", "リスト3"].map((label, index) => (
-//           <TouchableOpacity
-//             key={index}
-//             onPress={() => handleListButtonPress(label)}
-//             style={{
-//               flexDirection: "row",
-//               alignItems: "center",
-//               padding: 10,
-//               backgroundColor: selectedListButtons.includes(label)
-//                 ? "lightblue"
-//                 : "white",
-//               borderWidth: 1,
-//               borderColor: "gray",
-//               marginVertical: 5,
-//             }}
-//           >
-//             <Text style={{ marginRight: 10 }}>
-//               {selectedListButtons.includes(label) ? "●" : "○"}
-//             </Text>
-//             <Text>{label}</Text>
-//           </TouchableOpacity>
-//         ))}
-//       </View>
-
-//       <Text>評価を選択:</Text>
-//       <View style={{ flexDirection: "row", marginBottom: 20 }}>
-//         {[1, 2, 3, 4, 5].map((rating) => (
-//           <TouchableOpacity
-//             key={rating}
-//             onPress={() => setStarRating(rating)}
-//             style={{ marginHorizontal: 5 }}
-//           >
-//             <Text
-//               style={{
-//                 fontSize: 30,
-//                 color: rating <= starRating ? "gold" : "gray",
-//               }}
-//             >
-//               ★
-//             </Text>
-//           </TouchableOpacity>
-//         ))}
-//       </View>
-
-//       <Button title="送信" onPress={handleSubmit} />
-//     </View>
   );
 };
 
