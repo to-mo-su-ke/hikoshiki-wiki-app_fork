@@ -8,6 +8,7 @@ import { Text, Button, View, FlatList } from "react-native";
 import {useFocusEffect} from '@react-navigation/native';
 
 import { firestore,submitDataToFirestore } from '../lib/firestore'; 
+import { getUserId } from '../lib/firebase';
 import { Timestamp, collection, addDoc, getDocs, QueryDocumentSnapshot, DocumentData } from "firebase/firestore";
 import { ScrollView } from 'react-native-gesture-handler';
 
@@ -109,8 +110,8 @@ export const SubjectBulletinScreen = ({navigation, route}) => { //型の指定�
 // リポジトリ (インターフェイス) インターフェイス及び実装は本来ここではなくdatabaseディレクトリに定義されるべきだろうが，ここに記述しておく
 // CurrentUserRepositoryはここに記述するべきではないが必要なので記述しておく
 interface CurrentUser {
-    get id(): string;
-    get name(): string;
+    get id(): Promise<string>;
+    get name(): Promise<string>;
 }
 interface SubjectInfoRepository {
     getSubjectName(subjectRef: string): Promise<string>;
@@ -133,6 +134,24 @@ interface ForumRepository {
 
 
 // <repository implementations>
+class CurrentUserRepositoryImpl implements CurrentUser {
+    _id: string = '';
+    _name: string = '';
+    initialized: boolean = false;
+    async init(): Promise<void> {
+        if (this.initialized) return;
+        this._id = await getUserId();
+        var userDoc = await firestore.doc(`/user/${this._id}`).get();
+        this._name = await userDoc.get('username');
+    }
+    get id(): Promise<string> {
+        return this.init().then(()=>this._id)
+    }
+    get name(): Promise<string> {
+        return this.init().then(()=>this._name)
+    }
+}
+
 const newSignature = () => Date.now().toString() + Math.random().toString();
 class SubjectInfoRepositoryImpl implements SubjectInfoRepository {
     async getSubjectName(subjectRef: string) {
@@ -148,12 +167,12 @@ abstract class ChangeDetector {
     abstract get signatureName(): string;
 
     /** 初回呼び出し時にもメモリ上にsignatureが設定されていないのでtrueを吐きます */
-    async isChangedByOthers(subjectRef: string): Promise<boolean> {
+    async isChangedByOthers(docRef: string): Promise<boolean> {
         if (this.isChangeDetected) {
             this.isChangeDetected = false;
             return true;
         } else {
-            await this._detectChange(subjectRef);
+            await this._detectChange(docRef);
             if (this.isChangeDetected) {
                 this.isChangeDetected = false;
                 return true;
@@ -163,17 +182,17 @@ abstract class ChangeDetector {
         }
     }
 
-    async _detectChange(subjectRef: string) {
-        let subjectDoc = await firestore.doc(subjectRef).get();
-        let dbSignature = subjectDoc.get(this.signatureName);
+    async _detectChange(docRef: string) {
+        let doc = await firestore.doc(docRef).get();
+        let dbSignature = doc.get(this.signatureName);
         if (dbSignature !== this.signature) {
             this.signature = dbSignature;
             this.isChangeDetected = true;
         }
     }
-    async _updateDBSignature(subjectRef: string) {
+    async _updateDBSignature(docRef: string) {
         this.signature = newSignature();
-        await firestore.doc(subjectRef).update({
+        await firestore.doc(docRef).update({
             [this.signatureName]: this.signature,
         });
     }
@@ -218,17 +237,15 @@ class AssignmentInfoRepositoryImpl extends ChangeDetector implements AssignmentI
     }
 }
 abstract class ForumRepositoryImpl extends ChangeDetector implements ForumRepository {
-    signature: string = '';
-    isChangeDetected: boolean = false;
     get signatureName() {
-        return this.threadName + 'Signature';
+        return this.forumName + 'Signature';
     };
-    abstract threadName: string;
+    abstract forumName: string;
     /**
      * @param subjectRef zyugyou/[subjectId]
      *  */
     async getThreads(subjectRef: string): Promise<Thread[]> {
-        let threadCollection = firestore.collection(`${subjectRef}/${this.threadName}`).orderBy('createdAt');
+        let threadCollection = firestore.collection(`${subjectRef}/${this.forumName}`).orderBy('createdAt');
         let threads: Thread[] = [];
         let threadDocs = await threadCollection.get();
         for (let doc of threadDocs.docs) {
@@ -237,7 +254,7 @@ abstract class ForumRepositoryImpl extends ChangeDetector implements ForumReposi
             let userRef = initial.get('userRef');
             let userDoc = await firestore.doc(userRef).get();
             threads.push({
-                ref: `${subjectRef}/${this.threadName}/${doc.id}`,
+                ref: `${subjectRef}/${this.forumName}/${doc.id}`,
                 signature: doc.get('signature'),
                 initialMessage: {
                     id: initial.id,
@@ -251,7 +268,7 @@ abstract class ForumRepositoryImpl extends ChangeDetector implements ForumReposi
         return threads.reverse();
     }
     async makeThread(subjectRef: string, initialMessage: Message): Promise<Thread> {
-        let threadCollection = firestore.collection(`${subjectRef}/${this.threadName}`);
+        let threadCollection = firestore.collection(`${subjectRef}/${this.forumName}`);
         let threadDoc = threadCollection.doc();
         let threadSignature = newSignature();
         await threadDoc.set({
@@ -268,6 +285,8 @@ abstract class ForumRepositoryImpl extends ChangeDetector implements ForumReposi
         await threadDoc.update({
             initialMessageRef: initialMessageDoc.path,
         });
+        this._detectChange(subjectRef);
+        this._updateDBSignature(subjectRef);
         return {
             ref: threadDoc.id,
             signature: threadSignature,
@@ -310,33 +329,33 @@ abstract class ForumRepositoryImpl extends ChangeDetector implements ForumReposi
 
 class TestForumRepository extends ForumRepositoryImpl
 {
-    threadName="test";
+    forumName="test";
 }
 
 class InfoForumRepository extends ForumRepositoryImpl
 {
-    threadName="info";
+    forumName="info";
 }
 
 class FreeForumRepository extends ForumRepositoryImpl
 {
-    threadName="free";
+    forumName="free";
 }
 // <mock data>
 // インターフェイスの実装として，ダミーのデータを返すクラス（動作確認用）
 class MockCurrentUser implements CurrentUser {
-    get id(): string {
-        return 'APZO4rGLegV9OwSogBVN';
+    get id(): Promise<string> {
+        return new Promise(()=>'APZO4rGLegV9OwSogBVN');
     }
-    get name(): string {
-        return 'Alice';
+    get name(): Promise<string> {
+        return new Promise(()=>'Alice');
     }
 }
 
 
 
 // <repository instance>
-const currentUser: CurrentUser = new MockCurrentUser(); //変更の必要あり
+const currentUser: CurrentUser = new CurrentUserRepositoryImpl();
 const subjectInfoRepository: SubjectInfoRepository = new SubjectInfoRepositoryImpl();
 const assignmentInfoRepository: AssignmentInfoRepository = new AssignmentInfoRepositoryImpl();
 const testForumRepository: ForumRepository = new TestForumRepository();
@@ -527,9 +546,13 @@ const ThreadScreen = ({navigation, route}: NativeStackScreenProps<StackParamList
     const [key,setKey]=useState(0);
     // データベースからの読み込みに時間がかかる可能性があるので遅延取得する
     const [messages, setMessages] = useState<Message[]>([]);
+    const [currentUserId, setCurrentUserId] = useState('');
     useEffect(() => {
         threadRepo.getMessages(thread.ref).then((messages) => {
             setMessages(messages);
+        })
+        currentUser.id.then((id) => {
+            setCurrentUserId(id);
         })
     }, [thread.ref, thread.signature,key]);
 
@@ -555,7 +578,7 @@ const ThreadScreen = ({navigation, route}: NativeStackScreenProps<StackParamList
             <View>
                 {messages.map((message,index) => (
                     // MessageItemはこのファイル内では定義されていない（pages内のものを呼び出している）
-                    <MessageItem message={message} userId={currentUser.id} key={index}/>
+                    <MessageItem message={message} userId={currentUserId} key={index}/>
                 ))}
             </View>
 
@@ -567,6 +590,16 @@ const ThreadScreen = ({navigation, route}: NativeStackScreenProps<StackParamList
 type MessagePostFormProps = {threadRef: string, threadRepo: ForumRepository,ReloadScreen: ()=>void}
 const MessagePostForm = ({threadRef, threadRepo,ReloadScreen}: MessagePostFormProps) => {
     const [newMessage, setNewMessage] = useState('');
+    const [currentUserId, setCurrentUserId] = useState('');
+    const [currentUserName, setCurrentUserName] = useState('');
+    useEffect(() => {
+        currentUser.id.then((id) => {
+            setCurrentUserId(id);
+        })
+        currentUser.name.then((name) => {
+            setCurrentUserName(name);
+        })
+    }, []);
     return <>
     <TextInput
         style={{
@@ -587,8 +620,8 @@ const MessagePostForm = ({threadRef, threadRepo,ReloadScreen}: MessagePostFormPr
                 id: '',
                 text: newMessage,
                 createdAt: Timestamp.now(),
-                userId: currentUser.id,
-                userName: currentUser.name,
+                userId: currentUserId,
+                userName: currentUserName,
             }).then(() => {
                 setNewMessage('');
                 ReloadScreen();
@@ -618,6 +651,16 @@ const MakeThreadScreen = ({navigation, route}: NativeStackScreenProps<StackParam
 type ThreadPostFormProps = {subjectRef: string, threadRepo: ForumRepository}
 const ThreadPostForm = ({subjectRef,threadRepo}: ThreadPostFormProps) => {
     const [newMessage, setNewMessage] = useState('');
+    const [currentUserId, setCurrentUserId] = useState('');
+    const [currentUserName, setCurrentUserName] = useState('');
+    useEffect(() => {
+        currentUser.id.then((id) => {
+            setCurrentUserId(id);
+        })
+        currentUser.name.then((name) => {
+            setCurrentUserName(name);
+        })
+    }, []);
     return <>
     <TextInput
         style={{
@@ -638,8 +681,8 @@ const ThreadPostForm = ({subjectRef,threadRepo}: ThreadPostFormProps) => {
                 id: '',
                 text: newMessage,
                 createdAt: Timestamp.now(),
-                userId: currentUser.id,
-                userName: currentUser.name,
+                userId: currentUserId,
+                userName: currentUserName,
             }).then(() => {
                 setNewMessage('')
             })
