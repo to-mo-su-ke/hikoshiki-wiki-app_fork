@@ -15,7 +15,7 @@ import {
   browserLocalPersistence,
 } from "firebase/auth";
 import { initializeApp } from "firebase/app";
-import { firebaseConfig } from "./lib/firebase"; // これが正しく設定されていることを確認
+import { firebaseConfig } from "../lib/firebase"; // これが正しく設定されていることを確認
 import { useNavigation } from "@react-navigation/native";
 
 // Firebaseアプリの初期化
