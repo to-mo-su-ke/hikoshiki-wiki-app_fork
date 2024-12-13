@@ -1,5 +1,7 @@
 /*
 ユーザー情報のうちロールと部活動を登録する画面です
+関数を別の画面に渡しているのでディープリンクや状態の永続性がうまく機能しないかもしれません
+
 
 ユーザー情報についてのfirestoreのデータ構造
 
@@ -43,7 +45,6 @@ import RNPickerSelect from "react-native-picker-select";
 import submitPersonalInformation from "../backend/submitPersonalInformation";
 import { ScrollView } from "react-native-gesture-handler";
 import DropDownPicker from "react-native-dropdown-picker";
-import Autocomplete from "react-native-autocomplete-input";
 
 
 
@@ -192,7 +193,7 @@ export default function InputPersonalInformationScreen2({ navigation, route }) {
   }
 
 
-  const handleSubmit = async () => {
+  const handleNavigate = () => {
     if (
       !username ||
       !grade ||
@@ -222,14 +223,8 @@ export default function InputPersonalInformationScreen2({ navigation, route }) {
       role,
       club: clubTexts.map((text) => text.value),};
 
-    try {
-      const uid = await SignUpWithEmail(email, password); // ここでuidを受け取る
-      await submitPersonalInformation(uid, information); // 受け取ったuidを使用
-      Alert.alert("送信が完了しました");
-    } catch (error) {
-      console.error("Error during sign up or submitting information:", error);
-      Alert.alert("エラーが発生しました。もう一度お試しください。");
-    }
+
+    navigation.navigate("ConfirmScreen", { email, password, information });
   };
 
 
@@ -282,7 +277,7 @@ export default function InputPersonalInformationScreen2({ navigation, route }) {
         <Text style={{ color: "blue" }}>＋</Text>
       </TouchableOpacity>
 
-      <Button title="送信" onPress={() => handleSubmit()} />
+      <Button title="送信" onPress={() => handleNavigate()} />
 
       
     </View>
