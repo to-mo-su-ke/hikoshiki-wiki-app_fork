@@ -9,6 +9,14 @@ const HomeScreen = ({ navigation }) => {
         title="情報入力ページへ"
         onPress={() => navigation.navigate("Input")}
       />
+      <Button
+        title="新規登録ページへ"
+        onPress={() => navigation.navigate("送信モデル画面")}
+      />
+      <Button
+        title="RNPtest"
+        onPress={() => navigation.navigate("RNPtest")}
+      />
     </View>
   );
 };

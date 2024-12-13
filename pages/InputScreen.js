@@ -71,7 +71,7 @@ const InputScreen = () => {
     };
 
     // コレクション名を "useee" に指定
-    const collectionName = "useee"; // ここでコレクション名を指定
+    const collectionName = "usef"; // ここでコレクション名を指定
     await submitDataToFirestore(data, collectionName);
     Alert.alert("送信が完了しました");
 

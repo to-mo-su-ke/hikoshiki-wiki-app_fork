@@ -16,7 +16,7 @@ export const uploadImageToFirebase = async (uri) => {
         (error) => reject(error), // エラー時
         async () => {
           try {
-            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            const storageRef = ref(storage, `images/${Date.now()}_${Math.floor(Math.random() * 10000)}.jpg`);
             resolve(downloadURL); // アップロード完了時にURLを取得
           } catch (error) {
             reject(error); // URL取得時にエラーが発生した場合
