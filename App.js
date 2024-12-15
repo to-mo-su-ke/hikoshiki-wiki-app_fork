@@ -1,48 +1,36 @@
-import React, { useState, useEffect } from "react";
-import { NavigationContainer } from "@react-navigation/native";
-import { createStackNavigator } from "@react-navigation/stack";
-import LoadingScreen from "./pages/LoadingScreen";
-import HomeScreen from "./pages/HomeScreen";
-import InputScreen from "./pages/InputScreen";
-import {SubjectBulletinScreen,DummyScreen} from "./component3/bulletin";
-
+import React, { useState, useEffect } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import LoadingScreen from './007Pages/homeScreenPages/LoadingScreen';
+import TestHomeScreen from './007Pages/TestHomeScreen';
+import HomeScreenNavigator from './001Navigation/homeScreenNavi';
+import MessageScreenNavigator from './001Navigation/messageScreenNavi';
+import LoginScreenNavigator from './001Navigation/logInScreenNavi';
 const Stack = createStackNavigator();
 
-// const App = () => {
-//   const [loading, setLoading] = useState(true);
+const App = () => {
+  const [loading, setLoading] = useState(true);
 
-//   useEffect(() => {
-//     const loadApp = async () => {
-//       // ロード処理をここで行う（例: APIのフェッチやデータの準備など）
-//       await new Promise((resolve) => setTimeout(resolve, 2000)); // 2秒待つ
-//       setLoading(false);
-//     };
+  useEffect(() => {
+    const loadApp = async () => {
+      await new Promise((resolve) => setTimeout(resolve, 2000)); // 2秒待つ
+      setLoading(false);
+    };
 
-//     loadApp();
-//   }, []);
+    loadApp();
+  }, []);
 
-//   if (loading) {
-//     return <LoadingScreen />;
-//   }
+  if (loading) {
+    return <LoadingScreen />;
+  }
 
-//   return (
-//     <NavigationContainer>
-//       <Stack.Navigator initialRouteName="Home">
-//         <Stack.Screen name="Home" component={HomeScreen} />
-//         <Stack.Screen name="Input" component={InputScreen} />
-//       </Stack.Navigator>
-//     </NavigationContainer>
-//   );
-// };
-
-function App(){
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="DummyScreen">
-      <Stack.Screen name="DummyScreen" component={DummyScreen} />
-      <Stack.Screen name="SubjectBulletinScreen" component={SubjectBulletinScreen} />
-        <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="Input" component={InputScreen} />
+      <Stack.Navigator initialRouteName="TestHome">
+        <Stack.Screen name="TestHome" component={TestHomeScreen} />
+        <Stack.Screen name="HomeNavigator" component={HomeScreenNavigator} />
+        <Stack.Screen name="MessageNavigator" component={MessageScreenNavigator} />
+        <Stack.Screen name="LoginNavigator" component={LoginScreenNavigator} />
       </Stack.Navigator>
     </NavigationContainer>
   );

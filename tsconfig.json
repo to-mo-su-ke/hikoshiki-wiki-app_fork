@@ -1,8 +1,16 @@
 {
   "compilerOptions": {
-    "types": ["jest", "node"]
+    "types": [
+      "jest",
+      "node"
+    ]
   },
-  "extends": "expo/tsconfig.base",
   "allowJs": true,
-  "include": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"]
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.js",
+    "**/*.jsx"
+  ],
+  "extends": "expo/tsconfig.base"
 }
