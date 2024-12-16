@@ -30,9 +30,6 @@ import {
   browserLocalPersistence,
   createUserWithEmailAndPassword,
 } from "firebase/auth";
-import { initializeApp } from "firebase/app";
-import { firebaseConfig } from "../004BackendModules/messageMetod/firebase"; // これが正しく設定されていることを確認
-import { useNavigation } from "@react-navigation/native";
 
 
 

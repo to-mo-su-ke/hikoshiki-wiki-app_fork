@@ -222,14 +222,8 @@ export default function InputPersonalInformationScreen2({ navigation, route }) {
       role,
       club: clubTexts.map((text) => text.value),};
 
-    try {
-      const uid = await SignUpWithEmail(email, password); // ここでuidを受け取る
-      await submitPersonalInformation(uid, information); // 受け取ったuidを使用
-      Alert.alert("送信が完了しました");
-    } catch (error) {
-      console.error("Error during sign up or submitting information:", error);
-      Alert.alert("エラーが発生しました。もう一度お試しください。");
-    }
+    navigation.navigate("ConfirmScreen", { email, password, information });
+
   };
 
 
