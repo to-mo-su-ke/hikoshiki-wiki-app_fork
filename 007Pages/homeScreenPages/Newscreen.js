@@ -359,22 +359,53 @@ const NewScreen = () => {
         value={numberOfMembers}
         onChangeText={setNumberOfMembers}
       />
+      
       <Text>月ごとの活動内容</Text>
-      {monthOfActivity.map((month, index) => (
-        <View key={index} style={{ flexDirection: "row", alignItems: "center" }}>
-          <TextInput
+{monthOfActivity.map((month, index) => (
+  <View key={index} style={{ flexDirection: "row", alignItems: "center" }}>
+    <TextInput
+      style={[styles.textInput, { flex: 1 }]}
+      placeholder="月"
+      value={month.month}
+      onChangeText={(text) => {
+        const newMonthOfActivity = [...monthOfActivity];
+        newMonthOfActivity[index].month = text;
+        setMonthOfActivity(newMonthOfActivity);
+      }}
+    />
+    <TextInput
+      style={[styles.textInput, { flex: 1 }]}
+      placeholder="内容"
+      value={month.content}
+      onChangeText={(text) => {
+        const newMonthOfActivity = [...monthOfActivity];
+        newMonthOfActivity[index].content = text;
+        setMonthOfActivity(newMonthOfActivity);
+      }}
+    />
+    <TouchableOpacity
+      onPress={() => {
+        const newMonthOfActivity = monthOfActivity.filter((_, i) => i !== index);
+        setMonthOfActivity(newMonthOfActivity);
+      }}
+    >
+     
+    </TouchableOpacity>
 
-            style={[styles.textInput, { flex: 1 }]}
-            placeholder="月"
-            value={month.month}
 
-            onChangeText={(text) => {
-              const newMonthOfActivity = [...monthOfActivity];
-              newMonthOfActivity[index].month = text;
-              setMonthOfActivity(newMonthOfActivity);
+<TouchableOpacity
+  onPress={() => {
+    setMonthOfActivity([...monthOfActivity, { month: "", content: "" }]);
+  }}
+>
+  <Text>+</Text>
+</TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => {
+              const newMonthOfActivity = monthOfActivity.filter((_, i) => i !== index);
+              setCostOfItems(newCostOfItems);
             }}
-
-          />
+          ></TouchableOpacity>
           <TextInput
 
             style={[styles.textInput, { flex: 1 }]}
@@ -408,6 +439,7 @@ const NewScreen = () => {
 
           >
             <Text>削除</Text>
+            
           </TouchableOpacity>
         </View>
       ))}
@@ -554,21 +586,42 @@ const NewScreen = () => {
             value={lineQR}
             onChangeText={setLineQR}
           />
+            <TextInput
+            style={styles.textInput}
+            placeholder="LINEのユーザー名"
+            value={lineQR}
+            onChangeText={setLineQR}
+          />
+           <TouchableOpacity onPress={pickImage} style={styles.imagePicker}>
+            <Text style={styles.imagePickerText}>LineのQRコード</Text>
+          </TouchableOpacity>
           <TextInput
             style={styles.textInput}
             placeholder="Instagramのリンク"
             value={instagramURL}
             onChangeText={setInstagramURL}
           />
+         
           <TouchableOpacity onPress={pickImage} style={styles.imagePicker}>
-            <Text style={styles.imagePickerText}>写真を選択</Text>
-          </TouchableOpacity>
+            <Text style={styles.imagePickerText}>InstagramのQRコード</Text>
+            </TouchableOpacity>
+          
+          <TextInput
+            style={styles.textInput}
+            placeholder="Instagramのユーザー名"
+            value={instagramURL}
+            onChangeText={setInstagramURL}
+          />
+
+          
           {selectedImage && (
             <Image source={{ uri: selectedImage }} style={{ width: 200, height: 200 }} />
           )}
 
 <Button onPress={handleSubmit}>送信</Button>
  {submitSuccess && <Text style={styles.successMessage}>送信成功</Text>} {/* 送信成功メッセージ */}
+          
+
           
         </ScrollView>
         //スクロールバーのスタイル
@@ -603,10 +656,10 @@ const styles = StyleSheet.create({
   imagePicker: {
     borderWidth: 1,
     borderColor: 'gray',
-    padding: 20,
+    padding: 6,
     alignItems: 'center',
     justifyContent: 'center',
-    marginVertical: 10,
+    marginVertical: 5,
   },
   imagePickerText: {
     fontSize: 18,
