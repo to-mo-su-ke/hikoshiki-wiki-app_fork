@@ -13,6 +13,7 @@ export interface UserData {
     club:string[];
 };
 
+// データを取得
 export const importUserData = async (uid: string | undefined): Promise<UserData | null> => {
     try {
         const docRef = doc(collection(db, "user"), uid);
@@ -31,6 +32,7 @@ export const importUserData = async (uid: string | undefined): Promise<UserData 
     }
 };
 
+// データを保存
 export const editUserData = async (uid: string | undefined, data: UserData) => {
     const docRef = doc(collection(db, "user"), uid);
     await setDoc(docRef, data);
