@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, ScrollView, Dimensions ,TextInput,TouchableOpacity,FlatList,Alart} from "react-native";
+import { View, Text, StyleSheet, ScrollView, Dimensions ,TextInput,TouchableOpacity,FlatList, Alart} from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import RNPickerSelect from "react-native-picker-select";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { submitDataToFirestore} from "../../004BackendModules/mainMethod/submitdata";
-import { uploadPhotoToFirestore } from "../../004BackendModules/mainMethod/uplopadPhoto";
+import { uploadPhotoToFirestore } from "../../004BackendModules/mainMethod/uploadPhoto";
 import { Menu, Button, Provider } from "react-native-paper";
 import UseScrollBar from "../../hooks/usescrollbar";
 import { Image } from "react-native";
@@ -83,6 +83,7 @@ const NewScreen = () => {
   const [numberOfMembers, setNumberOfMembers] = useState("");
   const [selectedTags, setSelectedTags] = useState([]); // 追加
   const [selectedImage, setSelectedImage] = useState(null); // 追加
+  const [selectedinstaqr, setSelectedinstaqr] = useState(null); // 追加
   //タグの選択肢
   const tagsSel = [
     "初心者歓迎",
@@ -182,28 +183,42 @@ const NewScreen = () => {
 
   const handleSubmit = async () => {
     let imageUrl = null;
+    let instaqr = null;
+    let lineqr = null;
     if (selectedImage) {
       imageUrl = await uploadPhotoToFirestore(selectedImage);
     }
-    const data = {
+    if(selectedinstaqr){
+      instaqr = await uploadPhotoToFirestore(selectedinstaqr);
+    }
+    if(lineQR){
+      lineqr = await uploadPhotoToFirestore(lineQR);
+    }
+
+
+    const data = {//detaは、送信するデータをまとめたオブジェクト。stateの値をそのまま入れる
       clabsName,
+      leaderName,
       selectedTypeOfClubs,
       placeOfActivity,
       freqOfActivity,
       detailOfClubs,
       goodPointOfClubs,
-      badPointOfClubs, // 追加
+      badPointOfClubs,
+      costOfActivity,
+      costOfStart,
+      costOfItems,
+      dayOfActivity,
+      monthOfActivity,
+      clubImage: imageUrl, 
       instagramURL,
-      instagramQR,
-      twitter,
+      instagramQR: instaqr,
       twitterURL,
-      lineQR,
+      lineQR : lineqr,
       officialHP,
       discord,
-      clabTags,
+      selectedTags,
       numberOfMembers,
-      imageUrl, // 追加
-      activitySchedule, // 追加
     }
     try {
       await submitDataToFirestore(data);
@@ -214,19 +229,63 @@ const NewScreen = () => {
       Alert.alert("送信失敗", "データの送信中にエラーが発生しました");
     }
   };
-    const pickImage = async () => {
-      let result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 1,
-      });
+ const pickImage = async () => {
+     let result = await ImagePicker.launchImageLibraryAsync({
+       mediaTypes: ImagePicker.MediaTypeOptions.Images,
+       allowsEditing: true,
+       aspect: [4, 3],
+       quality: 1,
+     });
+ 
+     if (!result.canceled) {
+       setSelectedImage(result.assets[0].uri);
+     }
+   };
+   const pickinstaqr = async () => {
+    let result2 = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
 
+    if (!result2.canceled) {
+
+      setSelectedinstaqr(result2.assets[0].uri);
+    }
+  };
   
-      if (!result.canceled) {
-        setSelectedImage(result.uri);
-      }
-    };
+  const handleUpload = async () => {
+    if (!selectedImage) {
+      Alert.alert("画像が選択されていません");
+      return;
+    }
+    try {
+      const url = await uploadImageToFirebase(selectedImage);
+      Alert.alert("画像がアップロードされました: " + url);
+      setImgURL(url); // アップロード後にURLを設定
+      setSelectedImage(null); // アップロード後にリセット
+    } catch (error) {
+      Alert.alert("アップロード中にエラーが発生しました: " + error.message);
+    }
+  };
+  const handleUploadinstaql = async () => {
+    if (!instagramQR) {
+      Alert.alert("画像が選択されていません");
+      return;
+    }
+    try {
+      const url = await uploadImageToFirebase(instagramQR);
+      Alert.alert("画像がアップロードされました: " + url);
+      
+      setSelectedinstaqr(url); // アップロード後にURLを設定
+
+      setInstagramQR(null); // アップロード後にリセット
+    } catch (error) {
+      Alert.alert("アップロード中にエラーが発生しました: " + error.message);
+    }
+  };
+
    
   //画面のレンダリング
   return (
@@ -261,6 +320,7 @@ const NewScreen = () => {
   <Text>部活動/サークルの種類</Text>
   <Menu
     visible={visible1}
+    value={selectedTypeOfClubs}
     onDismiss={closeMenu1}
     anchor={<Button onPress={openMenu1}><Text>{selectedTypeOfClubs}</Text></Button>}
   >
@@ -277,6 +337,7 @@ const NewScreen = () => {
   <Text>部活動/サークルの活動場所</Text>
   <Menu
     visible={visible2}
+    value={placeOfActivity}
     onDismiss={closeMenu2}
     anchor={<Button onPress={openMenu2}><Text>{placeOfActivity}</Text></Button>}
   >
@@ -291,6 +352,7 @@ const NewScreen = () => {
       <Text>部活動/サークルの活動頻度</Text>
       <Menu
           visible={visible3}
+          value={freqOfActivity}
           onDismiss={closeMenu3}
           anchor={<Button onPress={openMenu3}><Text>{freqOfActivity}</Text></Button>}
         >
@@ -345,13 +407,16 @@ const NewScreen = () => {
       </View>
       </View>
       <Text style={{ fontSize: 20 }}>部活動/サークルの写真</Text>
-      <TouchableOpacity onPress={pickImage} style={styles.imagePicker}>
+      <TouchableOpacity onPress={pickImage} style={styles.imagePicker}  value={clubImage}> 
         <Text style={styles.imagePickerText}>写真を選択</Text>
       </TouchableOpacity>
       {selectedImage && (
         <Image source={{ uri: selectedImage }} style={{ width: 200, height: 200 }} />
-      )
-      }
+      )}
+         <Button title="アップロード" onPress={handleUpload} />
+    
+        
+      
       <Text>部活動/サークルの所属人数</Text>
       <TextInput
         style={styles.textInput2}
@@ -366,7 +431,7 @@ const NewScreen = () => {
     <TextInput
       style={[styles.textInput, { flex: 1 }]}
       placeholder="月"
-      value={month.month}
+      value={monthOfActivity.month}
       onChangeText={(text) => {
         const newMonthOfActivity = [...monthOfActivity];
         newMonthOfActivity[index].month = text;
@@ -376,7 +441,7 @@ const NewScreen = () => {
     <TextInput
       style={[styles.textInput, { flex: 1 }]}
       placeholder="内容"
-      value={month.content}
+      value={monthOfActivity.content}
       onChangeText={(text) => {
         const newMonthOfActivity = [...monthOfActivity];
         newMonthOfActivity[index].content = text;
@@ -410,7 +475,7 @@ const NewScreen = () => {
 
             style={[styles.textInput, { flex: 1 }]}
             placeholder="名前"
-            value={month.name}
+            value={monthOfActivity.name}
             onChangeText={(text) => {
               const newMonthOfActivity = [...monthOfActivity];
               newMonthOfActivity[index].name = text;
@@ -422,7 +487,7 @@ const NewScreen = () => {
 
             style={[styles.textInput, { flex: 1 }]}
             placeholder="内容"
-            value={month.content}
+            value={monthOfActivity.content}
             onChangeText={(text) => {
               const newMonthOfActivity = [...monthOfActivity];
               newMonthOfActivity[index].content = text;
@@ -453,7 +518,7 @@ const NewScreen = () => {
 
             style={[styles.textInput, { flex:1 }]}
             placeholder="活動頻度を入力してください"
-            value={day.freq}
+            value={dayOfActivity.freq}
             onChangeText={(text) => {
               const newDayOfActivity = [...dayOfActivity];
               newDayOfActivity[index].freq = text;
@@ -503,7 +568,7 @@ const NewScreen = () => {
           <TextInput
             style={[styles.textInput, { flex: 1 }]}
             placeholder="物品名"
-            value={item.item}
+            value={costOfItems.item}
             onChangeText={(text) => {
               const newCostOfItems = [...costOfItems];
               newCostOfItems[index].item = text;
@@ -513,7 +578,7 @@ const NewScreen = () => {
           <TextInput
             style={[styles.textInput, { flex: 1 }]}
             placeholder="価格"
-            value={item.cost}
+            value={costOfItems.cost}
             onChangeText={(text) => {
               const newCostOfItems = [...costOfItems];
               newCostOfItems[index].cost = text;
@@ -580,19 +645,9 @@ const NewScreen = () => {
             value={twitterURL}
             onChangeText={setTwitterURL}
           />
-          <TextInput
-            style={styles.textInput}
-            placeholder="LINEのリンク"
-            value={lineQR}
-            onChangeText={setLineQR}
-          />
-            <TextInput
-            style={styles.textInput}
-            placeholder="LINEのユーザー名"
-            value={lineQR}
-            onChangeText={setLineQR}
-          />
-           <TouchableOpacity onPress={pickImage} style={styles.imagePicker}>
+         
+           
+           <TouchableOpacity onPress={pickinstaqr} style={styles.imagePicker} value ={lineQR}>
             <Text style={styles.imagePickerText}>LineのQRコード</Text>
           </TouchableOpacity>
           <TextInput
@@ -602,21 +657,20 @@ const NewScreen = () => {
             onChangeText={setInstagramURL}
           />
          
-          <TouchableOpacity onPress={pickImage} style={styles.imagePicker}>
-            <Text style={styles.imagePickerText}>InstagramのQRコード</Text>
-            </TouchableOpacity>
+         <Text style={{ fontSize: 20 }}>インスタグラムのqrコード</Text>
+      <TouchableOpacity onPress={pickinstaqr} style={styles.imagePicker}  value={instagramQR}> 
+        <Text style={styles.imagePickerText}>写真を選択</Text>
+      </TouchableOpacity>
+      {selectedinstaqr && (
+        <Image source={{ uri: selectedinstaqr }} style={{ width: 200, height: 200 }} />
+      )}
+         <Button title="アップロード" onPress={handleUploadinstaql} />
+    
+        
           
-          <TextInput
-            style={styles.textInput}
-            placeholder="Instagramのユーザー名"
-            value={instagramURL}
-            onChangeText={setInstagramURL}
-          />
+        
 
-          
-          {selectedImage && (
-            <Image source={{ uri: selectedImage }} style={{ width: 200, height: 200 }} />
-          )}
+          <Text>送信ボタン</Text>
 
 <Button onPress={handleSubmit}>送信</Button>
  {submitSuccess && <Text style={styles.successMessage}>送信成功</Text>} {/* 送信成功メッセージ */}
@@ -725,6 +779,14 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     width: "100%",
     height: 100,
+  },
+  instaPicker: {
+    borderWidth: 1,
+    borderColor: 'gray',
+    padding: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 5,
   },
 
   
