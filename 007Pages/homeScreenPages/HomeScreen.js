@@ -31,7 +31,7 @@ const HomeScreen = ({ navigation }) => {
             <View style={styles.verticalTabsContainer}>
               <TouchableOpacity
                 style={styles.link}
-                onPress={() => navigation.navigate("Input")}
+                onPress={() => navigation.navigate("New")}
               >
                 <Text>Inputページへのリンク</Text>
               </TouchableOpacity>

@@ -21,9 +21,6 @@ const UseScrollBar = () => {
   const scrollBarPosition = (scrollPosition / contentHeight) * scrollViewHeight;
 
   return {
-    scrollPosition,
-    contentHeight,
-    scrollViewHeight,
     handleScroll,
     handleContentSizeChange,
     handleLayout,
