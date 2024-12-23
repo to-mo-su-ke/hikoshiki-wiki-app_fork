@@ -40,7 +40,6 @@ import {
 } from "firebase/auth";
 import { auth } from "../004BackendModules/messageMetod/firebase"; // これが正しく設定されていることを確認
 import RNPickerSelect from "react-native-picker-select";
-import submitPersonalInformation from "../004BackendModules/loginMethod/submitPersonalInformation";
 import { ScrollView } from "react-native-gesture-handler";
 
 //部活動・サークル
