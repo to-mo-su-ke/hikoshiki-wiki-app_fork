@@ -22,12 +22,8 @@
     "expo-checkbox": "~4.0.0",
     "expo-image-picker": "~16.0.3",
     "expo-status-bar": "~2.0.0",
-<<<<<<< HEAD
-    "firebase": "^11.1.0",
-=======
     "firebase": "^11.0.1",
     "pdf-lib": "^1.17.1",
->>>>>>> 5037e2de138f3245b03bf260441ffe6a0bf2b7e2
     "react": "18.3.1",
     "react-native": "0.76.5",
     "react-native-autocomplete-input": "^5.5.2",
@@ -36,7 +32,6 @@
     "react-native-gesture-handler": "~2.20.2",
     "react-native-gifted-chat": "^2.6.4",
     "react-native-image-picker": "^7.2.3",
-    "react-native-paper": "^5.12.5",
     "react-native-paper": "^5.12.5",
     "react-native-paper-dropdown": "^2.3.1",
     "react-native-picker-select": "^9.3.1",

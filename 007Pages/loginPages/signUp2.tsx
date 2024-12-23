@@ -40,10 +40,9 @@ import {
 } from "firebase/auth";
 import { auth } from "../../004BackendModules/messageMetod/firebase"; // これが正しく設定されていることを確認
 import RNPickerSelect from "react-native-picker-select";
-import submitPersonalInformation from "../../004BackendModules/loginMethod/submitPersonalInformation";
 import { ScrollView } from "react-native-gesture-handler";
 import DropDownPicker from "react-native-dropdown-picker";
-import Autocomplete from "react-native-autocomplete-input";
+import { Dropdown } from "react-native-paper-dropdown";
 
 
 
@@ -61,24 +60,6 @@ DynamicInputFieldsは変数を修正しきれていないです。
 部活動のデータがFirestore上にあるので入力欄の数を増減させる機能はそのままにsearchcomponentのnamesearchを使おうかと考えています
 */
 
-const DropdownWithSearch = () => {
-  const [open, setOpen] = useState(false);
-  const [value, setValue] = useState(null);
-  const [items, setItems] = useState(clubData)
-
-  return (
-    <DropDownPicker
-      open={open}
-      value={value}
-      items={items}
-      setOpen={setOpen}
-      setValue={setValue}
-      setItems={setItems}
-      searchable={true} // 検索機能を有効化
-      placeholder="選択してください"
-    />
-  );
-};
 
 
 
@@ -105,16 +86,6 @@ export default function InputPersonalInformationScreen2({ navigation, route }) {
   //     console.error("Error setting persistence:", error);
   //   });
 
-  const SignUpWithEmail = async (email: string, password: string) => {
-
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      return userCredential.user.uid;
-    } catch (error) {
-      console.error("Error signing up with email:", error);
-      throw error;
-    }
-  };
 
 
   //ロールデータ
@@ -234,13 +205,14 @@ export default function InputPersonalInformationScreen2({ navigation, route }) {
 
       {/*ロール選択*/}
       <Text>4. ロール</Text>
-      <RNPickerSelect
-        onValueChange={(value) => {
+      <Dropdown
+        label="ロール"
+        placeholder="ロールを選択してください"
+        onSelect={(value) => {
           setRole(value);
           SetRolePassword("");
         }}
-        items={roleData}
-        placeholder={{ label: "ロールを選択してください", value: null }}
+        options={roleData}
         value={role}
       />
 
