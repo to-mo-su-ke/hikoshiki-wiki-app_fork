@@ -14,13 +14,9 @@ import {
   setPersistence,
   browserLocalPersistence,
 } from "firebase/auth";
-import { initializeApp } from "firebase/app";
-import { firebaseConfig } from "../../006Configs/firebaseConfig";
+import { auth } from "../004BackendModules/messageMetod/firebase";
 import { useNavigation } from "@react-navigation/native";
 
-// Firebaseアプリの初期化
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -28,6 +24,7 @@ export default function LoginScreen() {
   const navigation = useNavigation(); // ホーム画面への遷移に使用
 
   // 永続化をbrowserLocalPersistenceで設定
+  // 案：https://github.com/react-native-jp/praiser/blob/9962c9c11e4fedfccdb9571d9289d78b1dbeb747/src/lib/local-store/user-information.ts
   setPersistence(auth, browserLocalPersistence)
     .then(() => {
       console.log("Persistence set to local.");

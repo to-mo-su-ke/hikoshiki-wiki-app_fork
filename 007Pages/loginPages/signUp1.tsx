@@ -41,6 +41,8 @@ import {
 import { auth } from "../004BackendModules/messageMetod/firebase"; // これが正しく設定されていることを確認
 import RNPickerSelect from "react-native-picker-select";
 import { ScrollView } from "react-native-gesture-handler";
+import { Provider as PaperProvider } from "react-native-paper";
+import { Dropdown } from "react-native-paper-dropdown"
 
 //部活動・サークル
 const clubData = [
@@ -235,88 +237,91 @@ export default function InputPersonalInformationScreen1({ navigation, route }) {
   
 
   return (
-    <ScrollView>
-      <View style={styles.container}>
-        <Text>1.ユーザー名</Text>
-        <TextInput
-          style={{ borderColor: "gray", borderWidth: 1, marginBottom: 20 }}
-          placeholder="ユーザー名"
-          value={username}
-          onChangeText={setUsername}
-        />
+    <PaperProvider>
+      <ScrollView>
+        <View style={styles.container}>
+          <Text>1.ユーザー名</Text>
+          <TextInput
+            style={{ borderColor: "gray", borderWidth: 1, marginBottom: 20 }}
+            placeholder="ユーザー名"
+            value={username}
+            onChangeText={setUsername}
+          />
 
-        <Text>2.学年</Text>
-        <RNPickerSelect
-          onValueChange={(value) => setGrade(value)}
-          items={[
-            { label: "学部1年", value: "1" },
-            { label: "学部2年", value: "2" },
-            { label: "学部3年", value: "3" },
-            { label: "学部4年", value: "4" },
-            { label: "修士1年", value: "5" },
-            { label: "修士2年", value: "6" },
-            { label: "博士1年", value: "7" },
-            { label: "博士2年", value: "8" },
-          ]}
-          placeholder={{ label: "選択してください", value: null,isDisabled: true, }}
-        />
+          <Text>2.学年</Text>
+          <Dropdown
+            label="学年"
+            onSelect={setGrade}
+            options={[
+              { label: "学部1年", value: "1" },
+              { label: "学部2年", value: "2" },
+              { label: "学部3年", value: "3" },
+              { label: "学部4年", value: "4" },
+              { label: "修士1年", value: "5" },
+              { label: "修士2年", value: "6" },
+              { label: "博士1年", value: "7" },
+              { label: "博士2年", value: "8" },
+            ]}
+            value={grade}
+            placeholder={"選択してください"}
+          />
 
-        {/* 学部選択 */}
-        <Text>3.1 学部</Text>
-        <RNPickerSelect
-          onValueChange={(value) => {
-            setSchool(value);
-            setDepartment(null); // 学部変更時に学科をリセット
-            setCourse(null); // 学部変更時にコースをリセット
-          }}
-          items={schoolData}
-          placeholder={{ label: '学部を選択してください', value: null} }
-          value={school}
-        />
+          {/* 学部選択 */}
+          <Text>3.1 学部</Text>
+          <RNPickerSelect
+            onValueChange={(value) => {
+              setSchool(value);
+              setDepartment(null); // 学部変更時に学科をリセット
+              setCourse(null); // 学部変更時にコースをリセット
+            }}
+            items={schoolData}
+            placeholder={{ label: '学部を選択してください', value: null} }
+            value={school}
+          />
 
-        {/* 学科選択 */}
-        <Text>3.2 学科</Text>
-        <RNPickerSelect
-          onValueChange={(value) => {
-            setDepartment(value);
-            setCourse(null); // 学科変更時にコースをリセット
-          }}
-          items={school ? departmentData[school] : []}
-          placeholder={{ label: '学科を選択してください', value: null }}
-          value={department}
-        />
+          {/* 学科選択 */}
+          <Text>3.2 学科</Text>
+          <RNPickerSelect
+            onValueChange={(value) => {
+              setDepartment(value);
+              setCourse(null); // 学科変更時にコースをリセット
+            }}
+            items={school ? departmentData[school] : []}
+            placeholder={{ label: '学科を選択してください', value: null }}
+            value={department}
+          />
 
-        {/* コース選択 */}
-        <Text>3.3 コース</Text>
-        <RNPickerSelect
-          onValueChange={(value) => setCourse(value)}
-          items={department ? courseData[department] : []}
-          placeholder={{ label: 'コースを選択してください', value: null }}
-          value={course}
-        />
+          {/* コース選択 */}
+          <Text>3.3 コース</Text>
+          <RNPickerSelect
+            onValueChange={(value) => setCourse(value)}
+            items={department ? courseData[department] : []}
+            placeholder={{ label: 'コースを選択してください', value: null }}
+            value={course}
+          />
 
-        {/* 専攻選択 */}
-        <Text>3.3 専攻</Text>
-        <RNPickerSelect
-          onValueChange={(value) => setMajor(value)}
-          items={course ? majorData[course] : []}
-          placeholder={{ label: '専攻を選択してください', value: null }}
-          value={major}
-        />
+          {/* 専攻選択 */}
+          <Text>3.3 専攻</Text>
+          <RNPickerSelect
+            onValueChange={(value) => setMajor(value)}
+            items={course ? majorData[course] : []}
+            placeholder={{ label: '専攻を選択してください', value: null }}
+            value={major}
+          />
 
-        {/* 院(研究室)選択 */}
-        <Text>3.4 院</Text>
-        <RNPickerSelect
-          onValueChange={(value) => setResearchroom(value)}
-          items={major ? researchroomData[major] : []}
-          placeholder={{ label: '院を選択してください', value: null }}
-          value={researchroom}
-        />
+          {/* 院(研究室)選択 */}
+          <Text>3.4 院</Text>
+          <RNPickerSelect
+            onValueChange={(value) => setResearchroom(value)}
+            items={major ? researchroomData[major] : []}
+            placeholder={{ label: '院を選択してください', value: null }}
+            value={researchroom}
+          />
 
-        <Button title="送信" onPress={handleSubmit} />
-      </View>
-    </ScrollView>
-
+          <Button title="送信" onPress={handleSubmit} />
+        </View>
+      </ScrollView>
+    </PaperProvider>
 
   );
 };
