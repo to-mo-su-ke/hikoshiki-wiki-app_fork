@@ -135,13 +135,15 @@ const subjectDetailRepository = new MockSubjectDetailRepository();
 // <sub components>
 // メインコンポーネントから呼び出されるサブコンポーネント（Section）を定義（適当なまとまりで分割）
 
-
+// 一番上のセクション
 type SubjectDetailSectionProps = { subjectId: string; }
 const SubjectDetailSection = ({ subjectId }: SubjectDetailSectionProps) => {
+    // <リポジトリからsubjectDetailを取得できるまでローディング要素を表示>
     const [subjectDetail, setSubjectDetail] = useState<SubjectDetail | null>(null);
     useEffect(() => {
         subjectDetailRepository.getSubjectDetail(subjectId).then(setSubjectDetail);
     }, [subjectId]);
+    // </リポジトリからsubjectDetailを取得できるまでローディング要素を表示>
     if (subjectDetail === null) {
         return <Text> ロード中 </Text>
     }
@@ -155,6 +157,7 @@ const SubjectDetailSection = ({ subjectId }: SubjectDetailSectionProps) => {
     </>
 }
 // 参考: https://reactnative.dev/docs/linking
+// aタグのようなもの
 type LinkedTextProps = { url: string; text: string; }
 const LinkedText = ({ url, text }: LinkedTextProps) => {
     const handlePress = useCallback(async () => {
@@ -167,8 +170,10 @@ const LinkedText = ({ url, text }: LinkedTextProps) => {
 }
 
 
+// 真ん中のセクション
 type QuantitativeReviewSectionProps = { subjectId: string; }
 const QuantitativeReviewSection = ({ subjectId }: QuantitativeReviewSectionProps) => {
+    // <リポジトリからreviewを取得できるまでローディング要素を表示>
     const [review, setReview] = useState<QuantitativeSubjectReview | null>(null);
     useEffect(() => {
         subjectDetailRepository.getQuantitativeReview(subjectId).then(setReview);
@@ -176,6 +181,7 @@ const QuantitativeReviewSection = ({ subjectId }: QuantitativeReviewSectionProps
     if (review === null) {
         return <Text> ロード中 </Text>
     }
+    // </リポジトリからreviewを取得できるまでローディング要素を表示>
     return <>
         <Text> レビュー </Text>
         <Text> 総合評価: </Text>
@@ -198,6 +204,8 @@ const RatingBar = ({ rating }: RatingBarProps) => {
 }
 
 
+// 一番下のセクション
+// レビューメッセージを一覧表示
 type ReviewMessageSectionProps = { subjectId: string; }
 const ReviewMessageSection = ({ subjectId }: ReviewMessageSectionProps) => {
     const [reviewMessages, setReviewMessages] = useState<ReviewMessage[]>([]);
@@ -208,8 +216,10 @@ const ReviewMessageSection = ({ subjectId }: ReviewMessageSectionProps) => {
         {reviewMessages.map((reviewMessage) => <ReviewMessageBox subjectId={subjectId} reviewMessage={reviewMessage} key={reviewMessage.reviewId}/>)}
     </>
 }
+// 個々のレビューメッセージ
 type ReviewMessageBoxProps = { subjectId: string, reviewMessage: ReviewMessage; }
 const ReviewMessageBox = ({ subjectId, reviewMessage }: ReviewMessageBoxProps) => {
+    // <likeボタンの状態を管理>
     const [likes, setLikes] = useState(reviewMessage.likes);
     const [liked, setLiked] = useState(reviewMessage.liked);
     const handleLike = useCallback(() => {
@@ -225,6 +235,7 @@ const ReviewMessageBox = ({ subjectId, reviewMessage }: ReviewMessageBoxProps) =
             });
         }
     }, [reviewMessage,liked]);
+    // </likeボタンの状態を管理>
     return <>
         <Text> {reviewMessage.whenTheUserTakesTheSubject.toISOString()} {reviewMessage.userName} </Text>
         <Text> {reviewMessage.content} </Text>
