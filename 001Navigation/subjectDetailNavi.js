@@ -6,7 +6,7 @@ const Stack = createStackNavigator();
 
 const SubjectDetailNavicator = () => {
   return (
-    <Stack.Navigator initialRouteName="wrapper">
+    <Stack.Navigator initialRouteName="wrapper" screenOptions={{ headerShown: false }}>
           <Stack.Screen name="wrapper" component={DummyScreen} />
           <Stack.Screen name="SubjectDetailScreen" component={SubjectDetailScreen} />
     </Stack.Navigator>
