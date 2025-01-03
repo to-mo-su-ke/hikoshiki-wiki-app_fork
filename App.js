@@ -6,6 +6,7 @@ import TestHomeScreen from './007Pages/TestHomeScreen';
 import HomeScreenNavigator from './001Navigation/homeScreenNavi';
 import MessageScreenNavigator from './001Navigation/messageScreenNavi';
 import LoginScreenNavigator from './001Navigation/logInScreenNavi';
+import SubjectDetailNavicator from './001Navigation/subjectDetailNavi';
 const Stack = createStackNavigator();
 
 const App = () => {
@@ -31,6 +32,7 @@ const App = () => {
         <Stack.Screen name="HomeNavigator" component={HomeScreenNavigator} />
         <Stack.Screen name="MessageNavigator" component={MessageScreenNavigator} />
         <Stack.Screen name="LoginNavigator" component={LoginScreenNavigator} />
+        <Stack.Screen name="SubjectDetailNavicator" component={SubjectDetailNavicator} />
       </Stack.Navigator>
     </NavigationContainer>
   );
