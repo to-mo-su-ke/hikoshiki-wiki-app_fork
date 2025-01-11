@@ -1,6 +1,6 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import { DummyScreen, SubjectDetailScreen } from '../007Pages/messagePages/subjectDetail';
+import { DummyScreen, SubjectDetailScreen } from '../007Pages/messagePages/subjectDetail copy';
 
 const Stack = createStackNavigator();
 

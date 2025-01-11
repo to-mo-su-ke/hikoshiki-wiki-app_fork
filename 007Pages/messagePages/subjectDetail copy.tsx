@@ -1,6 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Button, Text, Linking } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { firestore,submitDataToFirestore } from '../../004BackendModules/messageMetod/firestore';
+import { getUserId } from '../../004BackendModules/messageMetod/firebase';
+import { increment,Timestamp, collection, addDoc, getDocs, QueryDocumentSnapshot, DocumentData } from "firebase/firestore";
 
 // 各コンポーネントの引数の型を設定
 type StackParamList = {
@@ -16,7 +19,7 @@ type DummyScreenProps = NativeStackScreenProps<StackParamList, 'DummyScreen'>;
 export const DummyScreen = ({ navigation, route }: DummyScreenProps) => {
     // * stackにSubjectDetailScreenという名前のスクリーンが登録されていることが前提
     return <>
-        <Button title="sport" onPress={() => { navigation.navigate('SubjectDetailScreen', { subjectId: "sport" }) }} />
+        <Button title="sport" onPress={() => { navigation.navigate('SubjectDetailScreen', { subjectId: "dummyId" }) }} />
         <Button title="english" onPress={() => { navigation.navigate('SubjectDetailScreen', { subjectId: "english" }) }} />
     </>
 }
@@ -29,6 +32,7 @@ export const DummyScreen = ({ navigation, route }: DummyScreenProps) => {
 type SubjectDetailScreenProps = NativeStackScreenProps<StackParamList, 'SubjectDetailScreen'>;
 export const SubjectDetailScreen = ({ navigation, route }: SubjectDetailScreenProps) => {
     const subjectId=route.params.subjectId
+    console.log(subjectId)
     return <>
         <Button title='go back' onPress={() => { navigation.pop() }} />
         <SubjectDetailSection subjectRef={`detail/${subjectId}`} />
@@ -77,59 +81,71 @@ interface SubjectDetailRepository {
     dislikeReviewMessage(subjectRef: string, reviewId: string): Promise<void>;
 }
 
-// 抽象化されたデータ取得方法のダミーの実装
-class MockSubjectDetailRepository implements SubjectDetailRepository {
+class SubjectDetailRepository implements SubjectDetailRepository {
     async getSubjectDetail(subjectRef: string) {
-        return {
-            nameOfSubject: "スポーツ",
-            nameOfTeacher: "山田太郎",
-            linkOfSyllabus: "https://www.google.com",
-            textbookDescription: "教科書なし",
-            credits: 2,
-            gradesDescription: "テスト100%"
+        let subjectDoc = await firestore.doc(subjectRef).get();
+        let syllabus_ref = subjectDoc.get('syllabus');
+        let syllabusDoc = await firestore.doc(syllabus_ref).get();
+        return{
+            nameOfSubject: syllabusDoc.get('courseTitle'),
+            nameOfTeacher: syllabusDoc.get('instructor'),
+            linkOfSyllabus: "", //シラバスはアプリ内のシラバスページか, 外部のページか
+            textbookDescription: subjectDoc.get('textbook'),
+            credits: syllabusDoc.get('credits'),
+            gradesDescription: subjectDoc.get('grades')  
         }
     }
     async getQuantitativeReview(subjectRef: string) {
+        let subjectDoc = await firestore.doc(subjectRef).get();
         return {
-            grossRating: 2.5,
-            understandabilityOfClasses: 3,
-            understandabilityOfDocs: 3,
-            difficultyOfExam: 5,
-            easinessOfObtainingCredit: 1,
-            personalityOfTeacher: 1
+            grossRating: subjectDoc.get('grossRating'),
+            understandabilityOfClasses: subjectDoc.get('understandabilityOfClasses'),
+            understandabilityOfDocs: subjectDoc.get('understandabilityOfDocs'),
+            difficultyOfExam: subjectDoc.get('difficultyOfExam'),
+            easinessOfObtainingCredit: subjectDoc.get('easinessOfObtainingCredit'),
+            personalityOfTeacher: subjectDoc.get('personalityOfTeacher')
         }
     }
     async getReviewMessages(subjectRef: string) {
-        return [
-            {
-                reviewId: "1",
-                userName: "山田",
-                whenTheUserTakesTheSubject: new Date(2023, 4, 1),
-                content: "辛いです",
-                likes: 10,
+        let message_collection= await firestore.collection(`${subjectRef}/message`)
+                .orderBy('term')
+                .get();
+        // データベースから取得した課題情報をAssignment型に変換
+        let messages: ReviewMessage[] = [];
+        for (let doc of message_collection.docs) {
+            let userId=doc.get('userId');
+            let user_doc=await firestore.doc(`user/${userId}`).get()
+            messages.push({
+                reviewId: doc.id,
+                userName: user_doc.get('username'),
+                whenTheUserTakesTheSubject: doc.get('term').toDate(),
+                content: doc.get('content'),
+                likes: doc.get('likes'),
                 liked: false,
-            },
-            {
-                reviewId: "2",
-                userName: "田中",
-                whenTheUserTakesTheSubject: new Date(2024, 4, 1),
-                content: "死ぬかと思った",
-                likes: 10,
-                liked: true,
-            }
-        ]
+            });
+        }
+        return messages
     }
     async likeReviewMessage(subjectRef: string, reviewId: string) {
-        // 何もしない
+        let message_doc= await firestore.doc(`${subjectRef}/message/${reviewId}`)
+        await message_doc.update({
+            likes: increment(1)
+        })
     }
     async dislikeReviewMessage(subjectRef: string, reviewId: string) {
-        // 何もしない
+        let message_doc= await firestore.doc(`${subjectRef}/message/${reviewId}`)
+        await message_doc.update({
+            likes: increment(-1)
+        })
     }
 }
 // </repository>
 
+// 抽象化されたデータ取得方法のダミーの実装
+
+
 // データ取得方法の（実装を）指定
-const subjectDetailRepository = new MockSubjectDetailRepository();
+const subjectDetailRepository = new SubjectDetailRepository();
 
 // </data>
 
