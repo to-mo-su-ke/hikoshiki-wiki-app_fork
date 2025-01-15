@@ -1,10 +1,15 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Button, Text, Linking, View } from 'react-native';
+import { Button, Text, TextInput, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { firestore,submitDataToFirestore } from '../../004BackendModules/messageMetod/firestore';
 import { getUserId } from '../../004BackendModules/messageMetod/firebase';
 import { increment,Timestamp, collection, addDoc, getDocs, QueryDocumentSnapshot, DocumentData } from "firebase/firestore";
 
+
+//subjectId=シラバス番号として処理していることに注意
+//また, 
+
+//ここから型定義の領域
 type QuantitativeSubjectReview = {
     grossRating: number;
     understandabilityOfClasses: number;
@@ -14,10 +19,24 @@ type QuantitativeSubjectReview = {
     personalityOfTeacher: number;
 }
 
+type ReviewMessage = {
+    userId: string;
+    whenTheUserTakesTheSubject: Date;
+    content: string;
+}
+
+type SubjectDetail = {
+    nameOfSubject: string;
+    nameOfTeacher: string;
+    credits: number;
+}
+
+
 //ここから関数設定の領域
 interface PrvisionalFormRepository{
-    getSubjectTitle(subjectRef: string): Promise<string>;
-
+    getSubjectDetail(subjectId: string): Promise<SubjectDetail>;
+    updateAveReview(subjectId: string, review: QuantitativeSubjectReview)
+    saveMessageReview(subjectId: string, message: ReviewMessage, review: QuantitativeSubjectReview): Promise<void>;
 }
 interface CurrentUser {
     get id(): Promise<string>;
@@ -26,11 +45,40 @@ interface CurrentUser {
 
 class PrvisionalFormRepository implements PrvisionalFormRepository
 {
-    async getSubjectTitle(subjectRef: string)
-    {
-        return "aaa"
+    async getSubjectDetail(subjectId: string){
+        const subjectRef=`syllabus/${subjectId}`;
+        const syllabusDoc=await firestore.doc(subjectRef).get()
+        return{
+            nameOfSubject: syllabusDoc.get('courseTitle'),
+            nameOfTeacher: syllabusDoc.get('instructor'),
+            credits: syllabusDoc.get('credits'),  
+        }
+    }
+    async saveMessageReview(subjectId: string, message: ReviewMessage, review: QuantitativeSubjectReview){
+        const subjectdetail=await this.getSubjectDetail(subjectId);
+        const messageCollection=firestore.collection(`DetailTemplate2/information/messages`)
+        const messageDoc=messageCollection.doc();
+        messageDoc.set
+        ({
+            content: message.content,
+            term: message.whenTheUserTakesTheSubject,
+            userRef: `/user/${message.userId}`, 
+            likes: 0,
+            instructor: subjectdetail.nameOfTeacher,
+            courseTitle: subjectdetail.nameOfSubject
+        })
+        const reviewCollection=firestore.collection(`${messageDoc.path}/review`)
+        reviewCollection.add({
+            grossRating: review.grossRating,
+            understandabilityOfClasses: review.understandabilityOfClasses,
+            understandabilityOfDocs: review.understandabilityOfDocs,
+            difficultyOfExam: review.difficultyOfExam,
+            easinessOfObtainingCredit: review.easinessOfObtainingCredit,
+            personalityOfTeacher: review.personalityOfTeacher
+        })
     }
 }
+
 
 class CurrentUserRepositoryImpl implements CurrentUser {
     _id: string = '';
@@ -68,81 +116,106 @@ export const DummyFormScreen = ({ navigation, route }: DummyFormScreenProps) => 
     // * stackにSubjectDetailScreenという名前のスクリーンが登録されていることが前提
     return <>
         <Button title='go back' onPress={() => { navigation.pop() }} />
-        <Button title="sport" onPress={() => { navigation.navigate('PrvisionalFormScreen', { subjectId: "dummyId" }) }} />
-        <Button title="english" onPress={() => { navigation.navigate('PrvisionalFormScreen', { subjectId: "english" }) }} />
+        <Button title="sport" onPress={() => { navigation.navigate('PrvisionalFormScreen', { subjectId: "0010001" }) }} />
+        <Button title="english" onPress={() => { navigation.navigate('PrvisionalFormScreen', { subjectId: "0011101" }) }} />
     </>
 }
 
 type PrvisionalFormScreenProps = NativeStackScreenProps<StackParamList, 'PrvisionalFormScreen'>;
 export const PrvisionalFormScreen=({navigation,route} :PrvisionalFormScreenProps)=>{
     const subjectId=route.params.subjectId
-    const subjectRef=`detail/${subjectId}`
-    const [title,setTitle]=useState<string>("")
+    const [detail,setDetail]=useState<SubjectDetail>(null)
+    const [review,setReview]=useState<QuantitativeSubjectReview>(null);
+    const [message,setMessage]=useState<ReviewMessage>(null); 
     useEffect(()=>{
-        PrvisionalForm.getSubjectTitle(`detail/${subjectId}`).then(setTitle)
+        PrvisionalForm.getSubjectDetail(subjectId).then(setDetail)
+        currentUser.id.then((id) => {
+            let date=new Date();
+            let messageFirst: ReviewMessage={
+                userId: id,
+                whenTheUserTakesTheSubject: date,
+                content: "",
+            }
+            setMessage(messageFirst)
+        })
     },[subjectId])
-    const [rate,setRate]=useState<QuantitativeSubjectReview>(null);
-    const [message,setMessage]=useState<string>("");
-    return(<>
-    <Button title="goback" onPress={()=>{navigation.pop()}}/>
-    <Text>{title}</Text>
-    <RateFormSection setRate={setRate}></RateFormSection>
-    </>)
+    if (detail === null) {
+        return <Text> ロード中 </Text>
+    }
+    return <>
+        <Button title="goback" onPress={()=>{navigation.pop()}}/>
+        <Text>{detail.nameOfSubject}</Text>
+        <ReviewFormSection setReview={setReview}/>
+        <MessageFormSection setMessage={setMessage}/>
+        <Button title="test用" onPress={()=>{
+            PrvisionalForm.saveMessageReview(subjectId,message,review)}}/>
+        </>
 }
 
-type RateFormSectionProps={setRate: React.Dispatch<React.SetStateAction<QuantitativeSubjectReview>>}
-const RateFormSection=({setRate}: RateFormSectionProps)=>{
-    const [grossRating,setGrossRating]=useState<number>(0);
-    const [understandabilityOfClasses,setUnderstandabilityOfClasses]=useState<number>(0);
-    const [understandabilityOfDocs,setUnderstandabilityOfDocs]=useState<number>(0);
-    const [difficultyOfExam,setDifficultyOfExam]=useState<number>(0);
-    const [easinessOfObtainingCredit,setEasinessOfObtainingCredit]=useState<number>(0);
-    const [personalityOfTeacher,setPersonalityOfTeacher]=useState<number>(0);
-    //同じものたくさんつくる
-    useEffect(()=>{
-        setRate({    
-            grossRating: grossRating,
-            understandabilityOfClasses: understandabilityOfClasses,
-            understandabilityOfDocs: understandabilityOfDocs,
-            difficultyOfExam: difficultyOfExam,
-            easinessOfObtainingCredit: easinessOfObtainingCredit,
-            personalityOfTeacher: personalityOfTeacher
-        })},[grossRating,understandabilityOfClasses,understandabilityOfDocs,difficultyOfExam,easinessOfObtainingCredit,personalityOfTeacher
-        ])
+type ReviewFormSectionProps={setReview: React.Dispatch<React.SetStateAction<QuantitativeSubjectReview>>}
+const ReviewFormSection=({setReview}: ReviewFormSectionProps)=>{
     return(
     <>
     <Text>総合評価</Text>
-    <StarsSelect eachrate={grossRating} setEachrate={setGrossRating}/>
+    <StarsSelect setReview={setReview} title="grossRating"/>
     <Text>授業のわかりやすさ</Text>
-    <StarsSelect eachrate={understandabilityOfClasses} setEachrate={setUnderstandabilityOfClasses}/>
+    <StarsSelect setReview={setReview} title="understandabilityOfClasses"/>
     <Text>資料のわかりやすさ</Text>
-    <StarsSelect eachrate={understandabilityOfDocs} setEachrate={setUnderstandabilityOfDocs}/>
+    <StarsSelect setReview={setReview} title="understandabilityOfDocs"/>
     <Text>テストの難しさ</Text>
-    <StarsSelect eachrate={difficultyOfExam} setEachrate={setDifficultyOfExam}/>
+    <StarsSelect setReview={setReview} title="difficultyOfExam"/>
     <Text>単位の取りやすさ</Text>
-    <StarsSelect eachrate={easinessOfObtainingCredit} setEachrate={setEasinessOfObtainingCredit}/>
-    <Text>教授の人間性</Text>
-    <StarsSelect eachrate={personalityOfTeacher} setEachrate={setPersonalityOfTeacher}/>
+    <StarsSelect setReview={setReview} title="easinessOfObtainingCredit"/>
+    <Text>教授の人間性</Text>    
+    <StarsSelect setReview={setReview} title="personalityOfTeacher"/>
     </>
     )
 }
 
-type StarsSelectProps={eachrate: number,setEachrate: React.Dispatch<React.SetStateAction<number>>}
-const StarsSelect=({eachrate,setEachrate}:StarsSelectProps)=>{
+type StarsSelectProps={setReview: React.Dispatch<React.SetStateAction<QuantitativeSubjectReview>>,title:string}
+const StarsSelect=({setReview,title}:StarsSelectProps)=>{
+    const updateReview = (value: number) => {
+        setReview((prev) => ({ ...prev, [title]: value }));
+    };
     const starjudge=(starnumber:number,grade:number)=>{
         return starnumber<grade ?"☆":"★";
     }
+    const [eachreview,setEachReview]=useState<number>(0)
     const length=5
     return(
         <View style={{ flexDirection: 'row'}}> 
         {/* 横向きになるように一時的にcssで指定 */}
         {Array.from({length}).map((_,index)=>(
-            <Button title={starjudge(eachrate,index+1)} onPress={()=>{
-                setEachrate(index+1);
+            <Button title={starjudge(eachreview,index+1)} onPress={()=>{
+                updateReview(index+1);
+                setEachReview(index+1);
             }} key={index}/>
         ))}
         </View>
     )
 }
 
-type MessageFormProps={rate: QuantitativeSubjectReview,setMessage: React.Dispatch<React.SetStateAction<string>>}
+type MessageFormSectionProps={setMessage: React.Dispatch<React.SetStateAction<ReviewMessage>>}
+const MessageFormSection=({setMessage}:MessageFormSectionProps)=>{
+    const updateReview = (value: string) => {
+        setMessage((prev) => ({ ...prev, "content": value }));
+    };
+    const [newMessage,setNewMessage]=useState<string>(null)
+    return(
+        <>
+            <TextInput
+                style={{
+                  borderColor: "gray",
+                  borderWidth: 1,
+                  marginBottom: 20,
+                  height: 100,
+                  textAlignVertical: "top",
+                }}
+                placeholder="メッセージを入力"
+                value={newMessage}
+                onChangeText={(text) => {setNewMessage(text);updateReview(text)}}
+                //改行する場合はmultilineを入れる
+            />
+        </>
+    )
+}

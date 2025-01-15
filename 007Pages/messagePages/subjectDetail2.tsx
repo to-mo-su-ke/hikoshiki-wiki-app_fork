@@ -103,7 +103,7 @@ class SubjectDetailRepository implements SubjectDetailRepository {
             nameOfSubject: syllabusDoc.get('courseTitle'),
             nameOfTeacher: syllabusDoc.get('instructor'),
             linkOfSyllabus: "", //シラバスはアプリ内のシラバスページか, 外部のページか
-            textbookDescription: subjectDoc.get('textbook'),
+            textbookDescription: syllabusDoc.get('textbook'),
             credits: syllabusDoc.get('credits'),
             gradesDescription: subjectDoc.get('grades')  
         }
