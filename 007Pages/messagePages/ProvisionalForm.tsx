@@ -35,7 +35,8 @@ type SubjectDetail = {
 //ここから関数設定の領域
 interface PrvisionalFormRepository{
     getSubjectDetail(subjectId: string): Promise<SubjectDetail>;
-    updateAveReview(subjectId: string, review: QuantitativeSubjectReview)
+    updateSubjectReview(subjectId: string, review: QuantitativeSubjectReview): Promise<void>;
+    updateTeacherReview(subjectId: string, review: QuantitativeSubjectReview): Promise<void>;
     saveMessageReview(subjectId: string, message: ReviewMessage, review: QuantitativeSubjectReview): Promise<void>;
 }
 interface CurrentUser {
@@ -48,11 +49,61 @@ class PrvisionalFormRepository implements PrvisionalFormRepository
     async getSubjectDetail(subjectId: string){
         const subjectRef=`syllabus/${subjectId}`;
         const syllabusDoc=await firestore.doc(subjectRef).get()
+        let instructor=syllabusDoc.get('instructor')
+        let newInstructor=instructor.replace(/○[\s\S]*/u,"")
         return{
             nameOfSubject: syllabusDoc.get('courseTitle'),
-            nameOfTeacher: syllabusDoc.get('instructor'),
+            nameOfTeacher: newInstructor,
             credits: syllabusDoc.get('credits'),  
         }
+    }
+    async updateSubjectReview(subjectId: string, review: QuantitativeSubjectReview){
+        const subjectdetail=await this.getSubjectDetail(subjectId);
+        const subjectReviewDoc=firestore.doc(`DetailTemplate2/information/subjectReview/${subjectdetail.nameOfSubject}`)
+        const subjectReviewSnap=await subjectReviewDoc.get();
+        if(subjectReviewSnap.exists){
+            subjectReviewDoc.update({
+                grossRating: increment(review.grossRating),
+                understandabilityOfClasses: increment(review.understandabilityOfClasses),
+                understandabilityOfDocs: increment(review.understandabilityOfDocs),
+                difficultyOfExam: increment(review.difficultyOfExam),
+                easinessOfObtainingCredit: increment(review.easinessOfObtainingCredit),
+                personalityOfTeacher: increment(review.personalityOfTeacher)
+            })
+        }else{
+            subjectReviewDoc.set({
+                grossRating: review.grossRating,
+                understandabilityOfClasses: review.understandabilityOfClasses,
+                understandabilityOfDocs: review.understandabilityOfDocs,
+                difficultyOfExam: review.difficultyOfExam,
+                easinessOfObtainingCredit: review.easinessOfObtainingCredit,
+                personalityOfTeacher: review.personalityOfTeacher
+            })  
+        } 
+    }
+    async updateTeacherReview(subjectId: string, review: QuantitativeSubjectReview){ //subjectとteacherで一つにする(変更)
+        const subjectdetail=await this.getSubjectDetail(subjectId);
+        const teacherReviewDoc=firestore.doc(`DetailTemplate2/information/teacherReview/${subjectdetail.nameOfTeacher}`)
+        const teacherReviewSnap=await teacherReviewDoc.get();
+        if(teacherReviewSnap.exists){
+            teacherReviewDoc.update({
+                grossRating: increment(review.grossRating),
+                understandabilityOfClasses: increment(review.understandabilityOfClasses),
+                understandabilityOfDocs: increment(review.understandabilityOfDocs),
+                difficultyOfExam: increment(review.difficultyOfExam),
+                easinessOfObtainingCredit: increment(review.easinessOfObtainingCredit),
+                personalityOfTeacher: increment(review.personalityOfTeacher)
+            })
+        }else{
+            teacherReviewDoc.set({
+                grossRating: review.grossRating,
+                understandabilityOfClasses: review.understandabilityOfClasses,
+                understandabilityOfDocs: review.understandabilityOfDocs,
+                difficultyOfExam: review.difficultyOfExam,
+                easinessOfObtainingCredit: review.easinessOfObtainingCredit,
+                personalityOfTeacher: review.personalityOfTeacher
+            })  
+        } 
     }
     async saveMessageReview(subjectId: string, message: ReviewMessage, review: QuantitativeSubjectReview){
         const subjectdetail=await this.getSubjectDetail(subjectId);
@@ -133,7 +184,7 @@ export const PrvisionalFormScreen=({navigation,route} :PrvisionalFormScreenProps
             let date=new Date();
             let messageFirst: ReviewMessage={
                 userId: id,
-                whenTheUserTakesTheSubject: date,
+                whenTheUserTakesTheSubject: date, //変更予定
                 content: "",
             }
             setMessage(messageFirst)
@@ -147,8 +198,12 @@ export const PrvisionalFormScreen=({navigation,route} :PrvisionalFormScreenProps
         <Text>{detail.nameOfSubject}</Text>
         <ReviewFormSection setReview={setReview}/>
         <MessageFormSection setMessage={setMessage}/>
-        <Button title="test用" onPress={()=>{
-            PrvisionalForm.saveMessageReview(subjectId,message,review)}}/>
+        <Button title="送信" onPress={()=>{
+            PrvisionalForm.saveMessageReview(subjectId,message,review);
+            PrvisionalForm.updateSubjectReview(subjectId,review);
+            PrvisionalForm.updateTeacherReview(subjectId,review);
+        }}/>
+        {/* transactionの利用をする */}
         </>
 }
 

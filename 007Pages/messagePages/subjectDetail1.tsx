@@ -139,14 +139,14 @@ class SubjectDetailRepository implements SubjectDetailRepository {
         return messages
     }
     async likeReviewMessage(subjectRef: string, reviewId: string) {
-        let message_doc= await firestore.doc(`${subjectRef}/message/${reviewId}`)
-        await message_doc.update({
+        let message_doc=firestore.doc(`${subjectRef}/message/${reviewId}`)
+        message_doc.update({
             likes: increment(1)
         })
     }
     async dislikeReviewMessage(subjectRef: string, reviewId: string) {
-        let message_doc= await firestore.doc(`${subjectRef}/message/${reviewId}`)
-        await message_doc.update({
+        let message_doc=firestore.doc(`${subjectRef}/message/${reviewId}`)
+        message_doc.update({
             likes: increment(-1)
         })
     }
