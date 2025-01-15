@@ -8,7 +8,10 @@ import { increment,Timestamp, collection, addDoc, getDocs, QueryDocumentSnapshot
 // 各コンポーネントの引数の型を設定
 type StackParamList = {
     DummyScreen: {};
+    DummyCheckScreen: {};
+    DummyFormScreen: {};
     SubjectDetailScreen: { subjectId: string };
+    PrvisionalFormScreen: { subjectId: string };
 }
 // const Stack = createStackNavigator<StackParamList>();
 
@@ -19,11 +22,22 @@ type DummyScreenProps = NativeStackScreenProps<StackParamList, 'DummyScreen'>;
 export const DummyScreen = ({ navigation, route }: DummyScreenProps) => {
     // * stackにSubjectDetailScreenという名前のスクリーンが登録されていることが前提
     return <>
+        <Button title="check" onPress={() => { navigation.navigate('DummyCheckScreen') }} />
+        <Button title="form" onPress={() => { navigation.navigate('DummyFormScreen') }} />
+    </>
+}
+// </wrapper>
+
+type DummyCheckScreenProps = NativeStackScreenProps<StackParamList, 'DummyCheckScreen'>;
+export const DummyCheckScreen = ({ navigation, route }: DummyCheckScreenProps) => {
+    // * stackにSubjectDetailScreenという名前のスクリーンが登録されていることが前提
+    return <>
+        <Button title='go back' onPress={() => { navigation.pop() }} />
         <Button title="sport" onPress={() => { navigation.navigate('SubjectDetailScreen', { subjectId: "dummyId" }) }} />
         <Button title="english" onPress={() => { navigation.navigate('SubjectDetailScreen', { subjectId: "english" }) }} />
     </>
 }
-// </wrapper>
+
 
 // <main compenets>
 // 本ファイルでwrapperを除いて一番外型のコンポーネント
@@ -32,7 +46,6 @@ export const DummyScreen = ({ navigation, route }: DummyScreenProps) => {
 type SubjectDetailScreenProps = NativeStackScreenProps<StackParamList, 'SubjectDetailScreen'>;
 export const SubjectDetailScreen = ({ navigation, route }: SubjectDetailScreenProps) => {
     const subjectId=route.params.subjectId
-    console.log(subjectId)
     return <>
         <Button title='go back' onPress={() => { navigation.pop() }} />
         <SubjectDetailSection subjectRef={`detail/${subjectId}`} />
