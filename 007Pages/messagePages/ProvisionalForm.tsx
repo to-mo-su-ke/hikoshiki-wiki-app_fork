@@ -1,13 +1,13 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Button, Text, TextInput, View } from 'react-native';
+import { Button, Text, TextInput, View, Alert } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { firestore,submitDataToFirestore } from '../../004BackendModules/messageMetod/firestore';
 import { getUserId } from '../../004BackendModules/messageMetod/firebase';
 import { increment,Timestamp, collection, addDoc, getDocs, QueryDocumentSnapshot, DocumentData } from "firebase/firestore";
+import { ScrollView } from 'react-native-gesture-handler';
 
-
+//担当ではないが, 必要な処理を整理するために便宜的に作成
 //subjectId=シラバス番号として処理していることに注意
-//また, 
 
 //ここから型定義の領域
 type QuantitativeSubjectReview = {
@@ -35,8 +35,7 @@ type SubjectDetail = {
 //ここから関数設定の領域
 interface PrvisionalFormRepository{
     getSubjectDetail(subjectId: string): Promise<SubjectDetail>;
-    updateSubjectReview(subjectId: string, review: QuantitativeSubjectReview): Promise<void>;
-    updateTeacherReview(subjectId: string, review: QuantitativeSubjectReview): Promise<void>;
+    updateReview(subjectId: string, review: QuantitativeSubjectReview, key: string): Promise<void>;
     saveMessageReview(subjectId: string, message: ReviewMessage, review: QuantitativeSubjectReview): Promise<void>;
 }
 interface CurrentUser {
@@ -57,51 +56,31 @@ class PrvisionalFormRepository implements PrvisionalFormRepository
             credits: syllabusDoc.get('credits'),  
         }
     }
-    async updateSubjectReview(subjectId: string, review: QuantitativeSubjectReview){
+    async updateReview(subjectId: string, review: QuantitativeSubjectReview, key: string){
         const subjectdetail=await this.getSubjectDetail(subjectId);
-        const subjectReviewDoc=firestore.doc(`DetailTemplate2/information/subjectReview/${subjectdetail.nameOfSubject}`)
-        const subjectReviewSnap=await subjectReviewDoc.get();
-        if(subjectReviewSnap.exists){
-            subjectReviewDoc.update({
+        let name = key=="s"?subjectdetail.nameOfSubject:subjectdetail.nameOfTeacher;
+        let colname = key=="s"?"subjectReview":"teacherReview";
+        let reviewDoc = await firestore.doc(`DetailTemplate2/information/${colname}/${name}`);
+        const reviewSnap=await reviewDoc.get();
+        if(reviewSnap.exists){
+            reviewDoc.update({
                 grossRating: increment(review.grossRating),
                 understandabilityOfClasses: increment(review.understandabilityOfClasses),
                 understandabilityOfDocs: increment(review.understandabilityOfDocs),
                 difficultyOfExam: increment(review.difficultyOfExam),
                 easinessOfObtainingCredit: increment(review.easinessOfObtainingCredit),
-                personalityOfTeacher: increment(review.personalityOfTeacher)
+                personalityOfTeacher: increment(review.personalityOfTeacher),
+                documentNumber: increment(1)
             })
         }else{
-            subjectReviewDoc.set({
+            reviewDoc.set({
                 grossRating: review.grossRating,
                 understandabilityOfClasses: review.understandabilityOfClasses,
                 understandabilityOfDocs: review.understandabilityOfDocs,
                 difficultyOfExam: review.difficultyOfExam,
                 easinessOfObtainingCredit: review.easinessOfObtainingCredit,
-                personalityOfTeacher: review.personalityOfTeacher
-            })  
-        } 
-    }
-    async updateTeacherReview(subjectId: string, review: QuantitativeSubjectReview){ //subjectとteacherで一つにする(変更)
-        const subjectdetail=await this.getSubjectDetail(subjectId);
-        const teacherReviewDoc=firestore.doc(`DetailTemplate2/information/teacherReview/${subjectdetail.nameOfTeacher}`)
-        const teacherReviewSnap=await teacherReviewDoc.get();
-        if(teacherReviewSnap.exists){
-            teacherReviewDoc.update({
-                grossRating: increment(review.grossRating),
-                understandabilityOfClasses: increment(review.understandabilityOfClasses),
-                understandabilityOfDocs: increment(review.understandabilityOfDocs),
-                difficultyOfExam: increment(review.difficultyOfExam),
-                easinessOfObtainingCredit: increment(review.easinessOfObtainingCredit),
-                personalityOfTeacher: increment(review.personalityOfTeacher)
-            })
-        }else{
-            teacherReviewDoc.set({
-                grossRating: review.grossRating,
-                understandabilityOfClasses: review.understandabilityOfClasses,
-                understandabilityOfDocs: review.understandabilityOfDocs,
-                difficultyOfExam: review.difficultyOfExam,
-                easinessOfObtainingCredit: review.easinessOfObtainingCredit,
-                personalityOfTeacher: review.personalityOfTeacher
+                personalityOfTeacher: review.personalityOfTeacher,
+                documentNumber: 1
             })  
         } 
     }
@@ -125,9 +104,11 @@ class PrvisionalFormRepository implements PrvisionalFormRepository
             understandabilityOfDocs: review.understandabilityOfDocs,
             difficultyOfExam: review.difficultyOfExam,
             easinessOfObtainingCredit: review.easinessOfObtainingCredit,
-            personalityOfTeacher: review.personalityOfTeacher
+            personalityOfTeacher: review.personalityOfTeacher,
         })
     }
+
+    async 
 }
 
 
@@ -164,7 +145,6 @@ type StackParamList = {
 
 type DummyFormScreenProps = NativeStackScreenProps<StackParamList, 'DummyFormScreen'>;
 export const DummyFormScreen = ({ navigation, route }: DummyFormScreenProps) => {
-    // * stackにSubjectDetailScreenという名前のスクリーンが登録されていることが前提
     return <>
         <Button title='go back' onPress={() => { navigation.pop() }} />
         <Button title="sport" onPress={() => { navigation.navigate('PrvisionalFormScreen', { subjectId: "0010001" }) }} />
@@ -174,6 +154,25 @@ export const DummyFormScreen = ({ navigation, route }: DummyFormScreenProps) => 
 
 type PrvisionalFormScreenProps = NativeStackScreenProps<StackParamList, 'PrvisionalFormScreen'>;
 export const PrvisionalFormScreen=({navigation,route} :PrvisionalFormScreenProps)=>{
+    const submitData=()=>{ //読み込んだ時の結果を関数にしておく(もっときれいに変更したい)
+        if (
+            !review.difficultyOfExam ||
+            !review.easinessOfObtainingCredit ||
+            !review.grossRating ||
+            !review.personalityOfTeacher ||
+            !review.understandabilityOfClasses ||
+            !review.understandabilityOfDocs ||
+            !message.content
+        ) {
+            Alert.alert("全てのフィールドを入力してください");
+            return;
+        }
+        PrvisionalForm.saveMessageReview(subjectId,message,review);
+        PrvisionalForm.updateReview(subjectId,review,"s");
+        PrvisionalForm.updateReview(subjectId,review,"t");
+        navigation.pop();
+        return;
+    }
     const subjectId=route.params.subjectId
     const [detail,setDetail]=useState<SubjectDetail>(null)
     const [review,setReview]=useState<QuantitativeSubjectReview>(null);
@@ -184,26 +183,31 @@ export const PrvisionalFormScreen=({navigation,route} :PrvisionalFormScreenProps
             let date=new Date();
             let messageFirst: ReviewMessage={
                 userId: id,
-                whenTheUserTakesTheSubject: date, //変更予定
-                content: "",
-            }
+                whenTheUserTakesTheSubject: date, //変更予定(シラバスなどから年度情報を得る)
+                content: ""}
             setMessage(messageFirst)
         })
-    },[subjectId])
+        setReview({
+            grossRating: null,
+            understandabilityOfClasses: null,
+            understandabilityOfDocs: null,
+            difficultyOfExam: null,
+            easinessOfObtainingCredit: null,
+            personalityOfTeacher: null
+        })},[subjectId])
+    
     if (detail === null) {
         return <Text> ロード中 </Text>
     }
     return <>
+    <ScrollView>
         <Button title="goback" onPress={()=>{navigation.pop()}}/>
         <Text>{detail.nameOfSubject}</Text>
         <ReviewFormSection setReview={setReview}/>
         <MessageFormSection setMessage={setMessage}/>
-        <Button title="送信" onPress={()=>{
-            PrvisionalForm.saveMessageReview(subjectId,message,review);
-            PrvisionalForm.updateSubjectReview(subjectId,review);
-            PrvisionalForm.updateTeacherReview(subjectId,review);
-        }}/>
+        <Button title="送信" onPress={submitData}/>
         {/* transactionの利用をする */}
+        </ScrollView>
         </>
 }
 

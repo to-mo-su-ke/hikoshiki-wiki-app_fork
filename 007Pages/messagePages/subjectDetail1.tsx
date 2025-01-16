@@ -4,6 +4,9 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { firestore,submitDataToFirestore } from '../../004BackendModules/messageMetod/firestore';
 import { increment,Timestamp, collection, addDoc, getDocs, QueryDocumentSnapshot, DocumentData } from "firebase/firestore";
 
+//detail1はfirebaseの構築でDetailTemplate1に対応
+//syllabusに沿って評価保存されているfirebaseで用いる
+
 // 各コンポーネントの引数の型を設定
 type StackParamList = {
     DummyScreen: {};
