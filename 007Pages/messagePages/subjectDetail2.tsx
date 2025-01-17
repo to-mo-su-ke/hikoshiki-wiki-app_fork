@@ -4,6 +4,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { firestore,submitDataToFirestore } from '../../004BackendModules/messageMetod/firestore';
 import { increment,Timestamp, collection, addDoc, getDocs, QueryDocumentSnapshot, DocumentData } from "firebase/firestore";
 import { ScrollView } from 'react-native-gesture-handler';
+import { getUserId } from '../../004BackendModules/messageMetod/firebase';
 
 
 //detail2はfirebaseの構築でDetailTemplate2に対応
@@ -99,9 +100,9 @@ type ReviewMessage = {
 interface SubjectDetailRepository {
     getSubjectDetail(subjectId: string): Promise<SubjectDetail>;
     getQuantitativeReview(subjectId: string,reviewKey: string): Promise<QuantitativeSubjectReview>;
-    getReviewMessages(subjectId: string,reviewKey: string): Promise<ReviewMessage[]>;
-    likeReviewMessage(subjectId: string, reviewId: string): Promise<void>;
-    dislikeReviewMessage(subjectId: string, reviewId: string): Promise<void>;
+    getReviewMessages(subjectId: string,reviewKey: string,uid: string): Promise<ReviewMessage[]>;
+    likeReviewMessage(reviewId: string, currentUserId: string): Promise<void>;
+    dislikeReviewMessage(reviewId: string, currentUserId: string): Promise<void>;
 }
 
 class SubjectDetailRepository implements SubjectDetailRepository {
@@ -135,7 +136,7 @@ class SubjectDetailRepository implements SubjectDetailRepository {
         }
         return review
     }
-    async getReviewMessages(subjectId: string,reviewKey: string) {
+    async getReviewMessages(subjectId: string,reviewKey: string, uid: string) {
         const subjectdetail=await this.getSubjectDetail(subjectId);
         let name = reviewKey=="s"?subjectdetail.nameOfSubject:subjectdetail.nameOfTeacher;
         let fieldname= reviewKey=="s"?"courseTitle":"instructor"
@@ -147,28 +148,33 @@ class SubjectDetailRepository implements SubjectDetailRepository {
         for (let doc of message_collection.docs) {
             let userId=doc.get('userId');
             let user_doc=await firestore.doc(`user/${userId}`).get()
+            let liked_doc=await firestore.doc(`DetailTemplate2/information/messages/${doc.id}/likedUser/${uid}`).get()
             messages.push({
                 reviewId: doc.id,
                 userName: user_doc.get('username'),
                 whenTheUserTakesTheSubject: doc.get('term').toDate(),
                 content: doc.get('content'),
                 likes: doc.get('likes'),
-                liked: false,
+                liked: liked_doc.exists,
             });
         }
         return messages
     }
-    async likeReviewMessage(subjectId: string, reviewId: string) {
+    async likeReviewMessage(reviewId: string, currentUserId: string) {
         let message_doc=firestore.doc(`DetailTemplate2/information/messages/${reviewId}`)
+        let liked_doc=firestore.doc(`DetailTemplate2/information/messages/${reviewId}/likedUser/${currentUserId}`)
         message_doc.update({
             likes: increment(1)
         })
+        liked_doc.set({})
     }
-    async dislikeReviewMessage(subjectId: string, reviewId: string) {
+    async dislikeReviewMessage(reviewId: string, currentUserId: string) {
         let message_doc=firestore.doc(`DetailTemplate2/information/messages/${reviewId}`)
+        let liked_doc=firestore.doc(`DetailTemplate2/information/messages/${reviewId}/likedUser/${currentUserId}`)
         message_doc.update({
             likes: increment(-1)
         })
+        liked_doc.delete()
     }
 }
 // </repository>
@@ -258,27 +264,30 @@ const RatingBar = ({ rating }: RatingBarProps) => {
 type ReviewMessageSectionProps = { subjectId: string; reviewKey: string;}
 const ReviewMessageSection = ({ subjectId, reviewKey }: ReviewMessageSectionProps) => {
     const [reviewMessages, setReviewMessages] = useState<ReviewMessage[]>([]);
+    const [currentUserId, setCurrentUserId] = useState('');
     useEffect(() => {
-        subjectDetailRepository.getReviewMessages(subjectId,reviewKey).then(setReviewMessages);
-    }, [subjectId,reviewKey]);
+        getUserId().then(setCurrentUserId)
+        subjectDetailRepository.getReviewMessages(subjectId,reviewKey,currentUserId).then(setReviewMessages);
+        console.log(currentUserId)
+    }, [subjectId,reviewKey,currentUserId]);
     return <>
-        {reviewMessages.map((reviewMessage) => <ReviewMessageBox subjectId={subjectId} reviewMessage={reviewMessage} key={reviewMessage.reviewId}/>)}
+        {reviewMessages.map((reviewMessage) => <ReviewMessageBox subjectId={subjectId} reviewMessage={reviewMessage} key={reviewMessage.reviewId} currentUserId={currentUserId}/>)}
     </>
 }
 // 個々のレビューメッセージ
-type ReviewMessageBoxProps = { subjectId: string, reviewMessage: ReviewMessage; }
-const ReviewMessageBox = ({ subjectId, reviewMessage }: ReviewMessageBoxProps) => {
+type ReviewMessageBoxProps = { subjectId: string, reviewMessage: ReviewMessage, currentUserId: string; }
+const ReviewMessageBox = ({ subjectId, reviewMessage, currentUserId }: ReviewMessageBoxProps) => {
     // <likeボタンの状態を管理>
     const [likes, setLikes] = useState(reviewMessage.likes);
     const [liked, setLiked] = useState(reviewMessage.liked);
     const handleLike = useCallback(() => {
         if (liked) {
-            subjectDetailRepository.dislikeReviewMessage(subjectId, reviewMessage.reviewId).then(() => {
+            subjectDetailRepository.dislikeReviewMessage(reviewMessage.reviewId, currentUserId).then(() => {
                 setLikes(likes - 1);
                 setLiked(false);
             });
         } else {
-            subjectDetailRepository.likeReviewMessage(subjectId, reviewMessage.reviewId).then(() => {
+            subjectDetailRepository.likeReviewMessage(reviewMessage.reviewId, currentUserId).then(() => {
                 setLikes(likes + 1);
                 setLiked(true);
             });

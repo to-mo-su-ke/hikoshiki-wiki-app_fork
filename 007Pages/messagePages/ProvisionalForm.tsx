@@ -3,7 +3,7 @@ import { Button, Text, TextInput, View, Alert } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { firestore,submitDataToFirestore } from '../../004BackendModules/messageMetod/firestore';
 import { getUserId } from '../../004BackendModules/messageMetod/firebase';
-import { increment,Timestamp, collection, addDoc, getDocs, QueryDocumentSnapshot, DocumentData } from "firebase/firestore";
+import { increment,runTransaction,Timestamp, collection, addDoc, getDocs, QueryDocumentSnapshot, DocumentData } from "firebase/firestore";
 import { ScrollView } from 'react-native-gesture-handler';
 
 //担当ではないが, 必要な処理を整理するために便宜的に作成
@@ -38,10 +38,6 @@ interface PrvisionalFormRepository{
     updateReview(subjectId: string, review: QuantitativeSubjectReview, key: string): Promise<void>;
     saveMessageReview(subjectId: string, message: ReviewMessage, review: QuantitativeSubjectReview): Promise<void>;
 }
-interface CurrentUser {
-    get id(): Promise<string>;
-    get name(): Promise<string>;
-}
 
 class PrvisionalFormRepository implements PrvisionalFormRepository
 {
@@ -61,28 +57,30 @@ class PrvisionalFormRepository implements PrvisionalFormRepository
         let name = key=="s"?subjectdetail.nameOfSubject:subjectdetail.nameOfTeacher;
         let colname = key=="s"?"subjectReview":"teacherReview";
         let reviewDoc = await firestore.doc(`DetailTemplate2/information/${colname}/${name}`);
-        const reviewSnap=await reviewDoc.get();
-        if(reviewSnap.exists){
-            reviewDoc.update({
-                grossRating: increment(review.grossRating),
-                understandabilityOfClasses: increment(review.understandabilityOfClasses),
-                understandabilityOfDocs: increment(review.understandabilityOfDocs),
-                difficultyOfExam: increment(review.difficultyOfExam),
-                easinessOfObtainingCredit: increment(review.easinessOfObtainingCredit),
-                personalityOfTeacher: increment(review.personalityOfTeacher),
-                documentNumber: increment(1)
-            })
-        }else{
-            reviewDoc.set({
-                grossRating: review.grossRating,
-                understandabilityOfClasses: review.understandabilityOfClasses,
-                understandabilityOfDocs: review.understandabilityOfDocs,
-                difficultyOfExam: review.difficultyOfExam,
-                easinessOfObtainingCredit: review.easinessOfObtainingCredit,
-                personalityOfTeacher: review.personalityOfTeacher,
-                documentNumber: 1
-            })  
-        } 
+        await firestore.runTransaction(async (transaction)=>{
+            let reviewSnap=await reviewDoc.get();
+            if(reviewSnap.exists){
+                transaction.update(reviewDoc,{
+                    grossRating: increment(review.grossRating),
+                    understandabilityOfClasses: increment(review.understandabilityOfClasses),
+                    understandabilityOfDocs: increment(review.understandabilityOfDocs),
+                    difficultyOfExam: increment(review.difficultyOfExam),
+                    easinessOfObtainingCredit: increment(review.easinessOfObtainingCredit),
+                    personalityOfTeacher: increment(review.personalityOfTeacher),
+                    documentNumber: increment(1)
+                })
+            }else{
+                transaction.set(reviewDoc,{
+                    grossRating: review.grossRating,
+                    understandabilityOfClasses: review.understandabilityOfClasses,
+                    understandabilityOfDocs: review.understandabilityOfDocs,
+                    difficultyOfExam: review.difficultyOfExam,
+                    easinessOfObtainingCredit: review.easinessOfObtainingCredit,
+                    personalityOfTeacher: review.personalityOfTeacher,
+                    documentNumber: 1
+                })  
+            } 
+        })
     }
     async saveMessageReview(subjectId: string, message: ReviewMessage, review: QuantitativeSubjectReview){
         const subjectdetail=await this.getSubjectDetail(subjectId);
@@ -107,31 +105,9 @@ class PrvisionalFormRepository implements PrvisionalFormRepository
             personalityOfTeacher: review.personalityOfTeacher,
         })
     }
-
-    async 
-}
-
-
-class CurrentUserRepositoryImpl implements CurrentUser {
-    _id: string = '';
-    _name: string = '';
-    initialized: boolean = false;
-    async init(): Promise<void> {
-        if (this.initialized) return;
-        this._id = await getUserId();
-        var userDoc = await firestore.doc(`/user/${this._id}`).get();
-        this._name = await userDoc.get('username');
-    }
-    get id(): Promise<string> {
-        return this.init().then(()=>this._id)
-    }
-    get name(): Promise<string> {
-        return this.init().then(()=>this._name)
-    }
 }
 
 const PrvisionalForm=new PrvisionalFormRepository()
-const currentUser: CurrentUser = new CurrentUserRepositoryImpl();
 
 
 //ここからページ遷移の領域
@@ -179,13 +155,12 @@ export const PrvisionalFormScreen=({navigation,route} :PrvisionalFormScreenProps
     const [message,setMessage]=useState<ReviewMessage>(null); 
     useEffect(()=>{
         PrvisionalForm.getSubjectDetail(subjectId).then(setDetail)
-        currentUser.id.then((id) => {
-            let date=new Date();
-            let messageFirst: ReviewMessage={
-                userId: id,
-                whenTheUserTakesTheSubject: date, //変更予定(シラバスなどから年度情報を得る)
-                content: ""}
-            setMessage(messageFirst)
+        let date=new Date();
+        getUserId().then((uid)=>{
+            setMessage({
+                userId: uid,
+                whenTheUserTakesTheSubject: date, //変更予定　detail.termDayPeriod利用
+                content: ""})
         })
         setReview({
             grossRating: null,
@@ -195,7 +170,6 @@ export const PrvisionalFormScreen=({navigation,route} :PrvisionalFormScreenProps
             easinessOfObtainingCredit: null,
             personalityOfTeacher: null
         })},[subjectId])
-    
     if (detail === null) {
         return <Text> ロード中 </Text>
     }
