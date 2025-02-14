@@ -14,11 +14,11 @@ import {
   setPersistence,
   browserLocalPersistence,
 } from "firebase/auth";
-import { auth } from "../004BackendModules/messageMetod/firebase";
+import { auth } from "../../004BackendModules/messageMetod/firebase";
 import { useNavigation } from "@react-navigation/native";
 
 
-export default function LoginScreen() {
+export default function LoginOrSignupScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigation = useNavigation(); // ホーム画面への遷移に使用
@@ -34,26 +34,28 @@ export default function LoginScreen() {
     });
 
   const LoginWithEmail = (email: string, password: string) => {
-    if (!email.endsWith("s.thers.ac.jp")) {
-      Alert.alert(
-        "エラー",
-        "メールアドレスは s.thers.ac.jp で終わる必要があります"
-      );
-      return;
-    }
+    // if (!email.endsWith("s.thers.ac.jp")) {
+    //   Alert.alert(
+    //     "エラー",
+    //     "メールアドレスは s.thers.ac.jp で終わる必要があります"
+    //   );
+    //   return;
+    // }
+    //今は無条件でホーム画面へ遷移できる
+    navigation.navigate("Home");
 
-    signInWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        // サインイン成功
-        console.log("User signed in:", userCredential.user);
-        // navigation.navigate(""); // ホーム画面に遷移
-      })
-      .catch((error) => {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        console.error("Error signing in:", errorCode, errorMessage);
-        Alert.alert("ログインエラー", errorMessage);
-      });
+  //   signInWithEmailAndPassword(auth, email, password)
+  //     .then((userCredential) => {
+  //       // サインイン成功
+  //       console.log("User signed in:", userCredential.user);
+  //       navigation.navigate("Home"); // ホーム画面に遷移
+  //     })
+  //     .catch((error) => {
+  //       const errorCode = error.code;
+  //       const errorMessage = error.message;
+  //       console.error("Error signing in:", errorCode, errorMessage);
+  //       Alert.alert("ログインエラー", errorMessage);
+  //     });
   };
 
   return (
@@ -80,6 +82,10 @@ export default function LoginScreen() {
       <Button
         title="ログイン"
         onPress={() => LoginWithEmail(email, password)}
+      />
+      <Button
+        title="新規登録"
+        onPress={() => navigation.navigate("SignUpScreen")} // 新規登録画面に遷移
       />
     </SafeAreaView>
   );
