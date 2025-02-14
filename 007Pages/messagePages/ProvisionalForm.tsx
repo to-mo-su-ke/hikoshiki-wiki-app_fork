@@ -3,12 +3,11 @@ import { Button, Text, TextInput, View, Alert } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { firestore,submitDataToFirestore } from '../../004BackendModules/messageMetod/firestore';
 import { getUserId } from '../../004BackendModules/messageMetod/firebase';
-import { increment,runTransaction,Timestamp, collection, addDoc, getDocs, QueryDocumentSnapshot, DocumentData } from "firebase/firestore";
+import { increment,runTransaction, Transaction, Timestamp, collection, addDoc, getDocs, QueryDocumentSnapshot, DocumentData,  } from "firebase/firestore";
 import { ScrollView } from 'react-native-gesture-handler';
 
 //担当ではないが, 必要な処理を整理するために便宜的に作成
 //subjectId=シラバス番号として処理していることに注意
-
 //ここから型定義の領域
 type QuantitativeSubjectReview = {
     grossRating: number;
@@ -17,6 +16,8 @@ type QuantitativeSubjectReview = {
     difficultyOfExam: number;
     easinessOfObtainingCredit: number;
     personalityOfTeacher: number;
+    attendance: number;
+    criteria: number;
 }
 
 type ReviewMessage = {
@@ -31,6 +32,7 @@ type SubjectDetail = {
     credits: number;
 }
 
+const textArray = ["テスト","課題","両方","不明","その他"] //アンケート結果(評価基準)
 
 //ここから関数設定の領域
 interface PrvisionalFormRepository{
@@ -53,38 +55,42 @@ class PrvisionalFormRepository implements PrvisionalFormRepository
         }
     }
     async updateReview(subjectId: string, review: QuantitativeSubjectReview, key: string){
+        const ArrayIncrement = (reviewNumber: number, arrayRating: number[]=[0,0,0,0,0]) => (arrayRating[reviewNumber-1]++, arrayRating);
+        //☆1は配列のindex0として保存(配列で保管)
         const subjectdetail=await this.getSubjectDetail(subjectId);
         let name = key=="s"?subjectdetail.nameOfSubject:subjectdetail.nameOfTeacher;
         let colname = key=="s"?"subjectReview":"teacherReview";
-        let reviewDoc = await firestore.doc(`DetailTemplate2/information/${colname}/${name}`);
+        let reviewDoc = await firestore.doc(`DetailTemplate3/information/${colname}/${name}`);
         await firestore.runTransaction(async (transaction)=>{
-            let reviewSnap=await reviewDoc.get();
+            let reviewSnap=await transaction.get(reviewDoc);
             if(reviewSnap.exists){
                 transaction.update(reviewDoc,{
-                    grossRating: increment(review.grossRating),
-                    understandabilityOfClasses: increment(review.understandabilityOfClasses),
-                    understandabilityOfDocs: increment(review.understandabilityOfDocs),
-                    difficultyOfExam: increment(review.difficultyOfExam),
-                    easinessOfObtainingCredit: increment(review.easinessOfObtainingCredit),
-                    personalityOfTeacher: increment(review.personalityOfTeacher),
-                    documentNumber: increment(1)
+                    grossRating: ArrayIncrement(review.grossRating, reviewSnap.get("grossRating")),
+                    understandabilityOfClasses: ArrayIncrement(review.understandabilityOfClasses, reviewSnap.get("understandabilityOfClasses")),
+                    understandabilityOfDocs: ArrayIncrement(review.understandabilityOfDocs, reviewSnap.get("understandabilityOfDocs")),
+                    difficultyOfExam: ArrayIncrement(review.difficultyOfExam, reviewSnap.get("difficultyOfExam")),
+                    easinessOfObtainingCredit: ArrayIncrement(review.easinessOfObtainingCredit, reviewSnap.get("easinessOfObtainingCredit")),
+                    personalityOfTeacher: ArrayIncrement(review.personalityOfTeacher, reviewSnap.get("personalityOfTeacher")),
+                    attendance: ArrayIncrement(review.attendance, reviewSnap.get("attendance")),
+                    criteria: ArrayIncrement(review.criteria, reviewSnap.get("criteria"))
                 })
             }else{
                 transaction.set(reviewDoc,{
-                    grossRating: review.grossRating,
-                    understandabilityOfClasses: review.understandabilityOfClasses,
-                    understandabilityOfDocs: review.understandabilityOfDocs,
-                    difficultyOfExam: review.difficultyOfExam,
-                    easinessOfObtainingCredit: review.easinessOfObtainingCredit,
-                    personalityOfTeacher: review.personalityOfTeacher,
-                    documentNumber: 1
+                    grossRating: ArrayIncrement(review.grossRating),
+                    understandabilityOfClasses: ArrayIncrement(review.understandabilityOfClasses),
+                    understandabilityOfDocs: ArrayIncrement(review.understandabilityOfDocs),
+                    difficultyOfExam: ArrayIncrement(review.difficultyOfExam),
+                    easinessOfObtainingCredit: ArrayIncrement(review.easinessOfObtainingCredit),
+                    personalityOfTeacher: ArrayIncrement(review.personalityOfTeacher),
+                    attendance: ArrayIncrement(review.attendance),
+                    criteria: ArrayIncrement(review.criteria)
                 })  
             } 
         })
     }
     async saveMessageReview(subjectId: string, message: ReviewMessage, review: QuantitativeSubjectReview){
         const subjectdetail=await this.getSubjectDetail(subjectId);
-        const messageCollection=firestore.collection(`DetailTemplate2/information/messages`)
+        const messageCollection=firestore.collection(`DetailTemplate3/information/messages`)
         const messageDoc=messageCollection.doc();
         messageDoc.set
         ({
@@ -95,18 +101,8 @@ class PrvisionalFormRepository implements PrvisionalFormRepository
             instructor: subjectdetail.nameOfTeacher,
             courseTitle: subjectdetail.nameOfSubject
         })
-        const reviewCollection=firestore.collection(`${messageDoc.path}/review`)
-        reviewCollection.add({
-            grossRating: review.grossRating,
-            understandabilityOfClasses: review.understandabilityOfClasses,
-            understandabilityOfDocs: review.understandabilityOfDocs,
-            difficultyOfExam: review.difficultyOfExam,
-            easinessOfObtainingCredit: review.easinessOfObtainingCredit,
-            personalityOfTeacher: review.personalityOfTeacher,
-        })
     }
 }
-
 const PrvisionalForm=new PrvisionalFormRepository()
 
 
@@ -163,12 +159,14 @@ export const PrvisionalFormScreen=({navigation,route} :PrvisionalFormScreenProps
                 content: ""})
         })
         setReview({
-            grossRating: null,
-            understandabilityOfClasses: null,
-            understandabilityOfDocs: null,
-            difficultyOfExam: null,
-            easinessOfObtainingCredit: null,
-            personalityOfTeacher: null
+            grossRating: 0,
+            understandabilityOfClasses: 0,
+            understandabilityOfDocs: 0,
+            difficultyOfExam: 0,
+            easinessOfObtainingCredit: 0,
+            personalityOfTeacher: 0,
+            attendance: 0,
+            criteria: 0
         })},[subjectId])
     if (detail === null) {
         return <Text> ロード中 </Text>
@@ -201,6 +199,10 @@ const ReviewFormSection=({setReview}: ReviewFormSectionProps)=>{
     <StarsSelect setReview={setReview} title="easinessOfObtainingCredit"/>
     <Text>教授の人間性</Text>    
     <StarsSelect setReview={setReview} title="personalityOfTeacher"/>
+    <Text>出席確認の頻度</Text>    
+    <StarsSelect setReview={setReview} title="attendance"/>
+    <Text>評価基準</Text>    
+    <CriteriaSelect setReview={setReview}/>
     </>
     )
 }
@@ -227,6 +229,30 @@ const StarsSelect=({setReview,title}:StarsSelectProps)=>{
         </View>
     )
 }
+
+type CriteriaSelectProps={setReview: React.Dispatch<React.SetStateAction<QuantitativeSubjectReview>>}
+const CriteriaSelect=({setReview}:CriteriaSelectProps)=>{
+    const updateReview = (value: number) => {
+        setReview((prev) => ({ ...prev, ["criteria"]: value }));
+    };
+    const [choice,setChoice]=useState<number>(0)
+    const length=5
+    return(
+        <View style={{ flexDirection: 'row'}}> 
+        {/* 横向きになるように一時的にcssで指定 */}
+        {Array.from({length}).map((_,index)=>(
+            <View key={index}>
+            <Text >{textArray[index]}</Text>
+            <Button title= {choice==index+1? "●":"○"} onPress={()=>{
+                updateReview(index+1);
+                setChoice(index+1);
+            }} />
+            </View>
+        ))}
+        </View>
+    )
+}
+
 
 type MessageFormSectionProps={setMessage: React.Dispatch<React.SetStateAction<ReviewMessage>>}
 const MessageFormSection=({setMessage}:MessageFormSectionProps)=>{
