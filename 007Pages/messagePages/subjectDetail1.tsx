@@ -3,9 +3,12 @@ import { Button, Text, Linking } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { firestore,submitDataToFirestore } from '../../004BackendModules/messageMetod/firestore';
 import { increment,Timestamp, collection, addDoc, getDocs, QueryDocumentSnapshot, DocumentData } from "firebase/firestore";
+import { ScrollView } from 'react-native-gesture-handler';
+import { getUserId } from '../../004BackendModules/messageMetod/firebase';
 
 //detail1はfirebaseの構築でDetailTemplate1に対応
 //syllabusに沿って評価保存されているfirebaseで用いる
+
 
 // 各コンポーネントの引数の型を設定
 type StackParamList = {
@@ -35,7 +38,7 @@ export const DummyCheckScreen = ({ navigation, route }: DummyCheckScreenProps) =
     // * stackにSubjectDetailScreenという名前のスクリーンが登録されていることが前提
     return <>
         <Button title='go back' onPress={() => { navigation.pop() }} />
-        <Button title="sport" onPress={() => { navigation.navigate('SubjectDetailScreen', { subjectId: "dummyId" }) }} />
+        <Button title="sport" onPress={() => { navigation.navigate('SubjectDetailScreen', { subjectId: "sport" }) }} />
         <Button title="english" onPress={() => { navigation.navigate('SubjectDetailScreen', { subjectId: "english" }) }} />
     </>
 }
@@ -49,10 +52,12 @@ type SubjectDetailScreenProps = NativeStackScreenProps<StackParamList, 'SubjectD
 export const SubjectDetailScreen = ({ navigation, route }: SubjectDetailScreenProps) => {
     const subjectId=route.params.subjectId
     return <>
+    <ScrollView>
         <Button title='go back' onPress={() => { navigation.pop() }} />
-        <SubjectDetailSection subjectRef={`detail/${subjectId}`} />
-        <QuantitativeReviewSection subjectRef={`detail/${subjectId}`} />
-        <ReviewMessageSection subjectRef={`detail/${subjectId}`} />
+        <SubjectDetailSection subjectId={subjectId} />
+        <QuantitativeReviewSection subjectId={subjectId} />
+        <ReviewMessageSection subjectId={subjectId} />
+    </ScrollView>
     </>
 }
 // </main compoents>
@@ -75,6 +80,8 @@ type QuantitativeSubjectReview = {
     difficultyOfExam: number;
     easinessOfObtainingCredit: number;
     personalityOfTeacher: number;
+    attendance: number;
+    criteria: number;
 }
 type ReviewMessage = {
     reviewId: string;
@@ -84,80 +91,90 @@ type ReviewMessage = {
     likes: number;
     liked: boolean;
 }
+
+const textArray = ["テスト","課題","両方","不明","その他"] //アンケート結果(評価基準)の数字との対応表
 // </entities>
 
 // <repository>
 // データの取得方法を抽象化
 interface SubjectDetailRepository {
-    getSubjectDetail(subjectRef: string): Promise<SubjectDetail>;
-    getQuantitativeReview(subjectRef: string): Promise<QuantitativeSubjectReview>;
-    getReviewMessages(subjectRef: string): Promise<ReviewMessage[]>;
-    likeReviewMessage(subjectRef: string, reviewId: string): Promise<void>;
-    dislikeReviewMessage(subjectRef: string, reviewId: string): Promise<void>;
+    getSubjectDetail(subjectId: string): Promise<SubjectDetail>; //教科の詳細(教科名・教授名など)を受け取る
+    getQuantitativeReview(subjectId: string): Promise<QuantitativeSubjectReview>; //レビューを読み取り平均値を計算して返す
+    getReviewMessages(subjectId: string, currentUserId: string): Promise<ReviewMessage[]>; //メッセージのリストを受け取る
+    likeReviewMessage(subjectId: string, reviewId: string, currentUserId: string): Promise<void>; //いいねが押されたときにdatabaseを更新する
+    dislikeReviewMessage(subjectId: string, reviewId: string, currentUserId: string): Promise<void>; //いいねが取り消されたときにdatabaseを更新する
 }
 
 class SubjectDetailRepository implements SubjectDetailRepository {
-    async getSubjectDetail(subjectRef: string) {
-        let subjectDoc = await firestore.doc(subjectRef).get();
+    async getSubjectDetail(subjectId: string) {
+        let subjectDoc = await firestore.doc(`DetailTemplate1/${subjectId}`).get();
         let syllabus_ref = subjectDoc.get('syllabus');
         let syllabusDoc = await firestore.doc(syllabus_ref).get();
         return{
             nameOfSubject: syllabusDoc.get('courseTitle'),
             nameOfTeacher: syllabusDoc.get('instructor'),
-            linkOfSyllabus: "", //シラバスはアプリ内のシラバスページか, 外部のページか
+            linkOfSyllabus: syllabusDoc.get('syllabusUrl'), 
             textbookDescription: syllabusDoc.get('textbook'),
             credits: syllabusDoc.get('credits'),
-            gradesDescription: subjectDoc.get('grades')  
+            gradesDescription: "C,B,A" //変更
         }
     }
-    async getQuantitativeReview(subjectRef: string) {
-        let subjectDoc = await firestore.doc(subjectRef).get();
-        return {
-            grossRating: subjectDoc.get('grossRating'),
-            understandabilityOfClasses: subjectDoc.get('understandabilityOfClasses'),
-            understandabilityOfDocs: subjectDoc.get('understandabilityOfDocs'),
-            difficultyOfExam: subjectDoc.get('difficultyOfExam'),
-            easinessOfObtainingCredit: subjectDoc.get('easinessOfObtainingCredit'),
-            personalityOfTeacher: subjectDoc.get('personalityOfTeacher')
+    async getQuantitativeReview(subjectId: string) {
+        let subjectDoc = await firestore.doc(`DetailTemplate1/${subjectId}`).get();
+        let documentNumber = subjectDoc.get('documentNumber')
+        let review = {
+            grossRating: subjectDoc.get('grossRating')/documentNumber,
+            understandabilityOfClasses: subjectDoc.get('understandabilityOfClasses')/documentNumber,
+            understandabilityOfDocs: subjectDoc.get('understandabilityOfDocs')/documentNumber,
+            difficultyOfExam: subjectDoc.get('difficultyOfExam')/documentNumber,
+            easinessOfObtainingCredit: subjectDoc.get('easinessOfObtainingCredit')/documentNumber,
+            personalityOfTeacher: subjectDoc.get('personalityOfTeacher')/documentNumber,
+            attendance: subjectDoc.get('attendance')/documentNumber,
+            criteria: subjectDoc.get('criteria')/documentNumber
         }
+        return review //それぞれの評価の平均値を返す
     }
-    async getReviewMessages(subjectRef: string) {
-        let message_collection= await firestore.collection(`${subjectRef}/message`)
-                .orderBy('term')
+    async getReviewMessages(subjectId: string, currentUserId: string) {
+        let message_collection= await firestore.collection(`DetailTemplate1/${subjectId}/message`)
+                .orderBy('term') //日付で並び替え
                 .get();
         // データベースから取得した課題情報をAssignment型に変換
         let messages: ReviewMessage[] = [];
         for (let doc of message_collection.docs) {
             let userId=doc.get('userId');
             let user_doc=await firestore.doc(`user/${userId}`).get()
+            let liked_doc=await firestore.doc(`DetailTemplate1/${subjectId}/message/${doc.id}/likedUser/${currentUserId}`).get()
             messages.push({
                 reviewId: doc.id,
                 userName: user_doc.get('username'),
                 whenTheUserTakesTheSubject: doc.get('term').toDate(),
                 content: doc.get('content'),
                 likes: doc.get('likes'),
-                liked: false,
+                liked: liked_doc.exists, //LikedUserにUserIDがある場合は, いいね済みと処理
             });
         }
-        return messages
+        return messages //メッセージのリストを返す
     }
-    async likeReviewMessage(subjectRef: string, reviewId: string) {
-        let message_doc=firestore.doc(`${subjectRef}/message/${reviewId}`)
+    async likeReviewMessage(subjectId: string, reviewId: string, currentUserId: string) {
+        let message_doc=firestore.doc(`DetailTemplate1/${subjectId}/message/${reviewId}`)
+        let liked_doc=firestore.doc(`DetailTemplate1/${subjectId}/message/${reviewId}/likedUser/${currentUserId}`)
         message_doc.update({
-            likes: increment(1)
+            likes: increment(1) //いいねの数を増やす
         })
+        liked_doc.set({}) //LikedUserにUserIdを保存
     }
-    async dislikeReviewMessage(subjectRef: string, reviewId: string) {
-        let message_doc=firestore.doc(`${subjectRef}/message/${reviewId}`)
+    async dislikeReviewMessage(subjectId: string, reviewId: string, currentUserId: string) {
+        let message_doc=firestore.doc(`DetailTemplate1/${subjectId}/message/${reviewId}`)
+        let liked_doc=firestore.doc(`DetailTemplate1/${subjectId}/message/${reviewId}/likedUser/${currentUserId}`)
         message_doc.update({
-            likes: increment(-1)
+            likes: increment(-1) //いいねの数を減らす
         })
+        liked_doc.delete() //LikedUser中のUserIdを削除
     }
 }
 // </repository>
 
 // 抽象化されたデータ取得方法のダミーの実装
-
 
 // データ取得方法の（実装を）指定
 const subjectDetailRepository = new SubjectDetailRepository();
@@ -168,13 +185,13 @@ const subjectDetailRepository = new SubjectDetailRepository();
 // メインコンポーネントから呼び出されるサブコンポーネント（Section）を定義（適当なまとまりで分割）
 
 // 一番上のセクション
-type SubjectDetailSectionProps = { subjectRef: string; }
-const SubjectDetailSection = ({ subjectRef }: SubjectDetailSectionProps) => {
+type SubjectDetailSectionProps = { subjectId: string; }
+const SubjectDetailSection = ({ subjectId }: SubjectDetailSectionProps) => {
     // <リポジトリからsubjectDetailを取得できるまでローディング要素を表示>
     const [subjectDetail, setSubjectDetail] = useState<SubjectDetail | null>(null);
     useEffect(() => {
-        subjectDetailRepository.getSubjectDetail(subjectRef).then(setSubjectDetail);
-    }, [subjectRef]);
+        subjectDetailRepository.getSubjectDetail(subjectId).then(setSubjectDetail);
+    }, [subjectId]);
     // </リポジトリからsubjectDetailを取得できるまでローディング要素を表示>
     if (subjectDetail === null) {
         return <Text> ロード中 </Text>
@@ -203,13 +220,13 @@ const LinkedText = ({ url, text }: LinkedTextProps) => {
 
 
 // 真ん中のセクション
-type QuantitativeReviewSectionProps = { subjectRef: string; }
-const QuantitativeReviewSection = ({ subjectRef }: QuantitativeReviewSectionProps) => {
+type QuantitativeReviewSectionProps = { subjectId: string; }
+const QuantitativeReviewSection = ({ subjectId }: QuantitativeReviewSectionProps) => {
     // <リポジトリからreviewを取得できるまでローディング要素を表示>
     const [review, setReview] = useState<QuantitativeSubjectReview | null>(null);
     useEffect(() => {
-        subjectDetailRepository.getQuantitativeReview(subjectRef).then(setReview);
-    }, [subjectRef]);
+        subjectDetailRepository.getQuantitativeReview(subjectId).then(setReview);
+    }, [subjectId]);
     if (review === null) {
         return <Text> ロード中 </Text>
     }
@@ -228,6 +245,10 @@ const QuantitativeReviewSection = ({ subjectRef }: QuantitativeReviewSectionProp
         <RatingBar rating={review.easinessOfObtainingCredit} />
         <Text> 教授の人間性: </Text>
         <RatingBar rating={review.personalityOfTeacher} />
+        <Text> 出席確認の頻度: </Text>
+        <RatingBar rating={review.attendance} />
+        <Text> 評価基準: </Text>
+        <Text> {textArray[Math.round(review.criteria)]} </Text>
     </>
 }
 type RatingBarProps = { rating: number; }
@@ -238,30 +259,32 @@ const RatingBar = ({ rating }: RatingBarProps) => {
 
 // 一番下のセクション
 // レビューメッセージを一覧表示
-type ReviewMessageSectionProps = { subjectRef: string; }
-const ReviewMessageSection = ({ subjectRef }: ReviewMessageSectionProps) => {
+type ReviewMessageSectionProps = { subjectId: string; }
+const ReviewMessageSection = ({ subjectId }: ReviewMessageSectionProps) => {
     const [reviewMessages, setReviewMessages] = useState<ReviewMessage[]>([]);
+    const [currentUserId, setCurrentUserId] = useState('');
     useEffect(() => {
-        subjectDetailRepository.getReviewMessages(subjectRef).then(setReviewMessages);
-    }, [subjectRef]);
+        getUserId().then(setCurrentUserId)
+        subjectDetailRepository.getReviewMessages(subjectId, currentUserId).then(setReviewMessages);
+    }, [subjectId,currentUserId]);
     return <>
-        {reviewMessages.map((reviewMessage) => <ReviewMessageBox subjectRef={subjectRef} reviewMessage={reviewMessage} key={reviewMessage.reviewId}/>)}
+        {reviewMessages.map((reviewMessage) => <ReviewMessageBox subjectId={subjectId} reviewMessage={reviewMessage} currentUserId={currentUserId} key={reviewMessage.reviewId}/>)}
     </>
 }
 // 個々のレビューメッセージ
-type ReviewMessageBoxProps = { subjectRef: string, reviewMessage: ReviewMessage; }
-const ReviewMessageBox = ({ subjectRef, reviewMessage }: ReviewMessageBoxProps) => {
+type ReviewMessageBoxProps = { subjectId: string, reviewMessage: ReviewMessage, currentUserId: string; }
+const ReviewMessageBox = ({ subjectId, reviewMessage, currentUserId }: ReviewMessageBoxProps) => {
     // <likeボタンの状態を管理>
     const [likes, setLikes] = useState(reviewMessage.likes);
     const [liked, setLiked] = useState(reviewMessage.liked);
     const handleLike = useCallback(() => {
         if (liked) {
-            subjectDetailRepository.dislikeReviewMessage(subjectRef, reviewMessage.reviewId).then(() => {
+            subjectDetailRepository.dislikeReviewMessage(subjectId, reviewMessage.reviewId, currentUserId).then(() => {
                 setLikes(likes - 1);
                 setLiked(false);
             });
         } else {
-            subjectDetailRepository.likeReviewMessage(subjectRef, reviewMessage.reviewId).then(() => {
+            subjectDetailRepository.likeReviewMessage(subjectId, reviewMessage.reviewId, currentUserId).then(() => {
                 setLikes(likes + 1);
                 setLiked(true);
             });

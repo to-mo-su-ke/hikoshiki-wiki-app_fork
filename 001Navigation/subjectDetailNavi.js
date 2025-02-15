@@ -1,7 +1,7 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { DummyScreen, DummyCheckScreen, SubjectDetailScreen } from '../007Pages/messagePages/subjectDetail2';
-import { DummyFormScreen, PrvisionalFormScreen} from '../007Pages/messagePages/ProvisionalForm';
+import { DummyFormScreen, PrvisionalFormScreen} from '../007Pages/messagePages/ProvisionalForm2'; //上の行と下の行を1,2とすることで切り替え
 
 const Stack = createStackNavigator();
 
