@@ -3,7 +3,7 @@ import { View, Text, FlatList, StyleSheet, Linking, TouchableOpacity } from "rea
 import { useDispatch } from "react-redux";
 import { addCourse } from "../../010Redux/actions";
 
-const CourseDetail = ({ route, navigation }) => {
+const CourseDetailView = ({ route, navigation }) => {
   
   const dispatch = useDispatch();
   const { course, day, period, termDayPeriod, degree } = route.params;
@@ -24,7 +24,7 @@ const CourseDetail = ({ route, navigation }) => {
       courseType,
       course.registrationCode
     ));
-    navigation.navigate("Home");
+    navigation.goBack();
   };
 
   if (!course) {
@@ -88,7 +88,7 @@ const CourseDetail = ({ route, navigation }) => {
         ItemSeparatorComponent={() => <View style={styles.separator} />}
       />
       <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
-        <Text style={styles.registerButtonText}>履修する</Text>
+        <Text style={styles.registerButtonText}>戻る</Text>
       </TouchableOpacity>
     </View>
   );
@@ -122,4 +122,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CourseDetail;
+export default CourseDetailView;
