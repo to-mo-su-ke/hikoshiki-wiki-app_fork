@@ -11,7 +11,7 @@ const HomeScreen = ({ navigation }) => {
     setIsVerticalTabOpen((prev) => !prev);
   };
 
-
+  
   const renderTest1Content = () => {
     if (test1Tab === "送信") {
       return (
