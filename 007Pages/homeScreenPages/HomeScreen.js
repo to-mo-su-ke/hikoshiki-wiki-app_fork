@@ -17,6 +17,7 @@ const HomeScreen = ({ navigation }) => {
     setIsVerticalTabOpen((prev) => !prev);
   };
 
+  
   const renderTest1Content = () => {
     // ...既存のテスト用コンテンツがあれば
     return (
