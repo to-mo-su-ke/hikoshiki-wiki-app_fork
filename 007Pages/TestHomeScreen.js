@@ -17,6 +17,10 @@ const TestHomeScreen = ({ navigation }) => {
         title="Login Navigator"
         onPress={() => navigation.navigate('LoginNavigator')}
       />
+      <Button
+        title="TimeTable"
+        onPress={() => navigation.navigate("TimeTable")}
+      />
     </View>
   );
 };
