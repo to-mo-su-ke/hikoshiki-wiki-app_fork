@@ -24,7 +24,7 @@ const CourseDetail = ({ route, navigation }) => {
       courseType,
       course.registrationCode
     ));
-    navigation.navigate("Home");
+    navigation.navigate("TimeTable");
   };
 
   if (!course) {

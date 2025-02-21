@@ -32,7 +32,10 @@ const HomeScreen = ({ navigation }) => {
             style={[styles.commonTab, bukatsuTab === "部活動" && styles.activeTab]}
             onPress={() => setBukatsuTab("部活動")}
           >
-            <Text style={styles.tabText}>部活動</Text>
+
+          <Text>Inputページのリンクを表示</Text>
+
+            
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.commonTab, bukatsuTab === "サークル" && styles.activeTab]}
@@ -145,9 +148,10 @@ const HomeScreen = ({ navigation }) => {
     );
   };
 
+
   return (
     <View style={styles.container}>
-      {/* メインタブのコンテンツ */}
+      {/* テスト1タブのコンテンツ */}
       {mainTab === "家" ? (
         <View style={styles.homeContentContainer}>
           <TouchableOpacity
@@ -177,20 +181,15 @@ const HomeScreen = ({ navigation }) => {
             <TimeTableView navigation={navigation} />
           )}
         </View>
-      ) : mainTab === "学内" ? (
-        renderSchoolContent()
-      ) : mainTab === "部活" ? (
-        renderBukatsuContent()
-      ) : mainTab === "自" ? (
-        renderSelfContent()
       ) : (
         <View style={styles.contentContainer}>
-          <Text>その他のコンテンツ</Text>
+          <Text>テスト2のコンテンツ（サンプル）</Text>
         </View>
       )}
 
       {/* 画面下部の水平タブ */}
       <View style={styles.mainTabsContainer}>
+        {/* 家 */}
         <TouchableOpacity
           style={[styles.mainTab, mainTab === "家" && styles.activeTab]}
           onPress={() => setMainTab("家")}
@@ -199,8 +198,11 @@ const HomeScreen = ({ navigation }) => {
             style={styles.mainTabImage}
             source={require("../../008picture/home.png")}
           />
+
           <Text style={styles.tabText}>家</Text>
+        
         </TouchableOpacity>
+        {/* 部活 */}
         <TouchableOpacity
           style={[styles.mainTab, mainTab === "部活" && styles.activeTab]}
           onPress={() => setMainTab("部活")}
@@ -209,8 +211,11 @@ const HomeScreen = ({ navigation }) => {
             style={styles.mainTabImage}
             source={require("../../008picture/run.png")}
           />
+
           <Text style={styles.tabText}>部活</Text>
+        
         </TouchableOpacity>
+        {/* 学内 */}
         <TouchableOpacity
           style={[styles.mainTab, mainTab === "学内" && styles.activeTab]}
           onPress={() => setMainTab("学内")}
@@ -219,8 +224,11 @@ const HomeScreen = ({ navigation }) => {
             style={styles.mainTabImage}
             source={require("../../008picture/building.png")}
           />
+
           <Text style={styles.tabText}>学内</Text>
+        
         </TouchableOpacity>
+        {/* 地図 */}
         <TouchableOpacity
           style={[styles.mainTab, mainTab === "地図" && styles.activeTab]}
           onPress={() => setMainTab("地図")}
@@ -229,18 +237,24 @@ const HomeScreen = ({ navigation }) => {
             style={styles.mainTabImage}
             source={require("../../008picture/map.png")}
           />
+
           <Text style={styles.tabText}>地図</Text>
+        
         </TouchableOpacity>
+        {/* イベ */}
         <TouchableOpacity
           style={[styles.mainTab, mainTab === "イベ" && styles.activeTab]}
-          onPress={() => setMainTab("イベ")}
+          onPress={() => setMainTab("イベイベ")}
         >
           <Image
             style={styles.mainTabImage}
             source={require("../../008picture/event.png")}
           />
+
           <Text style={styles.tabText}>イベ</Text>
+        
         </TouchableOpacity>
+        {/* 自 */}
         <TouchableOpacity
           style={[styles.mainTab, mainTab === "自" && styles.activeTab]}
           onPress={() => setMainTab("自")}
@@ -249,7 +263,9 @@ const HomeScreen = ({ navigation }) => {
             style={styles.mainTabImage}
             source={require("../../008picture/account.png")}
           />
+
           <Text style={styles.tabText}>自</Text>
+        
         </TouchableOpacity>
       </View>
     </View>
@@ -260,23 +276,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 20,
-  },
-  homeContentContainer: {
-    flex: 1,
-    width: "100%",
-    justifyContent: "center",
-    alignItems: "center",
-    position: "relative",
-    paddingTop: 60,
-  },
-  notificationButton: {
-    position: "absolute",
-    top: 10,
-    right: 10,
-    padding: 10,
-    backgroundColor: "#ddd",
-    borderRadius: 5,
-    zIndex: 100,
   },
   contentContainer: {
     flex: 1,
@@ -292,21 +291,21 @@ const styles = StyleSheet.create({
   },
   mainTab: {
     flex: 1,
+    // padding: 15,
+    // height: 50,
     alignItems: "center",
     backgroundColor: "#ddd",
-    paddingVertical: 5,
+    paddingVertical: 5
   },
   mainTabImage: {
     width: 32,
     height: 32,
-  },
-  activeTab: {
-    backgroundColor: "#aaa",
+    // resizeMode: "cover",
+    // backgroundColor: "#fff"
   },
   // 共通のタブスタイル
   commonTabsContainer: {
     flexDirection: "row",
-    backgroundColor: "#000",
     justifyContent: "space-around",
     gap: 3,
     paddingVertical: 3, // 修正

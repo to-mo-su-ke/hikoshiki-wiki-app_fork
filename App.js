@@ -13,8 +13,6 @@ import { Provider } from "react-redux";
 import store from "./010Redux/store";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StyleSheet, StatusBar } from "react-native";
-import CourseDetailView from "./007Pages/timetableCreatePages/CourseDetailView";
-import TimeTableView from "./007Pages/timetableCreatePages/TimeTableView";
 const Stack = createStackNavigator();
 
 const App = () => {
@@ -53,8 +51,6 @@ const App = () => {
               component={LoginScreenNavigator}
             />
             <Stack.Screen name="TimeTable" component={TimeTable} />
-            <Stack.Screen name="CourseDetailView" component={CourseDetailView} />
-            <Stack.Screen name="TimeTableView" component={TimeTableView} />
             <Stack.Screen name="ClassSelection" component={ClassSelection} />
             <Stack.Screen name="CourseDetail" component={CourseDetail} />
           </Stack.Navigator>
