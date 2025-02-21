@@ -314,6 +314,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     height: "100%",
   },
+<<<<<<< HEAD
+=======
+  // 既存の部活用スタイル
+  bukatsuContainer: {
+    flex: 1,
+    flexDirection: "column",
+    justifyContent: "center",
+    height: "100%",
+  },
+>>>>>>> parent of 699fe82 (homexcreenの調整を行いました)
   bukatsuTabsContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
@@ -408,8 +418,12 @@ const styles = StyleSheet.create({
 });
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 export default HomeScreen;
+=======
+export default HomeScreen;
+>>>>>>> parent of 699fe82 (homexcreenの調整を行いました)
 =======
 export default HomeScreen;
 >>>>>>> parent of 699fe82 (homexcreenの調整を行いました)
