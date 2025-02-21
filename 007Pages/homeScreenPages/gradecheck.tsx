@@ -7,8 +7,7 @@ const Gradecheck = ({ route }) => {
   const { gradeId } = route.params;
   const { department } = route.params;
   const [grade, setgrade] = useState(null);
-  const [userdepartment, setuserdepartment] = useState(null);
-
+  
 
 
 
@@ -27,24 +26,7 @@ const Gradecheck = ({ route }) => {
 
     fetchgrade();
   }, [gradeId]);
-  useEffect(() => {
-    const fetchuserdepartment = async () => {
-        try {
-            const userdepartmentDocRef = doc(db, 'user', department);
-            const userdepartmentDoc = await getDoc(userdepartmentDocRef);
-            if (userdepartmentDoc.exists()) {
-                setuserdepartment(userdepartmentDoc.data());
-            }
-            }
-        catch (error) {
-            console.error('Error fetching user department: ', error);
-        }
-    
-    }
-        fetchuserdepartment();
-    }   
-    , [userdepartment]);
-
+  
 
 
   
@@ -64,9 +46,7 @@ const Gradecheck = ({ route }) => {
       <Text> あなたのGPA:{grade.gpaaverage} </Text>
         <Text> あなたの単位数:{grade.units} </Text>
         <Text> 卒業まであと:{grade.remainunits}単位 </Text>
-    {userdepartment && grade.department && grade.department[userdepartment.name] && (
-        <Text>学科に対応する数値: {grade.department[userdepartment.name]}</Text>
-    )}
+    
         
       
     </View>
