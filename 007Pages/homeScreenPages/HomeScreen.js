@@ -35,8 +35,19 @@ const HomeScreen = ({ navigation }) => {
               >
                 <Text>Inputページへのリンク</Text>
               </TouchableOpacity>
+              <TouchableOpacity style={styles.link}
+              onPress = {() => navigation.navigate("ClubSearch")}>
+                <Text>部活検索ページへのリンク</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.link}
+              onPress = {() => navigation.navigate("Classsearch")}>
+                <Text>落単らくだ</Text>
+              </TouchableOpacity>
               <TouchableOpacity style={styles.link}>
+                
+
                 <Text>その他のリンク（サンプル）</Text>
+                
               </TouchableOpacity>
             </View>
           )}
