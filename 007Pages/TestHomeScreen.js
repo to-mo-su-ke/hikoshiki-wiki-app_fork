@@ -21,6 +21,22 @@ const TestHomeScreen = ({ navigation }) => {
         title="TimeTable"
         onPress={() => navigation.navigate("TimeTable")}
       />
+      <Button
+        title="Class"
+        onPress={() => navigation.navigate("Class")} 
+      />
+       <Button
+        title="club"
+        onPress={() => navigation.navigate("Club")} 
+      />
+        <Button
+          title="clubmake"
+          onPress={() => navigation.navigate("ClubSearchSubmit")}
+        />
+       
+
+      
+
     </View>
   );
 };

@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { View, Text, Button, TouchableOpacity, StyleSheet, Image } from "react-native";
 import TimeTable from "../timetableCreatePages/TimeTable"; 
 import TimeTableView from "../timetableCreatePages/TimeTableView";
+import UserInfo from "../userhome/Userinfo";
+import ClubSearch from "./Clubsearch";
+import ClubDetail from "./Clubdetail"; // 追加
 
 const HomeScreen = ({ navigation }) => {
   const [mainTab, setMainTab] = useState("家");
@@ -9,8 +12,10 @@ const HomeScreen = ({ navigation }) => {
   const [schoolTab, setSchoolTab] = useState("学食");
   const [curriculumTab, setCurriculumTab] = useState("授業検索");
   const [selfTab, setSelfTab] = useState("ユーザー");
+  const [eventTab, setEventTab] = useState("イベント");
   const [isVerticalTabOpen, setIsVerticalTabOpen] = useState(false);
   const [showTimeTable, setShowTimeTable] = useState(true);
+  const [showUserInfo, setShowUserInfo] = useState(true);
 
   const toggleVerticalTab = () => {
     setIsVerticalTabOpen((prev) => !prev);
@@ -35,12 +40,6 @@ const HomeScreen = ({ navigation }) => {
             <Text style={styles.tabText}>部活動</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.commonTab, bukatsuTab === "サークル" && styles.activeTab]}
-            onPress={() => setBukatsuTab("サークル")}
-          >
-            <Text style={styles.tabText}>サークル</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
             style={[styles.commonTab, bukatsuTab === "新歓" && styles.activeTab]}
             onPress={() => setBukatsuTab("新歓")}
           >
@@ -48,8 +47,7 @@ const HomeScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
         <View style={styles.commonContent}>
-          {bukatsuTab === "部活動" && <Text>部活動の内容</Text>}
-          {bukatsuTab === "サークル" && <Text>サークルの内容</Text>}
+          {bukatsuTab === "部活動" && <ClubSearch navigation={navigation} />}
           {bukatsuTab === "新歓" && <Text>新歓の内容</Text>}
         </View>
       </View>
@@ -113,6 +111,31 @@ const HomeScreen = ({ navigation }) => {
     );
   };
   
+const renderEventContent = () => {
+    return (
+      <View style={styles.commonContent}> 
+        <View style={styles.commonTabsContainer}>
+          <TouchableOpacity
+            style={[styles.commonTab, eventTab === "イベント" && styles.activeTab]}
+            onPress={() => setEventTab("イベント")}
+          >
+            <Text style={styles.tabText}>イベント</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.commonTab, eventTab === "イベント検索" && styles.activeTab]}
+            onPress={() => setEventTab("イベント検索")}
+          >
+            <Text style={styles.tabText}>イベント検索</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.commonContent}>
+          {eventTab === "イベント" && <Text>イベント</Text>}
+          {eventTab === "団体募集" && <Text>団体募集</Text>}
+        </View>
+      </View>
+    );
+  };
+
   const renderSelfContent = () => {
     return (
       <View style={styles.commonContent}>
@@ -137,7 +160,7 @@ const HomeScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
         <View style={styles.commonContent}>
-          {selfTab === "ユーザー" && <Text>ユーザーの内容</Text>}
+          {selfTab === "ユーザー" && <UserInfo navigation={navigation} />}
           {selfTab === "部活・サークル" && <Text>部活・サークルの内容</Text>}
           {selfTab === "団体" && <Text>団体の内容</Text>}
         </View>
@@ -183,11 +206,12 @@ const HomeScreen = ({ navigation }) => {
         renderBukatsuContent()
       ) : mainTab === "自" ? (
         renderSelfContent()
+      ) : mainTab === "イベ" ? (
+        renderEventContent()
       ) : (
-        <View style={styles.contentContainer}>
-          <Text>その他のコンテンツ</Text>
-        </View>
+        <Text>地図の内容</Text>
       )}
+        
 
       {/* 画面下部の水平タブ */}
       <View style={styles.mainTabsContainer}>

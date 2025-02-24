@@ -1,9 +1,19 @@
 import { firestore } from "../../firebaseConfig"; 
 
-export const submitDataToFirestore = async (formData) => {
+export const submitDataToFirestore = async (formData, collectionName = "information") => {
   try {
-    await firestore.collection("information").add(formData);
+    await firestore.collection(collectionName).add(formData);
   } catch (error) {
     console.error("Error submitting data:", error);
+  }
+};
+
+export const checkDuplicateName = async (name, collectionName) => {
+  try {
+    const querySnapshot = await firestore.collection(collectionName).where("searchText", "==", name).get();
+    return !querySnapshot.empty;
+  } catch (error) {
+    console.error("Error checking duplicate name:", error);
+    return false;
   }
 };
