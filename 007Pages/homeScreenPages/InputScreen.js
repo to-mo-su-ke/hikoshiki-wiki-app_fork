@@ -1,191 +1,96 @@
 import React, { useState } from "react";
-import {
-  View,
-  TextInput,
-  Button,
-  Text,
-  Alert,
-  TouchableOpacity,
-} from "react-native";
-import RNPickerSelect from "react-native-picker-select";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import { submitDataToFirestore } from "../../004BackendModules//mainMethod/submitdata";
+import { View, Text, Button, Alert, StyleSheet, ScrollView, Image } from "react-native";
+import * as ImagePicker from "expo-image-picker";
+import { uploadPhotoToFirestore } from "../../004BackendModules/mainMethod/uploadPhoto";
+// 追加: submitDataToFirestore のインポート (clubmakeを参考)
+import { submitDataToFirestore } from "../../004BackendModules/mainMethod/submitdata";
 
 const InputScreen = () => {
-  const [textInput, setTextInput] = useState("");
-  const [longTextInput, setLongTextInput] = useState("");
-  const [selectedOption, setSelectedOption] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [selectedRadioButton, setSelectedRadioButton] = useState("");
-  const [selectedListButtons, setSelectedListButtons] = useState([]);
-  const [starRating, setStarRating] = useState(0);
+  const [photoUri, setPhotoUri] = useState(null);
 
-  const handleDateChange = (event, date) => {
-    setShowDatePicker(false);
-    if (date) {
-      setSelectedDate(date);
-    }
-  };
+  // Expo ImagePicker を利用した写真選択処理
+  const handleSelectPhoto = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
 
-  const handleListButtonPress = (value) => {
-    if (selectedListButtons.includes(value)) {
-      setSelectedListButtons(
-        selectedListButtons.filter((item) => item !== value)
-      );
+    if (!result.canceled) {
+      setPhotoUri(result.assets[0].uri);
+      Alert.alert("写真が選択されました");
     } else {
-      setSelectedListButtons([...selectedListButtons, value]);
+      Alert.alert("画像選択がキャンセルされました");
     }
   };
 
   const handleSubmit = async () => {
-    if (
-      !textInput ||
-      !selectedOption ||
-      !selectedDate ||
-      !selectedRadioButton ||
-      selectedListButtons.length === 0 ||
-      starRating === 0
-    ) {
-      Alert.alert("全てのフィールドを入力してください");
+    if (!photoUri) {
+      Alert.alert("写真を選択してください");
       return;
     }
 
-    const data = {
-      textInput,
-      longTextInput,
-      selectedOption,
-      selectedDate,
-      selectedRadioButton,
-      selectedListButtons,
-      starRating,
-    };
+    try {
+      const response = await fetch(photoUri);
+      if (!response.ok) {
+        throw new Error("Blob変換失敗: ステータス " + response.status);
+      }
+      const blob = await response.blob();
 
-    // コレクション名を "useee" に指定
-    const collectionName = "useee"; // ここでコレクション名を指定
-    await submitDataToFirestore(data, collectionName);
-    Alert.alert("送信が完了しました");
+      let downloadUrl;
+      try {
+        downloadUrl = await uploadPhotoToFirestore(blob);
+        if (!downloadUrl) {
+          throw new Error("アップロード結果が空です");
+        }
+      } catch (uploadError) {
+        console.error("写真アップロード中エラー:", uploadError);
+        Alert.alert("写真アップロードに失敗しました: " + uploadError.message);
+        return;
+      }
+
+      // 取得したリンクをデータベースコレクション "phototest" に送信
+      const data = { photoUrl: downloadUrl, timestamp: new Date().toISOString() };
+      await submitDataToFirestore(data, "phototest");
+      Alert.alert("写真のアップロードと送信が完了しました", `URL: ${downloadUrl}`);
+    } catch (error) {
+      console.error("送信処理全体エラー:", error);
+      Alert.alert("送信処理中にエラーが発生しました: " + error.message);
+    }
   };
 
   return (
-    <View style={{ padding: 20 }}>
-      <Text>文字を入力:</Text>
-      <TextInput
-        style={{ borderColor: "gray", borderWidth: 1, marginBottom: 20 }}
-        placeholder="テキストを入力"
-        value={textInput}
-        onChangeText={setTextInput}
-      />
-
-      <Text>長文を入力:</Text>
-      <TextInput
-        style={{
-          borderColor: "gray",
-          borderWidth: 1,
-          marginBottom: 20,
-          height: 100,
-          textAlignVertical: "top",
-        }}
-        placeholder="長文を入力"
-        value={longTextInput}
-        onChangeText={(text) => setLongTextInput(text)}
-        multiline
-      />
-      <Text>文字数: {longTextInput.length}</Text>
-
-      <Text>オプションを選択:</Text>
-      <RNPickerSelect
-        onValueChange={(value) => setSelectedOption(value)}
-        items={[
-          { label: "Option 1", value: "option1" },
-          { label: "Option 2", value: "option2" },
-          { label: "Option 3", value: "option3" },
-        ]}
-      />
-
-      <Text>日付を選択:</Text>
-      <View style={{ marginBottom: 20 }}>
-        <Button title="日付を選択" onPress={() => setShowDatePicker(true)} />
-        {showDatePicker && (
-          <DateTimePicker
-            value={selectedDate}
-            mode="date"
-            display="default"
-            onChange={handleDateChange}
-          />
-        )}
-        <Text>選択された日付: {selectedDate.toDateString()}</Text>
-      </View>
-
-      <Text>ラジオボタンを選択:</Text>
-      <View style={{ flexDirection: "row", marginBottom: 20 }}>
-        {["ラジオ1", "ラジオ2", "ラジオ3"].map((label, index) => (
-          <TouchableOpacity
-            key={index}
-            onPress={() => setSelectedRadioButton(label)}
-            style={{
-              padding: 10,
-              backgroundColor:
-                selectedRadioButton === label ? "lightblue" : "white",
-              borderWidth: 1,
-              borderColor: "gray",
-              marginHorizontal: 5,
-            }}
-          >
-            <Text>{label}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      <Text>リストボタンを選択:</Text>
-      <View style={{ flexDirection: "column", marginBottom: 20 }}>
-        {["リスト1", "リスト2", "リスト3"].map((label, index) => (
-          <TouchableOpacity
-            key={index}
-            onPress={() => handleListButtonPress(label)}
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              padding: 10,
-              backgroundColor: selectedListButtons.includes(label)
-                ? "lightblue"
-                : "white",
-              borderWidth: 1,
-              borderColor: "gray",
-              marginVertical: 5,
-            }}
-          >
-            <Text style={{ marginRight: 10 }}>
-              {selectedListButtons.includes(label) ? "●" : "○"}
-            </Text>
-            <Text>{label}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      <Text>評価を選択:</Text>
-      <View style={{ flexDirection: "row", marginBottom: 20 }}>
-        {[1, 2, 3, 4, 5].map((rating) => (
-          <TouchableOpacity
-            key={rating}
-            onPress={() => setStarRating(rating)}
-            style={{ marginHorizontal: 5 }}
-          >
-            <Text
-              style={{
-                fontSize: 30,
-                color: rating <= starRating ? "gold" : "gray",
-              }}
-            >
-              ★
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
+    <ScrollView style={styles.container}>
+      <Text style={styles.header}>InputScreen</Text>
+      <Button title="写真を選択" onPress={handleSelectPhoto} />
+      {photoUri && (
+        <Image
+          source={{ uri: photoUri }}
+          style={styles.imagePreview}
+        />
+      )}
       <Button title="送信" onPress={handleSubmit} />
-    </View>
+    </ScrollView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+  },
+  header: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 16,
+  },
+  imagePreview: {
+    width: 200,
+    height: 200,
+    marginVertical: 10,
+    alignSelf: "center",
+  },
+});
 
 export default InputScreen;

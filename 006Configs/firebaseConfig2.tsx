@@ -1,12 +1,11 @@
 import { initializeApp, getApps, FirebaseApp } from "firebase/app";
 import { getFirestore, collection, doc } from "firebase/firestore";
-import { initializeAuth, getAuth
- } from "firebase/auth";
+import { getStorage } from "firebase/storage";
+import { initializeAuth, getAuth } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import firebase from 'firebase/app';
 import 'firebase/auth';
 import 'firebase/firestore';
-
 
 const firebaseConfig = {
   apiKey: "AIzaSyABT5pEPk4QpsxElFk3E1IElr4Y3ICuYYs",
@@ -30,8 +29,8 @@ if (!getApps().length) {
 // Firestoreインスタンスを取得
 export const db = getFirestore(firebaseApp);
 
-// Authインスタンスを初期化し、AsyncStorageを提供
-
+// Storageインスタンスを取得
+export const storage = getStorage(firebaseApp);
 
 // clubtestコレクションの参照を取得する関数
 export const getClubTestCollectionRef = () => {

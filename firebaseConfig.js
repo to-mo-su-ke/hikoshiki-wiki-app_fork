@@ -1,5 +1,6 @@
 import firebase from "firebase/compat/app";
 import "firebase/compat/firestore";
+import "firebase/compat/storage"; // 追加
 
 // Firebaseの設定情報を取得して設定する
 export const firebaseConfig = {
@@ -20,5 +21,6 @@ if (!firebase.apps.length) {
 }
 
 const firestore = firebase.firestore();
+const storage = firebase.storage(); // 追加
 
-export { firestore };
+export { firestore, storage };

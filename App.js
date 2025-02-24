@@ -8,6 +8,7 @@ import MessageScreenNavigator from "./001Navigation/messageScreenNavi";
 import LoginScreenNavigator from "./001Navigation/logInScreenNavi";
 import Class from "./001Navigation/classclub";
 import Club from "./001Navigation/clubnavi";
+import Inputnavi from "./001Navigation/inputnavi";
 import TimeTable from "./007Pages/timetableCreatePages/TimeTable";
 import CourseDetail from "./007Pages/timetableCreatePages/CourseDetail";
 import ClassSelection from "./007Pages/timetableCreatePages/ClassSelection";
@@ -18,6 +19,8 @@ import store from "./010Redux/store";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StyleSheet, StatusBar } from "react-native";
 import ClubSearchSubmit from "./007Pages/homeScreenPages/clubmake";
+import Gradenavi from "./001Navigation/gradenavi";
+
 
 const Stack = createStackNavigator();
 
@@ -63,7 +66,10 @@ const App = () => {
             <Stack.Screen name="CourseDetail" component={CourseDetail} />
             <Stack.Screen name="Clubdetail" component={Clubdetail} />
             <Stack.Screen name="UserInfo" component={UserInfo} />
+
             <Stack.Screen name="ClubSearchSubmit" component={ClubSearchSubmit} />
+            <Stack.Screen name="Input" component={Inputnavi} />
+            <Stack.Screen name="Grade" component={Gradenavi} />
           </Stack.Navigator>
         </NavigationContainer>
       </Provider>

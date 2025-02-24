@@ -33,8 +33,16 @@ const TestHomeScreen = ({ navigation }) => {
           title="clubmake"
           onPress={() => navigation.navigate("ClubSearchSubmit")}
         />
-       
+        <Button 
+        title="Input"
+        onPress ={() => navigation.navigate("Input")}
+        />         
+        <Button
+        title="Grade"
+        onPress={() => navigation.navigate("Grade")}
 
+        />
+        
       
 
     </View>
