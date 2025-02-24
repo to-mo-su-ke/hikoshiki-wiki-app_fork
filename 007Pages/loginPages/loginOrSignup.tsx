@@ -7,6 +7,7 @@ import {
   Alert,
   Text,
   SafeAreaView,
+  TouchableOpacity,
 } from "react-native";
 import {
   getAuth,
@@ -16,46 +17,35 @@ import {
 } from "firebase/auth";
 import { auth } from "../../004BackendModules/messageMetod/firebase";
 import { useNavigation } from "@react-navigation/native";
-
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useDispatch } from "react-redux";
+import { setUserToken } from "../../010Redux/actions";
 
 export default function LoginOrSignupScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigation = useNavigation(); // ホーム画面への遷移に使用
+  const dispatch = useDispatch();
 
   // 永続化をbrowserLocalPersistenceで設定
   // 案：https://github.com/react-native-jp/praiser/blob/9962c9c11e4fedfccdb9571d9289d78b1dbeb747/src/lib/local-store/user-information.ts
-  setPersistence(auth, browserLocalPersistence)
-    .then(() => {
-      console.log("Persistence set to local.");
-    })
-    .catch((error) => {
-      console.error("Error setting persistence:", error);
-    });
 
-  const LoginWithEmail = (email: string, password: string) => {
-    // if (!email.endsWith("s.thers.ac.jp")) {
-    //   Alert.alert(
-    //     "エラー",
-    //     "メールアドレスは s.thers.ac.jp で終わる必要があります"
-    //   );
-    //   return;
-    // }
-    //今は無条件でホーム画面へ遷移できる
-    navigation.navigate("Home");
+  const LoginWithEmail = async (email: string, password: string) => {
+    if (!email.endsWith("s.thers.ac.jp")) {
+      Alert.alert(
+        "エラー",
+        "メールアドレスは s.thers.ac.jp で終わる必要があります"
+      );
+      return;
+    }
 
-  //   signInWithEmailAndPassword(auth, email, password)
-  //     .then((userCredential) => {
-  //       // サインイン成功
-  //       console.log("User signed in:", userCredential.user);
-  //       navigation.navigate("Home"); // ホーム画面に遷移
-  //     })
-  //     .catch((error) => {
-  //       const errorCode = error.code;
-  //       const errorMessage = error.message;
-  //       console.error("Error signing in:", errorCode, errorMessage);
-  //       Alert.alert("ログインエラー", errorMessage);
-  //     });
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      dispatch(setUserToken(userCredential.user.uid));
+      navigation.navigate("HomeNavi"); // ホーム画面に遷移
+    } catch (error: any) {
+      Alert.alert("ログインエラー", error.message);
+    }
   };
 
   return (
@@ -79,14 +69,23 @@ export default function LoginOrSignupScreen() {
         autoCapitalize="none"
         placeholderTextColor="#aaa"
       />
-      <Button
-        title="ログイン"
+      {/* ログインボタン */}
+      <TouchableOpacity
+        style={[styles.button, { backgroundColor: "green" }]}
         onPress={() => LoginWithEmail(email, password)}
-      />
-      <Button
-        title="新規登録"
-        onPress={() => navigation.navigate("SignUpScreen")} // 新規登録画面に遷移
-      />
+        activeOpacity={0.7}
+      >
+        <Text style={styles.buttonText}>ログイン</Text>
+      </TouchableOpacity>
+
+      {/* 新規登録ボタン */}
+      <TouchableOpacity
+        style={[styles.button, { backgroundColor: "green" }]}
+        onPress={() => navigation.navigate("SignUpScreen")}
+        activeOpacity={0.7}
+      >
+        <Text style={styles.buttonText}>新規登録</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -95,12 +94,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
-    paddingHorizontal: 20,
-    backgroundColor: "#f0f0f0",
+    paddingHorizontal: 85,
+    backgroundColor: "#fff",
   },
   title: {
-    fontSize: 24,
-    fontWeight: "bold",
+    fontSize: 36,
     marginBottom: 20,
     textAlign: "center",
   },
@@ -112,5 +110,18 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     paddingHorizontal: 10,
     backgroundColor: "#fff",
+  },
+  button: {
+    color: "#fff",
+    height: 40,
+    borderRadius: 5,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 10,
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#fff",
   },
 });

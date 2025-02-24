@@ -1,3 +1,5 @@
+// Reduxのstoreを定義するファイル
+
 import { configureStore } from "@reduxjs/toolkit";
 import rootReducer from "./reducers";
 import { persistStore, persistReducer } from 'redux-persist';

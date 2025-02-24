@@ -1,3 +1,9 @@
+// Reduxのアクションを定義する
+
+// ログイン処理
+export const SET_USER_TOKEN = "SET_USER_TOKEN";
+
+// 時間割ページ
 export const SET_DEGREE = "SET_DEGREE";
 export const SET_DEPARTMENT = "SET_DEPARTMENT";
 export const SET_TERM_DAY_PERIOD = "SET_TERM_DAY_PERIOD";
@@ -5,6 +11,13 @@ export const SET_TIMETABLES = "SET_TIMETABLES";
 export const ADD_COURSE = 'ADD_COURSE';
 export const REMOVE_COURSE = 'REMOVE_COURSE';
 
+// ログイン処理
+export const setUserToken = (token) => ({
+  type: SET_USER_TOKEN,
+  payload: token,
+});
+
+// 時間割ページ
 // 学部を設定するアクション
 export const setDegree = (degree) => ({
   type: SET_DEGREE,

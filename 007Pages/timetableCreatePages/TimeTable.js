@@ -340,6 +340,7 @@ const TimeTable = ({ navigation }) => {
                     period,
                     termDayPeriod,
                     degree,
+                    department,
                   })
                 }
               >

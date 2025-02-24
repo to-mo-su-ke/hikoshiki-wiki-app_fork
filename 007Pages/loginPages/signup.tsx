@@ -19,10 +19,10 @@ import {
   StyleSheet,
   View,
   TextInput,
-  Button,
   Alert,
   Text,
   SafeAreaView,
+  TouchableOpacity,
 } from "react-native";
 import {
   getAuth,
@@ -82,11 +82,14 @@ export default function SignUpScreen({ navigation }) { //分割代入
         autoCapitalize="none"
         placeholderTextColor="#aaa"
       />
-
-      <Button
-        title="認証" //個人情報入力画面へ
+      {/* 認証ボタン */}
+      <TouchableOpacity
+        style={[styles.button, { backgroundColor: "green" }]}
         onPress={() => InputEmailAndPasswordScreen(email, password)}
-      />
+        activeOpacity={0.7}
+      >
+        <Text style={styles.buttonText}>認証</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -95,8 +98,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
-    paddingHorizontal: 20,
-    backgroundColor: "#f0f0f0",
+    paddingHorizontal: 85,
+    backgroundColor: "#fff",
   },
   title: {
     fontSize: 24,
@@ -112,5 +115,18 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     paddingHorizontal: 10,
     backgroundColor: "#fff",
+  },
+  button: {
+    color: "#fff",
+    height: 40,
+    borderRadius: 5,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 10,
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#fff",
   },
 });
