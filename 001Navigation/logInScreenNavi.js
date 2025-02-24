@@ -24,7 +24,7 @@ const LoginScreenNavigator = () => {
           <Stack.Screen name="SelectClubScreen" component={SelectClubScreen} />
           <Stack.Screen name="ConfirmScreen" component={ConfirmScreen} />
           <Stack.Screen name="EmailResendScreen" component={EmailResendScreen} />
-          <Stack.Screen name="Home" component={HomeScreenNavigator} />
+          <Stack.Screen name="HomeNavi" component={HomeScreenNavigator} />
       </Stack.Navigator>
     </PaperProvider>
   );

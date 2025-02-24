@@ -37,7 +37,7 @@ export default function ConfirmScreen({ navigation, route }) {
     const club = route.params.information.club;
     const information = route.params.information;
 
-    const signUp = async () => {
+    const signUp = async () => { //　画面遷移までの間「通信中」のポップアップを出して元画面を操作不可にする
         try {
             const uid = await SignUpWithEmail(email, password); // サインアップする
             await sendVerificationEmail(); // メールアドレスの確認メールを送信する
