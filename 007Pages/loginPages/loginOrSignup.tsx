@@ -15,9 +15,8 @@ import {
   setPersistence,
   browserLocalPersistence,
 } from "firebase/auth";
-import { auth } from "../../004BackendModules/messageMetod/firebase";
+import  SignInWithEmail  from "../../004BackendModules/loginMethod/signInWithEmail";
 import { useNavigation } from "@react-navigation/native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useDispatch } from "react-redux";
 import { setUserToken } from "../../010Redux/actions";
 
@@ -27,30 +26,37 @@ export default function LoginOrSignupScreen() {
   const navigation = useNavigation(); // ホーム画面への遷移に使用
   const dispatch = useDispatch();
 
-  // 永続化をbrowserLocalPersistenceで設定
-  // 案：https://github.com/react-native-jp/praiser/blob/9962c9c11e4fedfccdb9571d9289d78b1dbeb747/src/lib/local-store/user-information.ts
 
   const LoginWithEmail = async (email: string, password: string) => {
     if (!email.endsWith("s.thers.ac.jp")) {
       Alert.alert(
-        "エラー",
         "メールアドレスは s.thers.ac.jp で終わる必要があります"
       );
       return;
     }
 
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      dispatch(setUserToken(userCredential.user.uid));
+      const uid = await SignInWithEmail(email, password); // ログインに失敗した場合error.message:alert-displayed-errorがthrownされる
+      dispatch(setUserToken(uid));
       navigation.navigate("HomeNavi"); // ホーム画面に遷移
     } catch (error: any) {
-      Alert.alert("ログインエラー", error.message);
+      // エラーハンドリング
+      switch (error.message) {
+        case "alert-displayed-error":
+          // すでにアラートが表示されているので何もしない
+          break;
+        default:
+          // その他のエラー
+          Alert.alert("ログインに失敗しました。");
+          break;
+      }    
     }
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>ログイン</Text>
+      <Text>メールはs.thers.ac.jpで終わる機構メールを使用してください</Text>
       <TextInput
         style={styles.input}
         placeholder="メールアドレス"
