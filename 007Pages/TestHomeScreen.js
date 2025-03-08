@@ -40,11 +40,11 @@ const TestHomeScreen = ({ navigation }) => {
         <Button
         title="Grade"
         onPress={() => navigation.navigate("Grade")}
-
         />
-        
-      
-
+        <Button
+        title="NotificationNavi"
+        onPress={()=>navigation.navigate("NotificationNavi")}
+        />
     </View>
   );
 };
