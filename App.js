@@ -22,12 +22,16 @@ import { StyleSheet, StatusBar } from "react-native";
 import ClubSearchSubmit from "./007Pages/homeScreenPages/clubmake";
 import Gradenavi from "./001Navigation/gradenavi";
 
-
+import { initializeMessaging } from "./004BackendModules/notificationMethod/initializeMessaging";
 
 const Stack = createStackNavigator();
 
 const App = () => {
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    initializeMessaging();
+  }, []);
 
   useEffect(() => {
     const loadApp = async () => {

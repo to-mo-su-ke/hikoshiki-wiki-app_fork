@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Text, Button } from 'react-native';
-import { notificationService, Notification, DirectMessage } from './notificationService';
+import { NotificationService, MockNotificationService, Notification, DirectMessage } from './notificationService';
 import { FlatList } from 'react-native-gesture-handler';
+
+const  notificationService: NotificationService = new MockNotificationService();
 
 // notification serviceのデバッグ用に用意したコンポーネントです．
 // notificationServiceブランチ以外では置き換えてください．
