@@ -1,5 +1,8 @@
 // https://zenn.dev/yumemi9808/articles/f0da7987eb524d
 // https://rnfirebase.io/#expo
+// Expo Goでは動作しない模様．
+// messagingをインポートした時点でエラーとなります．
+// 動作させるためにはアプリをビルドする必要があります．
 import messaging from '@react-native-firebase/messaging';
 
 import { firestore } from '../messageMetod/firestore';
