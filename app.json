@@ -27,7 +27,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.hikoshikiWiki"
+      "package": "com.example.wiki"
     },
     "web": {
       "favicon": "./assets/favicon.png"
