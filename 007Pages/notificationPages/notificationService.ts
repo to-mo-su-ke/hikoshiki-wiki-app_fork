@@ -102,6 +102,7 @@ export interface NotificationService {
     /// 指定されたidをもつダイレクトメッセージをキャッシュから削除します．
     dismissDirectMessage: (id: DirectMessageId) => Promise<void>;
     /// 内部状態(デバイスに保持されているおしらせ，ダイレクトメッセージのキャッシュや最終取得日時)を破棄します．
+    /// 不具合解消やデバッグに利用してください．
     resetState: () => Promise<void>;
 }
 
@@ -322,7 +323,7 @@ export class NotificationServiceImpl implements NotificationService {
         );
     }
     // </notificationsLastFetchedAt>
-    // <directMessagesLastFetchedAt
+    // <directMessagesLastFetchedAt>
     private static DIRECT_MESSAGES_LAST_FETCHED_AT_KEY = "notification_service_direct_messages_last_fetched_at";
     private directMessagesLastFetchedAt: Date;
     async restoreDirectMessagesLastFetchedAt() {
@@ -396,12 +397,14 @@ export class NotificationServiceImpl implements NotificationService {
         const fetchingNotificationsAt = new Date();
         // 新規おしらせの取得
         // 複数フィールドに条件付けするクエリを発行する際はfirebaseでindexを作成する必要がある．
+        // !! firebaseのフィールド構造に依存 !!
         const newNotificationDocs = await NotificationServiceImpl.NotificationDocRef
             .where("publishedAt",">=",this.notificationsLastFetchedAt)
             .where("outdatedAt",">=",fetchingNotificationsAt)
             .get();
         const newNotifications = newNotificationDocs.docs.map((doc) => {
             const data = doc.data();
+            // !! firebaseのフィールド構造に依存 !!
             return new Notification(
                 doc.id,
                 data.title,
@@ -427,6 +430,7 @@ export class NotificationServiceImpl implements NotificationService {
         // 複数フィールドに条件付けするクエリを発行する際はfirebaseでindexを作成する必要がある．
         const targetUserId = await getUserId();
         console.log(targetUserId);
+        // !! firebaseのフィールド構造に依存 !!
         const newDirectMessageDocs = await NotificationServiceImpl.DirectMessageDocRef
             .where("publishedAt",">=",this.directMessagesLastFetchedAt)
             .where("outdatedAt",">=",fetchingDirectMessagesAt)
@@ -434,6 +438,7 @@ export class NotificationServiceImpl implements NotificationService {
             .get();
         const newDirectMessages = newDirectMessageDocs.docs.map((doc) => {
             const data = doc.data();
+            // !! firebaseのフィールド構造に依存 !!
             return new DirectMessage(
                 doc.id,
                 data.title,
