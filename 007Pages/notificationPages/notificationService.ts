@@ -1,4 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import {firestore} from "../../004BackendModules/messageMetod/firestore";
+import { getUserId } from "../../004BackendModules/messageMetod/firebase";
 
 // <types>
 // ピクトグラムのリソース．リンクで指定するのか，アセットに画像を配置してそれを指定するのか分からないので，
@@ -85,10 +87,22 @@ export class DirectMessage{
 // </types>
 
 export interface NotificationService {
+    /// これによって登録されたコールバックは
+    // [fetchNotifications]を実行した際に新規お知らせが存在した場合はそれらを引数に与えて呼びだします．
+    addOnNewNotificationListener: (listener: (newNotification: Notification[]) => void) => void;
+    /// これによって登録されたコールバックは
+    // [fetchDirectMessages]を実行した際に新規ダイレクトメッセージが存在した場合はそれらを引数に与えて呼びだします．
+    addOnNewDirectMessageListener: (listener: (newDirectMessage: DirectMessage[]) => void) => void;
+    /// キャッシュされたお知らせおよび新規取得したお知らせをまとめて返します．
     fetchNotifications: () => Promise<Notification[]>;
+    /// キャッシュされたダイレクトメッセージおよび新規取得したダイレクトメッセージをまとめて返します．
     fetchDirectMessages: () => Promise<DirectMessage[]>;
+    /// 指定されたidをもつお知らせをキャッシュから削除します．
     dismissNotification: (id: NotificationId) => Promise<void>;
+    /// 指定されたidをもつダイレクトメッセージをキャッシュから削除します．
     dismissDirectMessage: (id: DirectMessageId) => Promise<void>;
+    /// 内部状態(デバイスに保持されているおしらせ，ダイレクトメッセージのキャッシュや最終取得日時)を破棄します．
+    resetState: () => Promise<void>;
 }
 
 // <mock implementation>
@@ -147,6 +161,13 @@ export class MockNotificationService implements NotificationService {
         },
     ];
 
+    addOnNewNotificationListener(listener: (newNotification: Notification[]) => void) {
+        // Mockなので何もしない
+    }
+    addOnNewDirectMessageListener(listener: (newDirectMessage: DirectMessage[]) => void) {
+        // Mockなので何もしない
+    }
+
     async fetchDirectMessages() {
         return this.directMessages;
     }
@@ -159,13 +180,71 @@ export class MockNotificationService implements NotificationService {
     async dismissNotification(id: NotificationId) {
         this.notifications = this.notifications.filter((n) => n.id !== id);
     }
+    async resetState() {
+        this.notifications = [
+            {
+                id: "1",
+                title: "title 1",
+                pictogram: new PictogramResource(new URL("https://example.com")),
+                registeredDate: new Date(),
+                note: "note1",
+                link: new URL("https://example.com")
+            },        
+            {
+                id: "2",
+                title: "title 2",
+                pictogram: new PictogramResource(new URL("https://example.com")),
+                registeredDate: new Date(),
+                note: "note2",
+                link: new URL("https://example.com")
+            },       
+            {
+                id: "3",
+                title: "title 3",
+                pictogram: new PictogramResource(new URL("https://example.com")),
+                registeredDate: new Date(),
+                note: "note3",
+                link: new URL("https://example.com")
+            },
+        ];
+        this.directMessages = [
+            {
+                id: "1",
+                title: "title 1",
+                pictogram: new PictogramResource(new URL("https://example.com")),
+                registeredDate: new Date(),
+                note: "note1",
+                content: "content1"
+            },        
+            {
+                id: "2",
+                title: "title 2",
+                pictogram: new PictogramResource(new URL("https://example.com")),
+                registeredDate: new Date(),
+                note: "note2",
+                content: "content2"
+            },       
+            {
+                id: "3",
+                title: "title 3",
+                pictogram: new PictogramResource(new URL("https://example.com")),
+                registeredDate: new Date(),
+                note: "note3",
+                content: "content3"
+            },
+        ];
+    }
 }
 
 // </mock implementation>
 
 // <implementation>
 
-class NotificationServiceImpl implements NotificationService {
+export class NotificationServiceImpl implements NotificationService {
+    // <AsyncStorage>
+    // firebaseからの取得結果をキャッシュするためにAsyncStorageを利用します．
+    // 以下でAsyncStorageの各キーを定め，AsyncStorageの利用をメソッド化します．
+    // <notifications>
     private static NOTIFICATIONS_KEY = "notification_service_notifications";
     private notifications: Notification[];
     async restoreNotifications() {
@@ -176,6 +255,21 @@ class NotificationServiceImpl implements NotificationService {
             this.notifications = [];
         }
     }
+    async pushNotifications(notifications: Notification[]) {
+        await this.ensureInitialized();
+        this.notifications.push(...notifications);
+        await AsyncStorage.setItem(
+            NotificationServiceImpl.NOTIFICATIONS_KEY, 
+            JSON.stringify(this.notifications.map((n) => n.toString()))
+        );
+    }
+    async clearNotifications() {
+        await this.ensureInitialized();
+        this.notifications = [];
+        await AsyncStorage.setItem(NotificationServiceImpl.NOTIFICATIONS_KEY, "[]");
+    }
+    // </notifications>
+    // <directMessages>
     private static DIRECT_MESSAGES_KEY = "notification_service_direct_messages";
     private directMessages: DirectMessage[];
     async restoreDirectMessages() {
@@ -186,6 +280,21 @@ class NotificationServiceImpl implements NotificationService {
             this.directMessages = [];
         }
     }
+    async pushDirectMessages(directMessages: DirectMessage[]) {
+        await this.ensureInitialized();
+        this.directMessages.push(...directMessages);
+        await AsyncStorage.setItem(
+            NotificationServiceImpl.DIRECT_MESSAGES_KEY, 
+            JSON.stringify(this.directMessages.map((dm) => dm.toString()))
+        );
+    }
+    async clearDirectMessages() {
+        await this.ensureInitialized();
+        this.directMessages = [];
+        await AsyncStorage.setItem(NotificationServiceImpl.DIRECT_MESSAGES_KEY, "[]");
+    }
+    // </directMessages>
+    // <notificationsLastFetchedAt>
     private static NOTIFICATIONS_LAST_FETCHED_AT_KEY = "notification_service_notifications_last_fetched_at";
     private notificationsLastFetchedAt: Date;
     async restoreNotificationsLastFetchedAt() {
@@ -196,6 +305,24 @@ class NotificationServiceImpl implements NotificationService {
             this.notificationsLastFetchedAt = new Date(0);
         }
     }
+    async setNotificationsLastFetchedAt(date: Date) {
+        await this.ensureInitialized();
+        this.notificationsLastFetchedAt = date;
+        await AsyncStorage.setItem(
+            NotificationServiceImpl.NOTIFICATIONS_LAST_FETCHED_AT_KEY, 
+            this.notificationsLastFetchedAt.toISOString()
+        );
+    }
+    async resetNotificationsLastFetchedAt() {
+        await this.ensureInitialized();
+        this.notificationsLastFetchedAt = new Date(0);
+        await AsyncStorage.setItem(
+            NotificationServiceImpl.NOTIFICATIONS_LAST_FETCHED_AT_KEY, 
+            this.notificationsLastFetchedAt.toISOString()
+        );
+    }
+    // </notificationsLastFetchedAt>
+    // <directMessagesLastFetchedAt
     private static DIRECT_MESSAGES_LAST_FETCHED_AT_KEY = "notification_service_direct_messages_last_fetched_at";
     private directMessagesLastFetchedAt: Date;
     async restoreDirectMessagesLastFetchedAt() {
@@ -206,6 +333,26 @@ class NotificationServiceImpl implements NotificationService {
             this.directMessagesLastFetchedAt = new Date(0);
         }
     }
+    async setDirectMessagesLastFetchedAt(date: Date) {
+        await this.ensureInitialized();
+        this.directMessagesLastFetchedAt = date;
+        await AsyncStorage.setItem(
+            NotificationServiceImpl.DIRECT_MESSAGES_LAST_FETCHED_AT_KEY,
+             date.toISOString()
+        );
+    }
+    async resetDirectMessagesLastFetchedAt() {
+        await this.ensureInitialized();
+        this.directMessagesLastFetchedAt = new Date(0);
+        await AsyncStorage.setItem(
+            NotificationServiceImpl.DIRECT_MESSAGES_LAST_FETCHED_AT_KEY,
+             this.directMessagesLastFetchedAt.toISOString()
+        );
+    }
+    // </directMessagesLastFetchedAt>
+    // </AsyncStorage>
+
+    // <Initialize>
     private initialized: boolean = false;
 
     async ensureInitialized() {
@@ -219,58 +366,95 @@ class NotificationServiceImpl implements NotificationService {
 
         this.initialized = true;
     }
+    // </Initialize>
 
-    async pushNotifications(notifications: Notification[]) {
-        await this.ensureInitialized();
-        this.notifications.push(...notifications);
-        await AsyncStorage.setItem(
-            NotificationServiceImpl.NOTIFICATIONS_KEY, 
-            JSON.stringify(this.notifications.map((n) => n.toString()))
-        );
+    constructor(
+        /// 新しい通知を取得した場合に呼びだされるコールバック．
+        /// 渡されるリストの長さは1以上である．
+        /// addOnNewNotificationListenerで動的に追加することも可能．
+        private newNotificationListeners: ((newNotifications: Notification[]) => void)[] = [],
+        /// 新しいダイレクトメッセージを取得した場合に呼びだされるコールバック．
+        /// 渡されるリストの長さは1以上である．
+        /// addOnNewDirectMessageListenerで動的に追加することも可能．
+        private newDirectMessageListeners: ((newDirectMessages: DirectMessage[]) => void)[] = [],
+    ) {}
+
+    // <updateListener>
+    addOnNewNotificationListener(listener: (newNotification: Notification[]) => void) {
+        this.newNotificationListeners.push(listener);
     }
-
-    async setNotificationsLastFetchedAt(date: Date) {
-        await this.ensureInitialized();
-        this.notificationsLastFetchedAt = date;
-        await AsyncStorage.setItem(
-            NotificationServiceImpl.NOTIFICATIONS_LAST_FETCHED_AT_KEY, 
-            this.notificationsLastFetchedAt.toISOString()
-        );
+    addOnNewDirectMessageListener(listener: (newDirectMessage: DirectMessage[]) => void) {
+        this.newDirectMessageListeners.push(listener);
     }
+    // </updateListener>
 
-    async pushDirectMessages(directMessages: DirectMessage[]) {
-        await this.ensureInitialized();
-        this.directMessages.push(...directMessages);
-        await AsyncStorage.setItem(
-            NotificationServiceImpl.DIRECT_MESSAGES_KEY, 
-            JSON.stringify(this.directMessages.map((dm) => dm.toString()))
-        );
-    }
-
-    async setDirectMessagesLastFetchedAt(date: Date) {
-        await this.ensureInitialized();
-        await AsyncStorage.setItem(NotificationServiceImpl.DIRECT_MESSAGES_LAST_FETCHED_AT_KEY, date.toISOString());
-    }
-
+    // <fetch>
+    private static NotificationDocRef = firestore.collection("Notifications");
+    /// firebaseに新規のお知らせが登録されていないか確認し，登録されている場合はキャッシュしてリスナに通知します．
     async fetchNotifications() {
         await this.ensureInitialized();
         const fetchingNotificationsAt = new Date();
-        // ここでfirebaseから通知を取得
-        await this.pushNotifications([]);
+        // 新規おしらせの取得
+        // 複数フィールドに条件付けするクエリを発行する際はfirebaseでindexを作成する必要がある．
+        const newNotificationDocs = await NotificationServiceImpl.NotificationDocRef
+            .where("publishedAt",">=",this.notificationsLastFetchedAt)
+            .where("outdatedAt",">=",fetchingNotificationsAt)
+            .get();
+        const newNotifications = newNotificationDocs.docs.map((doc) => {
+            const data = doc.data();
+            return new Notification(
+                doc.id,
+                data.title,
+                new PictogramResource(new URL(data.pictogramResource)),
+                data.publishedAt.toDate(),
+                data.note,
+                new URL(data.link),
+            );
+        });
+        // 取得したお知らせを各処理に分配
+        for (const listener of this.newNotificationListeners) listener(newNotifications);
+        await this.pushNotifications(newNotifications);
+        // 最終取得日時を更新
         await this.setNotificationsLastFetchedAt(fetchingNotificationsAt);
         return this.notifications;
     }
+    private static DirectMessageDocRef = firestore.collection("DirectMessages");
+    /// firebaseに新規のダイレクトメッセージが登録されていないか確認し，登録されている場合はキャッシュしてリスナに通知します．
     async fetchDirectMessages() {
         await this.ensureInitialized();
         const fetchingDirectMessagesAt = new Date();
-        // ここでfirebaseからダイレクトメッセージを取得
-        await this.pushDirectMessages([]);
+        // 新規ダイレクトメッセージの取得
+        // 複数フィールドに条件付けするクエリを発行する際はfirebaseでindexを作成する必要がある．
+        const targetUserId = await getUserId();
+        console.log(targetUserId);
+        const newDirectMessageDocs = await NotificationServiceImpl.DirectMessageDocRef
+            .where("publishedAt",">=",this.directMessagesLastFetchedAt)
+            .where("outdatedAt",">=",fetchingDirectMessagesAt)
+            .where("targetUserId","==",targetUserId)
+            .get();
+        const newDirectMessages = newDirectMessageDocs.docs.map((doc) => {
+            const data = doc.data();
+            return new DirectMessage(
+                doc.id,
+                data.title,
+                new PictogramResource(new URL(data.pictogramResource)),
+                data.publishedAt.toDate(),
+                data.note,
+                data.content,
+            );
+        });
+        // 取得した新規ダイレクトメッセージを各処理に分配
+        for (const listener of this.newDirectMessageListeners) listener(newDirectMessages);
+        await this.pushDirectMessages(newDirectMessages);
+        // 最終取得日時を更新
         await this.setDirectMessagesLastFetchedAt(fetchingDirectMessagesAt);
         return this.directMessages;
     }
+    // </fetch>
+    // <dismiss>
     async dismissNotification(id: NotificationId) {
         await this.ensureInitialized();
-        // idが一致する要素を削除
+        // idが一致する要素をキャッシュから削除
         this.notifications = this.notifications.filter((n) => n.id !== id);
         await AsyncStorage.setItem(
             NotificationServiceImpl.NOTIFICATIONS_KEY, 
@@ -279,13 +463,21 @@ class NotificationServiceImpl implements NotificationService {
     }
     async dismissDirectMessage(id: DirectMessageId) {
         await this.ensureInitialized();
-        // idが一致する要素を削除
+        // idが一致する要素をキャッシュから削除
         this.directMessages = this.directMessages.filter((dm) => dm.id !== id);
         await AsyncStorage.setItem(
             NotificationServiceImpl.DIRECT_MESSAGES_KEY, 
             JSON.stringify(this.directMessages.map((dm) => dm.toString()))
         );
 
+    }
+    // </dismiss>
+
+    async resetState() {
+        await this.clearNotifications();
+        await this.resetNotificationsLastFetchedAt();
+        await this.clearDirectMessages();
+        await this.resetDirectMessagesLastFetchedAt();
     }
 }
 
