@@ -1,0 +1,5 @@
+(androidの場合)
+firebaseのコンソール画面から, google-services.jsonをダウンロードしてここに配置する．
+セキュリティ上の問題から，google-services.jsonはgitで管理していない．
+（.gitignoreに追加してある）
+https://firebase.google.com/docs/cloud-messaging/android/first-message?hl=ja

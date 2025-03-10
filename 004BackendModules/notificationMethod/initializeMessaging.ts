@@ -1,33 +1,35 @@
-// https://zenn.dev/yumemi9808/articles/f0da7987eb524d
+// firebase-messagingはExpo Goでは動作しない模様．
 // https://rnfirebase.io/#expo
-// Expo Goでは動作しない模様．
 // messagingをインポートした時点でエラーとなります．
 // 動作させるためにはアプリをビルドする必要があります．
-import messaging from '@react-native-firebase/messaging';
-
-import { firestore } from '../messageMetod/firestore';
-import { getUserId } from '../messageMetod/firebase';
+// https://docs.expo.dev/get-started/set-up-your-environment/?mode=development-build
+import {getMessaging, getToken, AuthorizationStatus} from '@react-native-firebase/messaging';
 
 export async function initializeMessaging() {
-  console.log('initializeMessaging');
-    if (!await requestPermission()) return;
-    const FCMToken = await messaging().getToken();
-    firestore.collection('FCMTokens').add({
-        token: FCMToken,
-        user: await getUserId(),
-        createdAt: new Date(),
-    });
-    console.log('FCMToken:', FCMToken);
-}
-
-async function requestPermission() {
-    const authStatus = await messaging().requestPermission()
-    const enabled =
-      authStatus === messaging.AuthorizationStatus.AUTHORIZED || authStatus === messaging.AuthorizationStatus.PROVISIONAL
-  
-    if (enabled) {
-      console.log('Authorization status:', authStatus);
-      return true;
+    const messaging = await getMessaging();
+    if (await messaging.hasPermission() !== AuthorizationStatus.AUTHORIZED) {
+    // 権限がなければリクエストする．拒否された場合はmessagingの使用を中止する
+    const authState = await messaging.requestPermission();
+    if (authState !== AuthorizationStatus.AUTHORIZED) {
+        console.error('Notification permission is not granted.');
+        return;
     }
-    return false;
+    }
+
+    // 全ユーザが 'broadcast' トピックを購読するようにする．
+    // (通知の全体送信用)
+    await messaging.subscribeToTopic('broadcast');
+
+    // 以下でメッセージを受信した際の動作を設定する．
+    // とりあえず受信したメッセージをコンソールに表示するようにしている．
+    messaging.onMessage(async remoteMessage => {
+        // アプリの画面を表示中（フォアグラウンド）でメッセージを受信した場合の動作．
+        // デフォルトでpush通知は行われない．
+        console.log('FCM Message is received at Foreground:', remoteMessage);
+    });
+    messaging.setBackgroundMessageHandler(async remoteMessage => {
+        // アプリの画面を表示していない（バックグラウンド）でメッセージを受信した場合の動作．
+        // デフォルトで（ここに何も記述しなくても）push通知が行われる．
+        console.log('FCM Message is received at Background', remoteMessage);
+    });
 }
