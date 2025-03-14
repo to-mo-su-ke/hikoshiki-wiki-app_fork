@@ -9,6 +9,7 @@ import LoginScreenNavigator from "./001Navigation/logInScreenNavi";
 import TimeTable from "./007Pages/timetableCreatePages/TimeTable";
 import CourseDetail from "./007Pages/timetableCreatePages/CourseDetail";
 import ClassSelection from "./007Pages/timetableCreatePages/ClassSelection";
+import EventSearch from "./007Pages/clubEventPages/Search";
 import { Provider } from "react-redux";
 import store from "./010Redux/store";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -53,6 +54,7 @@ const App = () => {
             <Stack.Screen name="TimeTable" component={TimeTable} />
             <Stack.Screen name="ClassSelection" component={ClassSelection} />
             <Stack.Screen name="CourseDetail" component={CourseDetail} />
+            <Stack.Screen name="EventSearch" component={EventSearch} />
           </Stack.Navigator>
         </NavigationContainer>
       </Provider>

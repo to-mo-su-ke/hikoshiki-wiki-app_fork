@@ -3,7 +3,10 @@
     "types": [
       "jest",
       "node"
-    ]
+    ],
+    "target": "ESNext",
+    "module": "commonjs",
+    "jsx": "react"
   },
   "allowJs": true,
   "include": [
