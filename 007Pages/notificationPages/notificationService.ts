@@ -5,7 +5,7 @@ import { getUserId } from "../../004BackendModules/messageMetod/firebase";
 // <types>
 // ピクトグラムのリソース．リンクで指定するのか，アセットに画像を配置してそれを指定するのか分からないので，
 // とりあえず型として切り出しています．
-class PictogramResource {
+export class PictogramResource {
     constructor(public url: URL) {}
     toString() {
         return this.url.toString();

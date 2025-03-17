@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { Text, Button } from 'react-native';
-import { NotificationService, NotificationServiceImpl, Notification, DirectMessage } from './notificationService';
+import { Text, Button, Image } from 'react-native';
+import { NotificationService, NotificationServiceImpl, Notification, DirectMessage, PictogramResource } from './notificationService';
 import { FlatList } from 'react-native-gesture-handler';
 
 const  notificationService: NotificationService = new NotificationServiceImpl();
 
 // notification serviceのデバッグ用に用意したコンポーネントです．
 // notificationServiceブランチ以外では置き換えてください．
-export const NotificationPage = () => {
+
+
+export const NotificationPage = ({navigation}) => {
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [directMessages, setDirectMessages] = useState<DirectMessage[]>([]);
     useEffect(() => {
@@ -41,6 +43,15 @@ export const NotificationPage = () => {
     const directMessageRenderer = ({ item }: { item: DirectMessage }) => {
         return <>
             <Text>{item.title}(#{item.id})</Text>
+
+            {/* DMのページへ遷移させるボタン2つ */}
+            <Button title={item.title} onPress={()=>{
+                 navigation.navigate('DMPage')
+            }}/>  
+            <Button title="detail" onPress={()=>{
+                 navigation.navigate('DMDetailPage',{item})
+            }}/>           
+
             <Button title="dismiss" onPress={async () => {
                 await notificationService.dismissDirectMessage(item.id);
                 // dismissメソッドは飽くまでサービスの内部状態を変更するだけなので，ビューに反映させるために
@@ -50,6 +61,7 @@ export const NotificationPage = () => {
         </>;
     }
 
+
     return <>
         <Text>
         NotificationPage
@@ -58,6 +70,16 @@ export const NotificationPage = () => {
         <FlatList data={notifications} renderItem={notificationRenderer} />
         <Text>directMessages</Text>
         <FlatList data={directMessages} renderItem={directMessageRenderer} />
+
+
+        {/* これ以下はデバッグ用です。削除してください */}
+        <Button title="detail" onPress={()=>{
+                const DMId = 'dummyId'
+                 navigation.navigate('DMDetailPage',{DMId})
+            }}/>  
     </>;
 };
+
+
+
 
