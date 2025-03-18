@@ -14,3 +14,4 @@ export const uploadPhotoToFirestore = async (imageBlob) => {
     throw error; // エラーを呼び出し元に伝播
   }
 };
+　

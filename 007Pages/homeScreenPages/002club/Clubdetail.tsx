@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../../006Configs/firebaseConfig2';
+import { db } from '../../../006Configs/firebaseConfig2';
 
 const ClubDetail = ({ route }) => {
   const { clubId } = route.params;

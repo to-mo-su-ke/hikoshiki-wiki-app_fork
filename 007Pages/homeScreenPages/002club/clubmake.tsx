@@ -1,12 +1,13 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, Button, Alert, StyleSheet, ScrollView } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Button, Alert, StyleSheet, ScrollView, Image } from "react-native";
 import * as ImagePicker from "expo-image-picker"; // 追加: ImagePickerのインポート
-import { submitDataToFirestore, checkDuplicateName } from "../../004BackendModules/mainMethod/submitdata";
-import { uploadPhotoToFirestore } from "../../004BackendModules/mainMethod/uploadPhoto";
+import { submitDataToFirestore, checkDuplicateName } from "../../../004BackendModules/mainMethod/submitdata";
+import { uploadPhotoToFirestore } from "../../../004BackendModules/mainMethod/uploadPhoto";
 
 const ClubSearchSubmit = ({ navigation }) => {
   const [searchText, setSearchText] = useState("");
   const [isDuplicate, setIsDuplicate] = useState(false);
+  const [isMissingField, setIsMissingField] = useState(false);
   const [clubDetail, setClubDetail] = useState("");
   const [appealPoint, setAppealPoint] = useState("");
   const [badPoint, setBadPoint] = useState("");
@@ -67,11 +68,18 @@ const ClubSearchSubmit = ({ navigation }) => {
   const [requiredItems, setRequiredItems] = useState([{ name: "", price: "", description: "" }]);
   const [weeklyActivities, setWeeklyActivities] = useState([
     { day: "月", hasActivity: false, content: "", time: "" },
-    // ...他の曜日も同様に追加...
+    { day: "火", hasActivity: false, content: "", time: "" },
+    { day: "水", hasActivity: false, content: "", time: "" },
+    { day: "木", hasActivity: false, content: "", time: "" },
+    { day: "金", hasActivity: false, content: "", time: "" },
+    { day: "土", hasActivity: false, content: "", time: "" },
+    { day: "日", hasActivity: false, content: "", time: "" },
   ]);
   const [annualSchedule, setAnnualSchedule] = useState([{ month: "", eventName: "", period: "", content: "", cost: "", frequency: 1 }]);
   const [photo1, setPhoto1] = useState(null);
   const [photo2, setPhoto2] = useState(null);
+  const [photo1Local, setPhoto1Local] = useState(null);
+  const [photo2Local, setPhoto2Local] = useState(null);
 
   const handleAddRequiredItem = () => {
     setRequiredItems([...requiredItems, { name: "", price: "", description: "" }]);
@@ -91,7 +99,7 @@ const ClubSearchSubmit = ({ navigation }) => {
     setAnnualSchedule(newSchedule);
   };
 
-  const handlePhotoUpload = async (setPhoto) => {
+  const handleSelectPhoto = async (setLocalPhoto) => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
@@ -100,28 +108,15 @@ const ClubSearchSubmit = ({ navigation }) => {
     });
     if (!result.canceled) {
       const photoUri = result.assets[0].uri;
-      try {
-        const response = await fetch(photoUri);
-        if (!response.ok) {
-          throw new Error("Blob変換失敗: ステータス " + response.status);
-        }
-        const blob = await response.blob();
-        const downloadUrl = await uploadPhotoToFirestore(blob);
-        if (!downloadUrl) {
-          throw new Error("アップロード結果が空です");
-        }
-        setPhoto(downloadUrl);
-        Alert.alert("アップロードが完了しました");
-      } catch (error) {
-        Alert.alert("アップロードに失敗しました: " + error.message);
-      }
+      setLocalPhoto(photoUri);
+      Alert.alert("写真が選択されました");
     }
   };
 
-  const handleSubmit = async () => {
+  const handleConfirm = async () => {
     if (!searchText || !selectedClubType || selectedActivityPlaces.length === 0
         || !clubDetail || !appealPoint || !badPoint || !membersNumber) {
-      Alert.alert("全ての必須フィールドを入力してください");
+      setIsMissingField(true);
       return;
     }
 
@@ -134,6 +129,28 @@ const ClubSearchSubmit = ({ navigation }) => {
     if (isNameDuplicate) {
       setIsDuplicate(true);
       Alert.alert("同じ名前の部活が既に存在します");
+      return;
+    }
+
+    try {
+      if (photo1Local) {
+        const response1 = await fetch(photo1Local);
+        if (!response1.ok) throw new Error("写真1のBlob変換失敗");
+        const blob1 = await response1.blob();
+        const downloadUrl1 = await uploadPhotoToFirestore(blob1);
+        if (!downloadUrl1) throw new Error("写真1のアップロード結果が空です");
+        setPhoto1(downloadUrl1);
+      }
+      if (photo2Local) {
+        const response2 = await fetch(photo2Local);
+        if (!response2.ok) throw new Error("写真2のBlob変換失敗");
+        const blob2 = await response2.blob();
+        const downloadUrl2 = await uploadPhotoToFirestore(blob2);
+        if (!downloadUrl2) throw new Error("写真2のアップロード結果が空です");
+        setPhoto2(downloadUrl2);
+      }
+    } catch (error) {
+      Alert.alert("写真のアップロードに失敗しました: " + error.message);
       return;
     }
 
@@ -162,20 +179,11 @@ const ClubSearchSubmit = ({ navigation }) => {
       requiredItems,
       weeklyActivities,
       annualSchedule,
-      photo1,
-      photo2
+      photo1: photo1Local,
+      photo2: photo2Local,
     };
 
-    const collectionName = "clubtest"; // 必要に応じて変更してください
-
-    try {
-      await submitDataToFirestore(data, collectionName);
-      Alert.alert("送信が完了しました");
-      // navigation.goBack(); // 必要に応じてナビゲーション処理を追加
-    } catch (error) {
-      console.error("送信エラー：", error);
-      Alert.alert("送信に失敗しました");
-    }
+    navigation.navigate("clubmake2", { formData: data });
   };
 
   return (
@@ -193,6 +201,11 @@ const ClubSearchSubmit = ({ navigation }) => {
         <View style={styles.warningContainer}>
           <Text style={styles.warningText}>同じ名前の部活が既に存在します。登録済みである場合は編集ページに移動してください</Text>
           <Button title="編集画面" onPress={() => Alert.alert("編集画面")} />
+        </View>
+      )}
+      {isMissingField && (
+        <View style={styles.warningContainer}>
+          <Text style={styles.warningText}>必須項目の入力漏れがあります</Text>
         </View>
       )}
 
@@ -328,8 +341,10 @@ const ClubSearchSubmit = ({ navigation }) => {
         value={lineId}
         onChangeText={setLineId}
       />
-      <Button title="LINE QRをアップロード" onPress={() => handlePhotoUpload(setLineQR)} />
-      {lineQR && <Text>LINE QRがアップロードされました</Text>}
+      <Button title="LINE QRをアップロード" onPress={() => handleSelectPhoto(setLineQR)} />
+      {lineQR && (
+        <Image source={{ uri: lineQR }} style={{ width: 100, height: 100, marginVertical: 8 }} />
+      )}
 
       <Text>Instagram ID</Text>
       <TextInput
@@ -338,8 +353,10 @@ const ClubSearchSubmit = ({ navigation }) => {
         value={instagramId}
         onChangeText={setInstagramId}
       />
-      <Button title="Instagram QRをアップロード" onPress={() => handlePhotoUpload(setInstagramQR)} />
-      {instagramQR && <Text>Instagram QRがアップロードされました</Text>}
+      <Button title="Instagram QRをアップロード" onPress={() => handleSelectPhoto(setInstagramQR)} />
+      {instagramQR && (
+        <Image source={{ uri: instagramQR }} style={{ width: 100, height: 100, marginVertical: 8 }} />
+      )}
 
       <Text>Twitter ID</Text>
       <TextInput
@@ -355,8 +372,10 @@ const ClubSearchSubmit = ({ navigation }) => {
         value={twitterUrl}
         onChangeText={setTwitterUrl}
       />
-      <Button title="Twitter QRをアップロード" onPress={() => handlePhotoUpload(setTwitterQR)} />
-      {twitterQR && <Text>Twitter QRがアップロードされました</Text>}
+      <Button title="Twitter QRをアップロード" onPress={() => handleSelectPhoto(setTwitterQR)} />
+      {twitterQR && (
+        <Image source={{ uri: twitterQR }} style={{ width: 100, height: 100, marginVertical: 8 }} />
+      )}
 
       <Text>Discord URL</Text>
       <TextInput
@@ -579,12 +598,16 @@ const ClubSearchSubmit = ({ navigation }) => {
       <Button title="+" onPress={handleAddAnnualSchedule} />
 
       <Text style={styles.label}>写真</Text>
-      <Button title="写真1をアップロード" onPress={() => handlePhotoUpload(setPhoto1)} />
-      {photo1 && <Text>写真1がアップロードされました</Text>}
-      <Button title="写真2をアップロード" onPress={() => handlePhotoUpload(setPhoto2)} />
-      {photo2 && <Text>写真2がアップロードされました</Text>}
+      <Button title="写真1を選択" onPress={() => handleSelectPhoto(setPhoto1Local)} />
+      {photo1Local && (
+        <Image source={{ uri: photo1Local }} style={{ width: 100, height: 100, marginVertical: 8 }} />
+      )}
+      <Button title="写真2を選択" onPress={() => handleSelectPhoto(setPhoto2Local)} />
+      {photo2Local && (
+        <Image source={{ uri: photo2Local }} style={{ width: 100, height: 100, marginVertical: 8 }} />
+      )}
 
-      <Button title="送信" onPress={handleSubmit} />
+      <Button title="確認" onPress={handleConfirm} />
     </ScrollView>
   );
 };
@@ -593,18 +616,31 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+    backgroundColor: "#f8f8f8", // 背景色を追加
   },
   label: {
     fontSize: 16,
     fontWeight: "bold",
     marginTop: 16,
+    color: "#333", // テキスト色
   },
   input: {
     borderWidth: 1,
-    borderColor: "gray",
-    borderRadius: 4,
-    padding: 8,
+    borderColor: "#ccc", // 枠線色を淡く
+    borderRadius: 8, // 角丸を追加
+    padding: 10, // パディングを広めに
     marginTop: 8,
+    backgroundColor: "#fff", // 入力欄の背景色
+  },
+  warningContainer: {
+    marginTop: 16,
+    padding: 10,
+    backgroundColor: "#fdeaea",
+    borderRadius: 6,
+  },
+  warningText: {
+    color: "#d00",
+    fontWeight: "bold",
   },
   radioGroup: {
     flexDirection: "column",
@@ -639,16 +675,6 @@ const styles = StyleSheet.create({
   },
   listButtonText: {
     fontSize: 14,
-  },
-  warningContainer: {
-    marginTop: 16,
-    padding: 10,
-    backgroundColor: "lightyellow",
-    borderRadius: 4,
-  },
-  warningText: {
-    color: "red",
-    fontWeight: "bold",
   },
   dropdown: {
     borderWidth: 1,

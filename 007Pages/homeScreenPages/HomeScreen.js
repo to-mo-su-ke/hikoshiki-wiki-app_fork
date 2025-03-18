@@ -3,8 +3,8 @@ import { View, Text, Button, TouchableOpacity, StyleSheet, Image } from "react-n
 import TimeTable from "../timetableCreatePages/TimeTable"; 
 import TimeTableView from "../timetableCreatePages/TimeTableView";
 import UserInfo from "../userhome/Userinfo";
-import ClubSearch from "./Clubsearch";
-import ClubDetail from "./Clubdetail"; // 追加
+import ClubSearch from "./002club/Clubsearch";
+import ClubDetail from "./002club/Clubdetail";
 
 const HomeScreen = ({ navigation }) => {
   const [mainTab, setMainTab] = useState("家");

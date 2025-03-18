@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, Button, Alert, ScrollView } from 'react-native';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { db } from '../../006Configs/firebaseConfig2';
+import { db } from '../../../006Configs/firebaseConfig2';
 
 const EditAndResubmit = ({ navigation }) => {
   const [clubId, setClubId] = useState('');

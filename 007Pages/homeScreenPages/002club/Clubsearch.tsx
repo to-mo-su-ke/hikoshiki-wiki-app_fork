@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, ScrollView, TextInput, Button, TouchableOpacity } from "react-native";
 import { Menu, Provider } from "react-native-paper";
 import { collection, getDocs } from "firebase/firestore";
-import { db } from "../../006Configs/firebaseConfig2";
+import { db } from "../../../006Configs/firebaseConfig2";
 
 
 const ClubSearch = ({ navigation }) => {

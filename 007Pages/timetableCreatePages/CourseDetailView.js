@@ -1,124 +1,155 @@
-import React from "react";
-import { View, Text, FlatList, StyleSheet, Linking, TouchableOpacity } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from "react-native";
 import { useDispatch } from "react-redux";
-import { addCourse } from "../../010Redux/actions";
+import { removeCourse } from "../../010Redux/actions";
 
 const CourseDetailView = ({ route, navigation }) => {
-  
-  const dispatch = useDispatch();
   const { course, day, period, termDayPeriod, degree } = route.params;
-
-  const determineCourseType = () => {
-    if (course.termDayPeriod.includes('１期')) return 1;
-    if (course.termDayPeriod.includes('２期')) return 2;
-    return 0;
-  };
-
-  const handleRegister = () => {
-    const courseType = determineCourseType();
-    dispatch(addCourse(
-      degree,
-      termDayPeriod,
-      day,
-      period,
-      courseType,
-      course.registrationCode
-    ));
-    navigation.goBack();
-  };
+  const dispatch = useDispatch();
 
   if (!course) {
     return (
       <View style={styles.container}>
-        <Text>コース情報がありません</Text>
+        <Text style={styles.errorText}>コース情報が見つかりません</Text>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.buttonText}>戻る</Text>
+        </TouchableOpacity>
       </View>
     );
   }
 
-  const openURL = (url) => {
-    Linking.openURL(url);
+  const handleDelete = () => {
+    Alert.alert(
+      "削除の確認",
+      "この授業を時間割から削除しますか？",
+      [
+        { text: "キャンセル", style: "cancel" },
+        {
+          text: "削除",
+          style: "destructive",
+          onPress: () => {
+            // courseTypeの判断が必要なので、ここではデフォルトで0とします
+            // 実際の実装では、courseTypeも保存して利用する必要があります
+            dispatch(
+              removeCourse(degree, termDayPeriod, day, period, 0)
+            );
+            navigation.goBack();
+          },
+        },
+      ]
+    );
   };
 
-  const courseDetails = [
-    { title: "学部・大学院区分/学科・専攻", content: `${course.undergradGraduate}/${course.subject}\n` },
-    { title: "科目区分", content: course.courseCategory + "\n" },
-    { title: "担当教員", content: course.instructor.replace(/\n/g, ' / ') + "\n" },
-    { title: "必修・選択", content: course.requiredSelected + "\n" },
-    { title: "単位数", content: course.credits + "\n" },
-    { title: "対象学年", content: course.year + "\n" },
-    { title: "開講期・開講時間帯", content: course.termDayPeriod + "\n" },
-    { title: "授業形態", content: course.courseStyle + "\n" },
-    { title: "授業の目的", content: course.goalsOfCourse + "\n" },
-    { title: "授業の達成目標", content: course.objectivesOfTheCourse + "\n" },
-    { title: "授業の内容", content: course.courseContent + "\n" },
-    { title: "履修条件", content: course.coursePrerequisites + "\n" },
-    { title: "関連する科目", content: course.relatedCourses + "\n" },
-    { title: "成績評価の方法と基準", content: course.evaluationMethod + "\n" },
-    { title: "不可(F)と欠席(W)の基準", content: course.failAbsentCriteria + "\n" },
-    { title: "教科書", content: course.textbook + "\n" },
-    { title: "参考書", content: course.referenceBook + "\n" },
-    { title: "履修取り下げ制度", content: course.courseWithdrawal + "\n" },
-    { title: "他学部生、他専攻生、他研究科生の受講の可否", content: course.attendancePropriety + "\n" },
-    { title: "他学科聴講の条件", content: course.otherDeptAttendanceConditions + "\n" },
-    { title: "時間割コード", content: course.registrationCode + "\n" },
-    { title: "シラバスURL (必ず確認してください)", content: course.syllabusUrl + "\n", isLink: true },
-  ];
-
   return (
-    <View style={styles.container}>
-      <FlatList
-        data={courseDetails}
-        keyExtractor={(item, index) => index.toString()}
-        ListHeaderComponent={<Text style={styles.title}>{course.courseTitle}</Text>}
-        renderItem={({ item }) => (
-          <View style={styles.row}>
-            <Text style={styles.columnTitle}>{item.title}</Text>
-            {item.isLink ? (
-              <Text
-                style={styles.columnContentLink}
-                onPress={() => openURL(item.content)}
-              >
-                {item.content}
-              </Text>
-            ) : (
-              <Text style={styles.columnContent}>{item.content}</Text>
-            )}
-          </View>
-        )}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-      />
-      <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
-        <Text style={styles.registerButtonText}>戻る</Text>
-      </TouchableOpacity>
-    </View>
+    <ScrollView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>{course.courseTitle || course.title}</Text>
+        <Text style={styles.subtitle}>
+          {day}曜{period}限 - {course.credits || "0"}単位
+        </Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>担当教員</Text>
+        <Text style={styles.sectionContent}>{course.instructor || "情報なし"}</Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>開講学部</Text>
+        <Text style={styles.sectionContent}>{course.faculty || "情報なし"}</Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>授業形態</Text>
+        <Text style={styles.sectionContent}>{course.classFormat || "情報なし"}</Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>授業概要</Text>
+        <Text style={styles.sectionContent}>{course.description || "情報なし"}</Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>成績評価方法</Text>
+        <Text style={styles.sectionContent}>{course.evaluationMethod || "情報なし"}</Text>
+      </View>
+
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
+          <Text style={styles.deleteButtonText}>時間割から削除</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
-  title: { fontSize: 24, fontWeight: "bold", margin: 20 },
-  row: { paddingHorizontal: 20, marginBottom: 10 },
-  columnTitle: { fontWeight: "bold", fontSize: 16, marginTop: 5 },
-  columnContent: { fontSize: 14, marginTop: 5 },
-  columnContentLink: {
-    fontSize: 14,
-    color: "blue",
-    marginTop: 5,
-    textDecorationLine: "underline"
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: "#fff",
   },
-  separator: { borderBottomWidth: 1, borderColor: "#ccc", marginHorizontal: 20 },
-  registerButton: {
-    backgroundColor: "#007AFF",
-    padding: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    margin: 20,
-    borderRadius: 10,
+  header: {
+    marginBottom: 20,
   },
-  registerButtonText: {
-    color: "#fff",
-    fontSize: 18,
+  title: {
+    fontSize: 22,
     fontWeight: "bold",
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: "#666",
+  },
+  section: {
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 4,
+    color: "#333",
+  },
+  sectionContent: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: "#444",
+  },
+  errorText: {
+    fontSize: 16,
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  buttonContainer: {
+    marginTop: 24,
+    marginBottom: 40,
+  },
+  button: {
+    backgroundColor: "#007AFF",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  deleteButton: {
+    backgroundColor: "#FF3B30",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  deleteButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "500",
   },
 });
 

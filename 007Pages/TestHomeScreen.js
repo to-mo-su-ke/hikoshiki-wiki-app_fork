@@ -18,32 +18,10 @@ const TestHomeScreen = ({ navigation }) => {
         onPress={() => navigation.navigate('LoginNavigator')}
       />
       <Button
-        title="TimeTable"
-        onPress={() => navigation.navigate("TimeTable")}
+        title="Clubdetail"
+        onPress={() => navigation.navigate('Clubdetail')}
       />
-      <Button
-        title="Class"
-        onPress={() => navigation.navigate("Class")} 
-      />
-       <Button
-        title="club"
-        onPress={() => navigation.navigate("Club")} 
-      />
-        <Button
-          title="clubmake"
-          onPress={() => navigation.navigate("ClubSearchSubmit")}
-        />
-        <Button 
-        title="Input"
-        onPress ={() => navigation.navigate("Input")}
-        />         
-        <Button
-        title="Grade"
-        onPress={() => navigation.navigate("Grade")}
-
-        />
-        
-      
+                
 
     </View>
   );

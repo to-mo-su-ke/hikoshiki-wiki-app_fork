@@ -6,19 +6,19 @@ import TestHomeScreen from "./007Pages/TestHomeScreen";
 import HomeScreenNavigator from "./001Navigation/homeScreenNavi";
 import MessageScreenNavigator from "./001Navigation/messageScreenNavi";
 import LoginScreenNavigator from "./001Navigation/logInScreenNavi";
-import Class from "./001Navigation/classclub";
+
 import Club from "./001Navigation/clubnavi";
 import Inputnavi from "./001Navigation/inputnavi";
 import TimeTable from "./007Pages/timetableCreatePages/TimeTable";
 import CourseDetail from "./007Pages/timetableCreatePages/CourseDetail";
 import ClassSelection from "./007Pages/timetableCreatePages/ClassSelection";
-import Clubdetail from "./007Pages/homeScreenPages/Clubdetail";
+import Clubdetail from "./007Pages/homeScreenPages/002club/Clubdetail";
 import UserInfo from "./007Pages/userhome/Userinfo";
 import { Provider } from "react-redux";
 import store from "./010Redux/store";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StyleSheet, StatusBar } from "react-native";
-import ClubSearchSubmit from "./007Pages/homeScreenPages/clubmake";
+import ClubSearchSubmit from "./007Pages/homeScreenPages/002club/clubmake";
 import Gradenavi from "./001Navigation/gradenavi";
 
 
@@ -59,7 +59,7 @@ const App = () => {
               name="LoginNavigator"
               component={LoginScreenNavigator}
             />
-            <Stack.Screen name="Class" component={Class} />
+          
             <Stack.Screen name="Club" component={Club} />
             <Stack.Screen name="TimeTable" component={TimeTable} />
             <Stack.Screen name="ClassSelection" component={ClassSelection} />

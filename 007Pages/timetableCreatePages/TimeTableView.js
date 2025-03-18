@@ -2,11 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
 import { useSelector, useDispatch } from "react-redux";
-import {
-  setDegree,
-  setDepartment,
-  setTermDayPeriod,
-} from "../../010Redux/actions";
+import { setDegree, setDepartment,setTermDayPeriod } from "../../010Redux/actions";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 import app from "../../004BackendModules/messageMetod/firestore";
 

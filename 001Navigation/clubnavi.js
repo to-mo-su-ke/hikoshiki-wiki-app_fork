@@ -1,9 +1,9 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import Classsearch  from '../007Pages/homeScreenPages/Classsearch';
-import Clubsearch from '../007Pages/homeScreenPages/Clubsearch';
-import clubmake from '../007Pages/homeScreenPages/clubmake';
-import EditAndResubmit from '../007Pages/homeScreenPages/clubhen';
+import Classsearch  from '../007Pages/homeScreenPages/002club/Clubsearch';
+import Clubsearch from '../007Pages/homeScreenPages/002club/Clubsearch';
+import clubmake from '../007Pages/homeScreenPages/002club/clubmake';
+import EditAndResubmit from '../007Pages/homeScreenPages/002club/clubhen';
 const Stack = createStackNavigator();
 
 const Club = () => {
