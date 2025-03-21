@@ -10,7 +10,7 @@ import {
   ActivityIndicator
 } from 'react-native';
 import { doc, getDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { db } from '../../006Configs/firebaseConfig2';
+import { db } from '../../006Configs/firebaseConfig';
 import { Picker } from '@react-native-picker/picker';
 
 const ShinkanReserve = ({ route, navigation }) => {
