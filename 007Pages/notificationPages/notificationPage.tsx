@@ -46,7 +46,7 @@ export const NotificationPage = ({navigation}) => {
 
             {/* DMのページへ遷移させるボタン2つ */}
             <Button title={item.title} onPress={()=>{
-                 navigation.navigate('DMPage')
+                 navigation.navigate('DMListPage')
             }}/>  
             <Button title="detail" onPress={()=>{
                  navigation.navigate('DMDetailPage',{item})
@@ -73,6 +73,10 @@ export const NotificationPage = ({navigation}) => {
 
 
         {/* これ以下はデバッグ用です。削除してください */}
+        <Button title="DirectMessage" onPress={()=>{
+                const DMId = 'dummyId'
+                 navigation.navigate('DMListPage',{DMId})
+            }}/>        
         <Button title="detail" onPress={()=>{
                 const DMId = 'dummyId'
                  navigation.navigate('DMDetailPage',{DMId})

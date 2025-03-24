@@ -21,6 +21,10 @@ export const DMDetailPage=({navigation, route})=>{
     if(DM==null){
         return<><Text>ロード中</Text></> }
     return <>
+
+    <Button title="go back" onPress={()=>{
+        navigation.pop()
+    }}/>
     <Text>{DM.registeredDate.toLocaleString()}</Text>
     <DMTitleSection DM={DM}/>
     <DMContextSection DM={DM}/>
@@ -49,5 +53,45 @@ const DMContextSection=({DM}:DMContextSectionProps)=>{
     //色を変えたり, 画像を入れたりする場合, その情報をこのセクションで管理(するつもり)
     return<>
         <Text>{DM.content}</Text>
+    </>
+}
+
+
+
+export const DMListPage=({navigation})=>{
+    const getDirectMessages=async (): Promise<DirectMessage[]>=>{
+        const DMDocs = await firestore.collection('DirectMessages').get()
+        let messages: DirectMessage[] = [];
+        messages = await Promise.all(DMDocs.docs.map(async (doc)=>{
+            let message=new DirectMessage(
+                doc.id,
+                doc.get('title'),
+                doc.get('pictogram'),
+                doc.get('publishedAt'),
+                doc.get('note'),
+                doc.get('content')
+            )
+            return message
+        }));
+        return messages;    
+    }
+    const directMessageRenderer = ({ item }: { item: DirectMessage }) => {
+        return <>
+            <Button title={item.title} onPress={()=>{
+                const DMId=item.id
+                navigation.navigate('DMDetailPage',{DMId})
+            }}/>           
+        </>
+    }
+
+    const [DMs, setDMs]=useState<DirectMessage[]>();
+    useEffect(()=>{
+        getDirectMessages().then(setDMs)
+    },[])
+    return<>
+    <Button title="go back" onPress={()=>{
+        navigation.pop()
+    }}/>
+    <FlatList data={DMs} renderItem={directMessageRenderer}/>
     </>
 }
