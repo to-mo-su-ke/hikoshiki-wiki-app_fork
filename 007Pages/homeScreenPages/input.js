@@ -5,7 +5,7 @@ document.body.innerHTML = `
 	<div id="uploadContainer">
 		<h2>写真アップロードページ</h2>
 		<input type="file" id="photoInput" accept="image/*" />
-		<button id="sendButton">送信</button>
+		<button id="sendButton">送信</button>s
 		<div id="status"></div>
 	</div>
 `;

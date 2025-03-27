@@ -56,7 +56,7 @@ export default function LoginOrSignupScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>ログイン</Text>
-      <Text>メールはs.thers.ac.jpで終わる機構メールを使用してください</Text>
+      <Text style={styles.infoText}>メールはs.thers.ac.jpで終わる機構メールを使用してください</Text>
       <TextInput
         style={styles.input}
         placeholder="メールアドレス"
@@ -100,34 +100,47 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
-    paddingHorizontal: 85,
-    backgroundColor: "#fff",
+    paddingHorizontal: 24,
+    backgroundColor: "#f8f9fa",
   },
   title: {
-    fontSize: 36,
+    fontSize: 28,
+    fontWeight: "bold",
     marginBottom: 20,
     textAlign: "center",
+    color: "#1e3a8a",
   },
   input: {
-    height: 40,
-    borderColor: "#ccc",
+    height: 50,
+    borderColor: "#e2e8f0",
     borderWidth: 1,
-    borderRadius: 5,
-    marginBottom: 10,
-    paddingHorizontal: 10,
+    borderRadius: 12,
+    marginBottom: 16,
+    paddingHorizontal: 16,
     backgroundColor: "#fff",
+    fontSize: 16,
   },
   button: {
-    color: "#fff",
-    height: 40,
-    borderRadius: 5,
+    height: 50,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 10,
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
   },
   buttonText: {
-    fontSize: 16,
-    fontWeight: "bold",
+    fontSize: 18,
+    fontWeight: "600",
     color: "#fff",
   },
+  infoText: {
+    fontSize: 14,
+    color: "#475569",
+    marginBottom: 16,
+    textAlign: "center",
+  }
 });

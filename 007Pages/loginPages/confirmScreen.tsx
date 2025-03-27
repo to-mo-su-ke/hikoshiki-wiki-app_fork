@@ -7,7 +7,8 @@ import {
     Button,
     Alert,
     Text,
-  } from "react-native";
+    TouchableOpacity,
+} from "react-native";
 
 import {
     getAuth,
@@ -51,20 +52,63 @@ export default function ConfirmScreen({ navigation, route }) {
     };
 
     return (
-        <ScrollView>
-            <View style={styles.container}>
-                <Text>メールアドレス: {email}</Text>
-                <Text>ユーザー名: {username}</Text>
-                <Text>学年: {grade}</Text>
-                <Text>学部: {school}</Text>
-                <Text>学科: {department}</Text>
-                <Text>コース: {course}</Text>
-                <Text>専攻: {major}</Text>
-                <Text>研究室: {researchroom}</Text>
-                <Text>ロール: {role}</Text>
-                <Text>部活動: {club}</Text>
-                <Button title="登録" onPress={signUp} />
+        <ScrollView style={styles.container}>
+            <Text style={styles.title}>登録情報の確認</Text>
+            <View style={styles.sectionContainer}>
+                <Text style={styles.sectionTitle}>アカウント情報</Text>
+                <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>メールアドレス:</Text>
+                    <Text style={styles.infoValue}>{email}</Text>
+                </View>
+                <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>ユーザー名:</Text>
+                    <Text style={styles.infoValue}>{username}</Text>
+                </View>
             </View>
+            
+            <View style={styles.sectionContainer}>
+                <Text style={styles.sectionTitle}>学籍情報</Text>
+                <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>学年:</Text>
+                    <Text style={styles.infoValue}>{grade}</Text>
+                </View>
+                <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>学部:</Text>
+                    <Text style={styles.infoValue}>{school}</Text>
+                </View>
+                <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>学科:</Text>
+                    <Text style={styles.infoValue}>{department}</Text>
+                </View>
+                <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>コース:</Text>
+                    <Text style={styles.infoValue}>{course}</Text>
+                </View>
+                <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>専攻:</Text>
+                    <Text style={styles.infoValue}>{major}</Text>
+                </View>
+                <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>研究室:</Text>
+                    <Text style={styles.infoValue}>{researchroom}</Text>
+                </View>
+            </View>
+            
+            <View style={styles.sectionContainer}>
+                <Text style={styles.sectionTitle}>その他情報</Text>
+                <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>ロール:</Text>
+                    <Text style={styles.infoValue}>{role}</Text>
+                </View>
+                <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>部活動:</Text>
+                    <Text style={styles.infoValue}>{club}</Text>
+                </View>
+            </View>
+            
+            <TouchableOpacity style={styles.buttonContainer} onPress={signUp}>
+                <Text style={styles.buttonText}>登録する</Text>
+            </TouchableOpacity>
         </ScrollView>
     );
 }   
@@ -72,7 +116,66 @@ export default function ConfirmScreen({ navigation, route }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: "center",
+        padding: 16,
+        backgroundColor: "#f8f9fa",
+    },
+    title: {
+        fontSize: 28,
+        fontWeight: "bold",
+        marginBottom: 20,
+        color: "#1e3a8a",
+        textAlign: "center",
+    },
+    sectionContainer: {
+        backgroundColor: "#ffffff",
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 16,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        elevation: 2,
+    },
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: "600",
+        marginBottom: 12,
+        color: "#334155",
+    },
+    infoRow: {
+        flexDirection: "row",
+        marginBottom: 8,
+        borderBottomWidth: 1,
+        borderBottomColor: "#f1f5f9",
+        paddingBottom: 8,
+    },
+    infoLabel: {
+        width: 110,
+        fontSize: 15,
+        fontWeight: "500",
+        color: "#64748b",
+    },
+    infoValue: {
+        flex: 1,
+        fontSize: 15,
+        color: "#334155",
+    },
+    buttonContainer: {
+        backgroundColor: "#1e3a8a",
+        borderRadius: 12,
+        padding: 14,
+        marginVertical: 16,
         alignItems: "center",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        elevation: 2,
+    },
+    buttonText: {
+        color: "#ffffff",
+        fontSize: 16,
+        fontWeight: "600",
     },
 });

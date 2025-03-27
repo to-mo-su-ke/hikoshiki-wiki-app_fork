@@ -16,10 +16,14 @@ import Clubdetail from "./007Pages/homeScreenPages/002club/Clubdetail";
 import UserInfo from "./007Pages/userhome/Userinfo";
 import { Provider } from "react-redux";
 import store from "./010Redux/store";
+import Gradecheck from "./007Pages/homeScreenPages/gradecheck";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StyleSheet, StatusBar } from "react-native";
 import ClubSearchSubmit from "./007Pages/homeScreenPages/002club/clubmake";
 import Gradenavi from "./001Navigation/gradenavi";
+import InputNewClub from "./007Pages/inputpages/inputnewclub"
+import ClubRecruitmentConfirm from "./007Pages/inputpages/ClubRecruitmentConfirm";
+import Userinfoedit from "./007Pages/userhome/Userinfoedit";
 
 
 const Stack = createStackNavigator();
@@ -70,6 +74,11 @@ const App = () => {
             <Stack.Screen name="ClubSearchSubmit" component={ClubSearchSubmit} />
             <Stack.Screen name="Input" component={Inputnavi} />
             <Stack.Screen name="Grade" component={Gradenavi} />
+            <Stack.Screen name="Gradecheck" component={Gradecheck} />
+            <Stack.Screen name="InputNewClub" component={InputNewClub} />
+            <Stack.Screen name="Userinfoedit" component={Userinfoedit} />
+            <Stack.Screen name="ClubRecruitmentConfirm" component={ClubRecruitmentConfirm} />
+
           </Stack.Navigator>
         </NavigationContainer>
       </Provider>

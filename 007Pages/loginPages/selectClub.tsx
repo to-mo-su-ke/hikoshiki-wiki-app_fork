@@ -108,17 +108,62 @@ export default function SelectClubScreen({ navigation, route })  {
 };
 
 const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      paddingTop: 20,
-      paddingHorizontal: 10,
-    },
-    input: {
-      height: 40,
-      borderColor: "gray",
-      borderWidth: 1,
-      marginBottom: 10,
-      paddingHorizontal: 8,
-    },
-  });
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: "#f8f9fa",
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 16,
+    color: "#1e3a8a",
+    textAlign: "center",
+  },
+  sectionContainer: {
+    backgroundColor: "#ffffff",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  input: {
+    height: 50,
+    borderColor: "#e2e8f0",
+    borderWidth: 1,
+    borderRadius: 12,
+    marginBottom: 12,
+    paddingHorizontal: 16,
+    backgroundColor: "#fff",
+    fontSize: 16,
+  },
+  buttonContainer: {
+    backgroundColor: "#1e3a8a",
+    borderRadius: 12,
+    padding: 12,
+    marginVertical: 12,
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "#ffffff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  resultItem: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e2e8f0",
+  },
+  selectedItem: {
+    color: "#1e3a8a",
+    fontWeight: "600",
+  },
+  normalItem: {
+    color: "#475569",
+  },
+});
 

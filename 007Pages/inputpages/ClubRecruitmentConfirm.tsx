@@ -87,7 +87,7 @@ const ClubRecruitmentConfirm = ({ route, navigation }) => {
           source={{ uri: formData.lineQRCode }} 
           style={styles.qrImage} 
           onError={(e) => console.error("画像読み込みエラー:", e.nativeEvent.error)}
-          defaultSource={require('../../assets/default-qr-placeholder.png')} // デフォルト画像をアセットに追加する必要あり
+          // defaultSource={require('../../assets/default-qr-placeholder.png')} // デフォルト画像をアセットに追加する必要あり
         />
       </View>
     );

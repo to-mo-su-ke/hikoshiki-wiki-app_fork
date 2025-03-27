@@ -16,7 +16,6 @@ firestore
 |  |  |--researchroom
 |  |  |--role
 |  |  |--club
-
 */
 
 

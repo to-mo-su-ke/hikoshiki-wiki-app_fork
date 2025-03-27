@@ -137,7 +137,7 @@ const [selectedValue4, setSelectedValue4] = useState(null);
       <View style={styles.container}>
         <ScrollView>
           <TextInput
-            style={{ height: 40, borderColor: 'gray', borderWidth: 1, marginBottom: 16 }}
+            style={styles.searchInput}
             placeholder="部活名"
             value={searchText}
             onChangeText={setSearchText}
@@ -145,7 +145,7 @@ const [selectedValue4, setSelectedValue4] = useState(null);
           <Menu
             visible={visible1}
             onDismiss={closeMenu1}
-            anchor={<Button title="タグ1を選択してください..." onPress={openMenu1} />}
+            anchor={<TouchableOpacity style={styles.menuButton} onPress={openMenu1}><Text style={styles.menuButtonText}>タグ1を選択してください...</Text></TouchableOpacity>}
           >
             <Menu.Item onPress={() => { setSelectedTypeOfClubs('運動系部活'); closeMenu1(); }} title="運動系部活" />
             <Menu.Item onPress={() => { setSelectedTypeOfClubs('文化系部活'); closeMenu1(); }} title="文化系部活" />
@@ -159,7 +159,7 @@ const [selectedValue4, setSelectedValue4] = useState(null);
           <Menu
             visible={visible2}
             onDismiss={closeMenu2}
-            anchor={<Button title="タグ2を選択してください..." onPress={openMenu2} />}
+            anchor={<TouchableOpacity style={styles.menuButton} onPress={openMenu2}><Text style={styles.menuButtonText}>タグ2を選択してください...</Text></TouchableOpacity>}
           >
             <Menu.Item onPress={() => { setPlaceOfActivity('体育館'); closeMenu2(); }} title="体育館" />
             <Menu.Item onPress={() => { setPlaceOfActivity('グラウンド'); closeMenu2(); }} title="グランンド" />
@@ -167,8 +167,14 @@ const [selectedValue4, setSelectedValue4] = useState(null);
             <Menu.Item onPress={() => { setPlaceOfActivity('その他'); closeMenu2(); }} title="その他" />
 
           </Menu>
-          <Button title="検索" onPress={handleSearch} />
-          <Button title="リセット" onPress={handleReset} />
+          <View style={styles.buttonRow}>
+            <TouchableOpacity style={styles.actionButton} onPress={handleSearch}>
+              <Text style={styles.buttonText}>検索</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
+              <Text style={styles.resetButtonText}>リセット</Text>
+            </TouchableOpacity>
+          </View>
           <Text style={styles.result}>
             タグ1: {selectedTypeOfClubs || "未選択"}
           </Text>
@@ -196,26 +202,104 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    justifyContent: 'center',
+    backgroundColor: "#f8f9fa",
+  },
+  searchInput: {
+    height: 48,
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    borderRadius: 10,
+    paddingHorizontal: 16,
+    backgroundColor: "#ffffff",
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  menuButton: {
+    backgroundColor: "#ffffff",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  menuButtonText: {
+    fontSize: 14,
+    color: "#334155",
+  },
+  buttonRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  actionButton: {
+    flex: 1,
+    backgroundColor: "#3b82f6",
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    marginHorizontal: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  resetButton: {
+    flex: 1,
+    backgroundColor: "#f1f5f9",
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    marginHorizontal: 4,
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+  },
+  buttonText: {
+    color: "#ffffff",
+    fontWeight: "600",
+  },
+  resetButtonText: {
+    color: "#64748b",
+    fontWeight: "600",
   },
   result: {
-    marginTop: 16,
+    marginTop: 8,
+    fontSize: 14,
+    color: "#64748b",
   },
   resultsContainer: {
-    marginTop: 32, // 検索結果を中央より少し下に配置
-    alignItems: 'center',
+    marginTop: 24,
+    alignItems: "center",
   },
   clubItem: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: "#ffffff",
     padding: 16,
     marginVertical: 8,
-    borderRadius: 8,
-    width: '80%', // 幅を広く設定
-    alignItems: 'center',
+    borderRadius: 10,
+    width: "90%",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
   },
   clubName: {
-    fontSize: 18, // テキストを大きめに設定
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#1e3a8a",
   },
 });
 

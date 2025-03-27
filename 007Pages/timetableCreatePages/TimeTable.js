@@ -311,45 +311,51 @@ const TimeTable = ({ navigation }) => {
           />
         </View>
       </View>
-      <View style={styles.daysRow}>
-        <View style={styles.timeCell}>
-          <Text>時間</Text>
-        </View>
-        {days.map((day) => (
-          <View key={day} style={styles.dayCell}>
-            <Text>{day}</Text>
-          </View>
-        ))}
-      </View>
-      {periods.map((period) => (
-        <View key={period} style={styles.row}>
+      
+      <View style={styles.timetableContainer}>
+        <View style={styles.daysRow}>
           <View style={styles.timeCell}>
-            <Text>{period}限</Text>
+            <Text>時間</Text>
           </View>
-          {days.map((day) => {
-            const cellData = timetables?.[degree]?.[termDayPeriod]?.[day]?.[
-              period
-            ] || { 0: null, 1: null, 2: null };
-            return (
-              <TouchableOpacity
-                key={day}
-                style={styles.cell}
-                onPress={() =>
-                  navigation.navigate("ClassSelection", {
-                    day,
-                    period,
-                    termDayPeriod,
-                    degree,
-                    department,
-                  })
-                }
-              >
-                {renderCellContent(cellData, day, period)}
-              </TouchableOpacity>
-            );
-          })}
+          {days.map((day) => (
+            <View key={day} style={styles.dayCell}>
+              <Text>{day}</Text>
+            </View>
+          ))}
         </View>
-      ))}
+        <View style={styles.periodsContainer}>
+          {periods.map((period) => (
+            <View key={period} style={styles.row}>
+              <View style={styles.timeCell}>
+                <Text>{period}限</Text>
+              </View>
+              {days.map((day) => {
+                const cellData = timetables?.[degree]?.[termDayPeriod]?.[day]?.[
+                  period
+                ] || { 0: null, 1: null, 2: null };
+                return (
+                  <TouchableOpacity
+                    key={day}
+                    style={styles.cell}
+                    onPress={() =>
+                      navigation.navigate("ClassSelection", {
+                        day,
+                        period,
+                        termDayPeriod,
+                        degree,
+                        department,
+                      })
+                    }
+                  >
+                    {renderCellContent(cellData, day, period)}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          ))}
+        </View>
+      </View>
+      
       <View style={styles.totalContainer}>
         <Text style={styles.totalText}>総単位数: {totalCredits}</Text>
       </View>
@@ -360,10 +366,11 @@ const TimeTable = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 10,
-    backgroundColor: "#fff",
+    padding: 16,
+    backgroundColor: "#f8f9fa",
   },
   headerConstainer: {
+    marginBottom: 16,
     height: 50,
     flexDirection: "row",
     width: "100%",
@@ -371,6 +378,7 @@ const styles = StyleSheet.create({
   headerLeft: {
     flex: 1,
     flexDirection: "row",
+    marginRight: 8,
   },
   headerRight: {
     width: 110,
@@ -379,27 +387,76 @@ const styles = StyleSheet.create({
   degree: {
     flex: 1,
     borderWidth: 0,
+    backgroundColor: "#ffffff",
+    borderRadius: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   department: {
     flex: 2,
     borderWidth: 0,
+    backgroundColor: "#ffffff",
+    borderRadius: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+    marginLeft: 8,
   },
   grade: {
     flex: 1,
     borderWidth: 0,
+    backgroundColor: "#ffffff",
+    borderRadius: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   label: {
     borderWidth: 0,
   },
   drop: {
     borderWidth: 0,
+    borderRadius: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  timetableContainer: {
+    backgroundColor: "#ffffff",
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+    marginBottom: 16,
   },
   daysRow: {
     flexDirection: "row",
-    backgroundColor: "#ddd",
+    backgroundColor: "#e9ecef",
+    paddingVertical: 10,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  periodsContainer: {
     paddingVertical: 8,
-    borderRadius: 5,
-    marginBottom: 5,
   },
   dayCell: {
     flex: 1,
@@ -413,73 +470,101 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: "row",
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
+    marginBottom: 0,
+    paddingVertical: 4,
   },
   cell: {
     flex: 1,
-    height: 80,
+    height: 85,
     alignItems: "center",
     justifyContent: "center",
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: "#e0e0e0",
     backgroundColor: "#ffffff",
-  },
-  fullCell: {
-    flex: 1,
-    textAlign: "center",
-    fontSize: 12,
-    textAlignVertical: "center",
-    textAlign: "center",
-  },
-  splitCell: {
-    flex: 1,
-    flexDirection: "row",
-  },
-  quarterCell: {
-    flex: 1,
-    textAlign: "center",
-    fontSize: 9,
-    textAlignVertical: "center",
-  },
-  verticalDivider: {
-    width: 1,
-    backgroundColor: "#ccc",
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 1,
+    elevation: 1,
+    margin: 2,
   },
   fullCellContainer: {
     flex: 1,
     width: "100%",
     position: "relative",
     justifyContent: "center",
+    padding: 4,
+    backgroundColor: "#f1f8ff",
   },
   quarterContainer: {
     flex: 1,
     position: "relative",
     justifyContent: "center",
+    padding: 2,
+    backgroundColor: "#fff8f1",
+  },
+  fullCell: {
+    textAlign: "center",
+    fontSize: 12,
+    color: "#1e3a8a",
+    fontWeight: "500",
+  },
+  splitCell: {
+    flex: 1,
+    flexDirection: "row",
+    width: "100%",
+  },
+  quarterCell: {
+    textAlign: "center",
+    fontSize: 10,
+    color: "#7d3b00",
+    fontWeight: "500",
+  },
+  verticalDivider: {
+    width: 1,
+    backgroundColor: "#e0e0e0",
   },
   closeButton: {
     position: "absolute",
     right: 2,
     top: 2,
     zIndex: 1,
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
+    borderRadius: 10,
+    width: 16,
+    height: 16,
+    alignItems: "center",
+    justifyContent: "center",
   },
   closeText: {
-    height: 14,
-    width: 14,
-    backgroundColor: "white",
-    lineHeight: 15,
-    color: "red",
+    height: 16,
+    width: 16,
+    lineHeight: 16,
+    color: "#ff5252",
     textAlign: "center",
-    textAlignVertical: "center",
-    borderRadius: 7,
+    fontWeight: "bold",
+    fontSize: 12,
   },
   totalContainer: {
-    alignItems: 'flex-end',
-    marginTop: 10,
+    alignItems: "flex-end",
+    marginTop: 16,
+    marginRight: 8,
+    backgroundColor: "#ffffff",
+    padding: 10,
+    borderRadius: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+    alignSelf: "flex-end",
   },
   totalText: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
+    color: "#2c3e50",
   },
 });
 

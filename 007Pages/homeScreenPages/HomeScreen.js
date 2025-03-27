@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, Button, TouchableOpacity, StyleSheet, Image } from "react-native";
+import { View, Text, Button, TouchableOpacity, StyleSheet, Image, ScrollView } from "react-native";
 import TimeTable from "../timetableCreatePages/TimeTable"; 
 import TimeTableView from "../timetableCreatePages/TimeTableView";
 import UserInfo from "../userhome/Userinfo";
@@ -170,49 +170,49 @@ const renderEventContent = () => {
 
   return (
     <View style={styles.container}>
-      {/* メインタブのコンテンツ */}
-      {mainTab === "家" ? (
-        <View style={styles.homeContentContainer}>
-          <TouchableOpacity
-            style={styles.notificationButton}
-            onPress={() => navigation.navigate("Notification")}
-          >
-          <Image 
-            style={styles.mainTabImage}
-            source={require("../../008picture/Notifications.png")}
-          />
-            {/* ...通知ボタンの内容 */}
-          </TouchableOpacity>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        {/* メインタブのコンテンツ */}
+        {mainTab === "家" ? (
+          <View style={styles.homeContentContainer}>
+            <TouchableOpacity
+              style={styles.notificationButton}
+              onPress={() => navigation.navigate("Notification")}
+            >
+            <Image 
+              style={styles.mainTabImage}
+              source={require("../../008picture/Notifications.png")}
+            />
+              {/* ...通知ボタンの内容 */}
+            </TouchableOpacity>
 
-          {/* 表示切替用のボタン */}
-          <TouchableOpacity
-            onPress={() => setShowTimeTable(!showTimeTable)}
-            style={styles.bottun}
-          >
-            <Text style={styles.toggleButtonText}>
-              {showTimeTable ? "タイムテーブル編集" : "タイムテーブルビュー表示"}
-            </Text>
-          </TouchableOpacity>
+            {/* 表示切替用のボタン */}
+            <TouchableOpacity
+              onPress={() => setShowTimeTable(!showTimeTable)}
+              style={styles.bottun}
+            >
+              <Text style={styles.toggleButtonText}>
+                {showTimeTable ? "タイムテーブル編集" : "タイムテーブルビュー表示"}
+              </Text>
+            </TouchableOpacity>
 
-          {showTimeTable ? (
-            <TimeTable navigation={navigation} />
-          ) : (
-            <TimeTableView navigation={navigation} />
-          )}
-        </View>
-      ) : mainTab === "学内" ? (
-        renderSchoolContent()
-      ) : mainTab === "部活" ? (
-        renderBukatsuContent()
-      ) : mainTab === "自" ? (
-        renderSelfContent()
-      ) : mainTab === "イベ" ? (
-        renderEventContent()
-      ) : (
-        <Text>地図の内容</Text>
-      )}
-        
-
+            {showTimeTable ? (
+              <TimeTable navigation={navigation} />
+            ) : (
+              <TimeTableView navigation={navigation} />
+            )}
+          </View>
+        ) : mainTab === "学内" ? (
+          renderSchoolContent()
+        ) : mainTab === "部活" ? (
+          renderBukatsuContent()
+        ) : mainTab === "自" ? (
+          renderSelfContent()
+        ) : mainTab === "イベ" ? (
+          renderEventContent()
+        ) : (
+          <Text>地図の内容</Text>
+        )}
+      </ScrollView>
       {/* 画面下部の水平タブ */}
       <View style={styles.mainTabsContainer}>
         <TouchableOpacity
@@ -283,6 +283,7 @@ const renderEventContent = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#f8f9fa",
     paddingTop: 20,
   },
   homeContentContainer: {
@@ -290,96 +291,135 @@ const styles = StyleSheet.create({
     width: "100%",
     justifyContent: "center",
     alignItems: "center",
-    position: "relative",
     paddingTop: 60,
+    paddingHorizontal: 16,
   },
   notificationButton: {
     position: "absolute",
     top: 10,
-    right: 10,
+    right: 16,
     padding: 10,
-    backgroundColor: "#ddd",
-    borderRadius: 5,
+    backgroundColor: "#ffffff",
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3,
     zIndex: 100,
   },
   contentContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    padding: 16,
   },
   mainTabsContainer: {
     flexDirection: "row",
-    backgroundColor: "#000",
+    backgroundColor: "#ffffff",
+    borderTopWidth: 1,
+    borderColor: "#e0e0e0",
     justifyContent: "space-around",
-    gap: 3,
-    paddingVertical: 0, // 修正
+    paddingVertical: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 10,
   },
   mainTab: {
     flex: 1,
     alignItems: "center",
-    backgroundColor: "#ddd",
-    paddingVertical: 5,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginHorizontal: 4,
   },
   mainTabImage: {
-    width: 32,
-    height: 32,
+    width: 28,
+    height: 28,
+    marginBottom: 4,
+    tintColor: "#475569",
   },
   activeTab: {
-    backgroundColor: "#aaa",
+    backgroundColor: "#e9f2ff",
+    borderRadius: 8,
   },
-  // 共通のタブスタイル
   commonTabsContainer: {
     flexDirection: "row",
-    backgroundColor: "#000",
+    backgroundColor: "#ffffff",
+    borderBottomWidth: 1,
+    borderColor: "#e0e0e0",
     justifyContent: "space-around",
-    gap: 3,
-    paddingVertical: 3, // 修正
+    paddingVertical: 8,
+    marginBottom: 8,
   },
   commonTab: {
     flex: 1,
     alignItems: "center",
-    backgroundColor: "#ddd",
-    paddingVertical: 15,
+    paddingVertical: 10,
+    borderRadius: 8,
+    marginHorizontal: 4,
   },
   commonContent: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: "flex-start",
     alignItems: "center",
+    padding: 16,
   },
   tabText: {
-    fontSize: 8,
+    fontSize: 12,
+    color: "#475569",
+    fontWeight: "500",
   },
-  // 縦タブ・リンク用スタイル
   verticalTabsContainer: {
-    marginTop: 10,
+    marginTop: 16,
     width: "100%",
     paddingHorizontal: 20,
   },
   verticalTab: {
     width: "100%",
     padding: 15,
-    backgroundColor: "#ccc",
+    backgroundColor: "#f1f5f9",
     marginVertical: 5,
     alignItems: "center",
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   link: {
     width: "100%",
     padding: 15,
-    backgroundColor: "#ccc",
+    backgroundColor: "#f1f5f9",
     marginVertical: 5,
     alignItems: "center",
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
-  // ボタンスタイル
   bottun: {
-    padding: 10,
-    backgroundColor: "#fff",
-    borderRadius: 5,
-    marginVertical: 10,
-    width: "50%",
+    padding: 12,
+    backgroundColor: "#3b82f6",
+    borderRadius: 10,
+    marginVertical: 16,
+    width: "60%",
     alignItems: "center",
-
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  toggleButtonText: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "600",
   },
 });
-
 
 export default HomeScreen;

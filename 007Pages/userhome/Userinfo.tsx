@@ -1,64 +1,201 @@
 import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Alert } from 'react-native';
+import { getAuth } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../../006Configs/firebaseConfig2'; // 他のファイルからインポート。firebase設定済みのdbインスタンスを参照してください
-import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { db } from '../../006Configs/firebaseConfig2';
 
-interface UserData {
-  name?: string;
-  departure?: string;
-  // 他のフィールドがあればここに追加
-}
-
-const UserInfo = () => {
-  const [user, setUser] = useState<UserData>({});
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+const UserInfoScreen = ({ navigation }) => {
+  const [userName, setUserName] = useState(''); // ユーザー名
+  const [role, setRole] = useState(''); // ユーザーのロール
+  const [grade, setGrade] = useState(''); // 学年
+  const [department, setDepartment] = useState(''); // 学科
+  const [loading, setLoading] = useState(true); // ローディング状態
+  const [error, setError] = useState(null); // エラー状態
 
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
-        // Firebase上の"user"ディレクトリからユーザー情報を取得
-        // "currentUserId"部分は実際のユーザーIDに置き換えてください
+        // Firebase Authから現在のユーザーUIDを取得
+        const auth = getAuth();
+        const currentUser = auth.currentUser;
 
-        const userDocRef = doc(db, 'user', 'currentUserId');//ログイン時に取得したユーザーIDを入れるので任せた
+        if (!currentUser) {
+          setError('ユーザーがログインしていません。');
+          setLoading(false);
+          return;
+        }
+
+        const uid = currentUser.uid;
+
+        // Firestoreの"user"コレクションからユーザー情報を取得
+        const userDocRef = doc(db, 'user', uid);
         const userDocSnap = await getDoc(userDocRef);
 
         if (userDocSnap.exists()) {
-          setUser(userDocSnap.data() as UserData);
+          const userData = userDocSnap.data();
+          setUserName(userData.username || 'ユーザー名未設定');
+          setRole(userData.role || '一般');
+          setGrade(userData.grade || '未設定');
+          setDepartment(userData.department || '未設定');
         } else {
-          setError('ユーザー情報が存在しません。');
+          setError('ユーザー情報が見つかりません。');
         }
       } catch (err) {
-        setError('ユーザー情報の取得に失敗しました。');
+        console.error('Error fetching user details:', err);
+        setError('ユーザー情報の取得中にエラーが発生しました。');
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     fetchUserInfo();
   }, []);
 
-  if (loading) return <ActivityIndicator size="large" color="#0000ff" />;
-  if (error) return <Text>{error}</Text>;
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+        <Text>読み込み中...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    );
+  }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>ユーザー情報</Text>
-      <Text>名前: {user.name}</Text>
-      <Text>学科: {user.departure}</Text>
-      {/* 他のフィールドも必要に応じて表示 */}
-    </View>
+    <ScrollView style={styles.container}>
+      {/* ヘッダー部分 */}
+      <View style={styles.header}>
+        <Image
+          source={{ uri: 'https://via.placeholder.com/100' }} // プロフィール画像のURL
+          style={styles.profileImage}
+        />
+        <View style={styles.userInfo}>
+          <Text style={styles.userName}>{userName}</Text>
+          <TouchableOpacity style={styles.editButton}>
+            <Text style={styles.editButtonText}>✏️</Text>
+          </TouchableOpacity>
+        </View>
+        <TouchableOpacity style={styles.roleButton}>
+          <Text style={styles.roleButtonText}>{role}</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* メニューリスト */}
+      <View style={styles.menu}>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => {
+            if (!grade || !department) {
+              Alert.alert('エラー', '学年または学科情報が不足しています。');
+              return;
+            }
+            navigation.navigate('Gradecheck', { grade, department }); // パラメータを渡して遷移
+          }}
+        >
+          <Text style={styles.menuText}>成績管理</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.menuItem}>
+          <Text style={styles.menuText}>新歓予約確認</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.menuItem}>
+          <Text style={styles.menuText}>部活/サークル/団体登録申請</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => navigation.navigate('Userinfoedit')} // ユーザー情報編集画面に遷移
+        >
+          <Text style={styles.menuText}>登録情報変更</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.menuItem}>
+          <Text style={styles.menuText}>募集中の団体</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.menuItem}>
+          <Text style={styles.menuText}>フリマ</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 16,
   },
   header: {
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#f8f8f8',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+  },
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginBottom: 10,
+  },
+  userInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  userName: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginRight: 10,
+  },
+  editButton: {
+    backgroundColor: '#ddd',
+    padding: 5,
+    borderRadius: 5,
+  },
+  editButtonText: {
+    fontSize: 16,
+  },
+  roleButton: {
+    marginTop: 10,
+    backgroundColor: '#4CAF50',
+    paddingVertical: 5,
+    paddingHorizontal: 15,
+    borderRadius: 20,
+  },
+  roleButtonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  menu: {
+    padding: 20,
+  },
+  menuItem: {
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+  },
+  menuText: {
+    fontSize: 18,
+    color: '#333',
   },
 });
 
-export default UserInfo;
+export default UserInfoScreen;

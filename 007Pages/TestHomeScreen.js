@@ -21,6 +21,15 @@ const TestHomeScreen = ({ navigation }) => {
         title="Clubdetail"
         onPress={() => navigation.navigate('Clubdetail')}
       />
+      <Button
+       title = "InputNewClub"
+       onPress = {() => navigation.navigate('InputNewClub')}
+      />
+
+      <Button 
+        title = "ClubRecruitmentConfirm"
+        onPress = {() => navigation.navigate('ClubRecruitmentConfirm')}
+      />
                 
 
     </View>

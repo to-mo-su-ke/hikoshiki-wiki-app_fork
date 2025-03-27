@@ -12,7 +12,8 @@ import {
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import * as ImagePicker from "expo-image-picker";
-import { submitDataToFirestore } from "../../004BackendModules/mainMethod/submitdata";
+import { collection, addDoc } from "firebase/firestore"; // Firestoreの関数をインポート
+import { db } from "../../006Configs/firebaseConfig2"; // Firebase設定済みのdbインスタンスをインポート
 
 const InputNewClub = ({ navigation }) => {
   const [formData, setFormData] = useState({
@@ -72,18 +73,7 @@ const InputNewClub = ({ navigation }) => {
     }
   };
 
-  // 確認画面へ進む
-  const handleConfirm = () => {
-    // 必須項目の検証
-    if (!formData.clubName.trim()) {
-      Alert.alert("エラー", "サークル名は必須です");
-      return;
-    }
-
-    navigation.navigate("ClubRecruitmentConfirm", { formData });
-  };
-
-  // 送信処理
+  // Firestoreにデータを送信する関数
   const handleSubmit = async () => {
     try {
       // 必須項目の検証
@@ -93,7 +83,9 @@ const InputNewClub = ({ navigation }) => {
       }
 
       // Firestoreに送信
-      await submitDataToFirestore(formData, "clubRecruitment");
+      const docRef = await addDoc(collection(db, "clubRecruitment"), formData);
+      console.log("Document written with ID: ", docRef.id);
+
       Alert.alert("送信完了", "メンバー募集情報が送信されました", [
         { text: "OK", onPress: () => navigation.goBack() }
       ]);
@@ -203,15 +195,6 @@ const InputNewClub = ({ navigation }) => {
           title="送信する"
           onPress={handleSubmit}
           color="#4CAF50"
-        />
-      </View>
-
-      {/* 確認画面ボタン */}
-      <View style={styles.buttonContainer}>
-        <Button
-          title="入力内容を確認する"
-          onPress={handleConfirm}
-          color="#2196F3"
         />
       </View>
     </ScrollView>

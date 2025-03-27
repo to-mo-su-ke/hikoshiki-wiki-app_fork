@@ -95,30 +95,67 @@ const CourseDetail = ({ route, navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
-  title: { fontSize: 24, fontWeight: "bold", margin: 20 },
-  row: { paddingHorizontal: 20, marginBottom: 10 },
-  columnTitle: { fontWeight: "bold", fontSize: 16, marginTop: 5 },
-  columnContent: { fontSize: 14, marginTop: 5 },
+  container: { 
+    flex: 1, 
+    backgroundColor: "#f8f9fa", 
+    padding: 12,
+  },
+  title: { 
+    fontSize: 24, 
+    fontWeight: "bold", 
+    color: "#1e3a8a",
+    marginVertical: 16,
+    paddingHorizontal: 12,
+  },
+  row: { 
+    paddingHorizontal: 16, 
+    paddingVertical: 8,
+    backgroundColor: "#ffffff",
+    marginBottom: 2,
+    borderRadius: 8,
+  },
+  columnTitle: { 
+    fontWeight: "600", 
+    fontSize: 14, 
+    marginTop: 5,
+    color: "#334155", 
+  },
+  columnContent: { 
+    fontSize: 14, 
+    marginTop: 5,
+    lineHeight: 20,
+    color: "#475569",
+    marginBottom: 4, 
+  },
   columnContentLink: {
     fontSize: 14,
-    color: "blue",
+    color: "#3b82f6",
     marginTop: 5,
-    textDecorationLine: "underline"
+    textDecorationLine: "underline",
+    marginBottom: 4,
   },
-  separator: { borderBottomWidth: 1, borderColor: "#ccc", marginHorizontal: 20 },
+  separator: { 
+    borderBottomWidth: 1, 
+    borderColor: "#e2e8f0", 
+    marginVertical: 8,
+  },
   registerButton: {
-    backgroundColor: "#007AFF",
-    padding: 10,
+    backgroundColor: "#3b82f6",
+    paddingVertical: 14,
     alignItems: "center",
     justifyContent: "center",
     margin: 20,
     borderRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3,
   },
   registerButtonText: {
     color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
 
