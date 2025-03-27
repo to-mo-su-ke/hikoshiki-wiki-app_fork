@@ -21,6 +21,10 @@ const TestHomeScreen = ({ navigation }) => {
         title="TimeTable"
         onPress={() => navigation.navigate("TimeTable")}
       />
+      <Button
+        title="Event Search"
+        onPress={() => navigation.navigate("EventSearch")}
+      />
     </View>
   );
 };

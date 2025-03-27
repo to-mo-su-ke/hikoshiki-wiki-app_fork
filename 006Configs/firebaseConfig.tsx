@@ -1,13 +1,10 @@
 import { initializeApp, getApps, FirebaseApp } from "firebase/app";
 import { getFirestore, collection, doc } from "firebase/firestore";
-import { initializeAuth, getAuth
- } from "firebase/auth";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import 'firebase/auth';
 import 'firebase/firestore';
 
 
-const firebaseConfig = {
+export const firebaseConfig = {
   apiKey: "AIzaSyABT5pEPk4QpsxElFk3E1IElr4Y3ICuYYs",
   authDomain: "unofficialwikigroup4.firebaseapp.com",
   databaseURL: "https://unofficialwikigroup4-default-rtdb.asia-southeast1.firebasedatabase.app",

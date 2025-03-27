@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, Button, TouchableOpacity, StyleSheet, Image } from "react-native";
-import TimeTable from "../timetableCreatePages/TimeTable"; 
-import TimeTableView from "../timetableCreatePages/TimeTableView";
+import TimeTable from "../timetableCreatePages/TimeTable";
 
 const HomeScreen = ({ navigation }) => {
   const [mainTab, setMainTab] = useState("家");
