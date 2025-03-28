@@ -72,15 +72,10 @@ const UserInfoScreen = ({ navigation }) => {
     <ScrollView style={styles.container}>
       {/* ヘッダー部分 */}
       <View style={styles.header}>
-        <Image
-          source={{ uri: 'https://via.placeholder.com/100' }} // プロフィール画像のURL
-          style={styles.profileImage}
-        />
+      
         <View style={styles.userInfo}>
           <Text style={styles.userName}>{userName}</Text>
-          <TouchableOpacity style={styles.editButton}>
-            <Text style={styles.editButtonText}>✏️</Text>
-          </TouchableOpacity>
+          
         </View>
         <TouchableOpacity style={styles.roleButton}>
           <Text style={styles.roleButtonText}>{role}</Text>
@@ -99,7 +94,11 @@ const UserInfoScreen = ({ navigation }) => {
             navigation.navigate('Gradecheck', { grade, department }); // パラメータを渡して遷移
           }}
         >
-          <Text style={styles.menuText}>成績管理</Text>
+          <Text style={styles.menuItem}
+          onPress={() => navigation.navigate('GradeInfo')} // 成績確認画面に遷移
+          >
+            
+            成績管理</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.menuItem}>
           <Text style={styles.menuText}>新歓予約確認</Text>
@@ -175,7 +174,7 @@ const styles = StyleSheet.create({
   },
   roleButton: {
     marginTop: 10,
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#007BFF',
     paddingVertical: 5,
     paddingHorizontal: 15,
     borderRadius: 20,

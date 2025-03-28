@@ -1,473 +1,229 @@
-// import React, { useState, useEffect } from "react";
-// import { View, Text, TextInput, StyleSheet, TouchableOpacity, Button, Image, ScrollView, Modal } from "react-native";
-// import RNPickerSelect from 'react-native-picker-select';
-// import { Calendar } from 'react-native-calendars';
-// import { collection, query, where, getDocs } from "firebase/firestore";
-// import { db } from "../../006Configs/firebaseConfig2";
-// import { useNavigation } from "@react-navigation/native";
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  StyleSheet,
+  FlatList,
+  Alert,
+} from "react-native";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { db } from "../../006Configs/firebaseConfig2";
+import { Calendar } from "react-native-calendars";
 
-// interface Event {
-//   id: string;
-//   title: string;
-//   description: string;
-//   // Firestore Timestamp を Date に変換する前提
-//   eventDate: Date;
-//   cost: number;
-//     location: string;
-//     name: string;
-//     explain: string;
+const Search = () => {
+  const [searchName, setSearchName] = useState("");
+  const [searchCost, setSearchCost] = useState("");
+  const [results, setResults] = useState([]);
+  const [selectedDates, setSelectedDates] = useState({});
+  const [markedDates, setMarkedDates] = useState({});
 
-// }
+  // Firestoreから新歓がある日付を取得してカレンダーに色付け
+  const fetchEventDates = async (filter = false) => {
+    try {
+      const eventsRef = collection(db, "events");
+      let q = query(eventsRef);
 
-// const EventSearch: React.FC = () => {
-//   const navigation = useNavigation();
-//   const [searchText, setSearchText] = useState("");
-//   const [selectedDates, setSelectedDates] = useState<string[]>([]);
-//   const [events, setEvents] = useState<Event[]>([]);
-//   const [searchTriggered, setSearchTriggered] = useState(false);
-  
-//   // 追加：検索タブ全体を隠すための状態
-//   const [showSearchModal, setShowSearchModal] = useState(false);
-//   const [selectedOption, setSelectedOption] = useState("");
-//   const options = [
-//     { label: "サークルA", value: "サークルA" },
-//     { label: "サークルB", value: "サークルB" },
-//     { label: "サークルC", value: "サークルC" }
-//   ]; // 必要に応じて変更
+      // 絞り込み条件が入力されている場合はクエリを追加
+      if (filter) {
+        if (searchName) {
+          q = query(q, where("name", "==", searchName));
+        }
+        if (searchCost) {
+          q = query(q, where("cost", "==", parseInt(searchCost, 10)));
+        }
+      }
 
-//   // 追加：費用の範囲を入力するための状態
-//   const [minCost, setMinCost] = useState("");
-//   const [maxCost, setMaxCost] = useState("");
+      const querySnapshot = await getDocs(q);
+      const dates = {};
 
-//   const onDayPress = (day: any) => {
-//     const dateStr = day.dateString;
-//     setSelectedDates((prevDates) =>
-//       prevDates.includes(dateStr)
-//         ? prevDates.filter((date) => date !== dateStr)
-//         : [...prevDates, dateStr]
-//     );
-//   };
+      querySnapshot.forEach((doc) => {
+        const eventData = doc.data();
+        if (eventData.date) {
+          dates[eventData.date] = {
+            selected: true,
+            selectedtColor:  "blue" // 絞り込み時は青、それ以外は赤
+          };
+        }
+      });
 
-//   const fetchEvents = async () => {
-//     try {
-//       // 実際の環境では 'events' ではなく 'shinkantest' コレクションを使用
-//       const eventsRef = collection(db, "shinkantest");
-//       const conditions = [];
+      setMarkedDates(dates);
+    } catch (error) {
+      console.error("Error fetching event dates: ", error);
+      Alert.alert("エラー", "イベント日程の取得中にエラーが発生しました");
+    }
+  };
 
-//       // 選択された日付に基づいてクエリを作成
-//       if (selectedDates.length > 0) {
-//         const startOfDay = new Date(selectedDates[0]);
-//         const endOfDay = new Date(selectedDates[selectedDates.length - 1]);
-//         endOfDay.setHours(23, 59, 59, 999);
+  useEffect(() => {
+    // 初回ロード時はすべての日程を色付け
+    fetchEventDates();
+  }, []);
 
-//         conditions.push(where("eventDate", ">=", startOfDay));
-//         conditions.push(where("eventDate", "<=", endOfDay));
-//       }
+  // カレンダーで日付を選択または解除
+  const onDayPress = (day) => {
+    const date = day.dateString;
 
-//       // 検索テキストがある場合、タイトルの部分一致でフィルタ
-//       if (searchText) {
-//         conditions.push(where("name", ">=", searchText));
-//         conditions.push(where("name", "<=", searchText + '\uf8ff'));
-//       }
+    setSelectedDates((prevSelectedDates) => {
+      const updatedDates = { ...prevSelectedDates };
 
-//       // 費用の範囲が指定されている場合、費用でフィルタ
-//       if (minCost) {
-//         conditions.push(where("cost", ">=", parseInt(minCost)));
-//       }
-//       if (maxCost) {
-//         conditions.push(where("cost", "<=", parseInt(maxCost)));
-//       }
+      if (updatedDates[date]) {
+        // 選択解除
+        delete updatedDates[date];
+      } else {
+        // 選択
+        updatedDates[date] = {
+          selected: true,
+          selectedColor: "green",
+        };
+      }
 
-//       // 条件によってクエリを作成
-//       const q =
-//         conditions.length > 0 ? query(eventsRef, ...conditions) : query(eventsRef);
-//       const querySnapshot = await getDocs(q);
-      
-//       let eventsList: any[] = [];
-//       querySnapshot.forEach((doc) => {
-//         const data = doc.data();
-//         eventsList.push({
-//           id: doc.id,
-//           name: data.name || "無題の新歓",
-//           explain: data.explain || "説明なし",
-//           // eventDate が存在しない場合の処理
-//           eventDate: data.eventDate ? data.eventDate.toDate() : new Date(),
-//           cost: data.cost || 0,
-//           location: data.location || "場所未定",
-//         });
-//       });
+      return updatedDates;
+    });
+  };
 
-//       // クライアント側で「contains」検索を実施
-//       if (searchText) {
-//         eventsList = eventsList.filter((event) =>
-//           event.name.toLowerCase().includes(searchText.toLowerCase())
-//         );
-//       }
+  // 検索処理
+  const handleSearch = async () => {
+    if (!searchName && !searchCost) {
+      Alert.alert("エラー", "少なくとも1つの条件を入力してください");
+      return;
+    }
 
-//       // ランダムな順番に並べ替え
-//       eventsList = eventsList.sort(() => Math.random() - 0.5);
+    try {
+      const eventsRef = collection(db, "events");
+      let q = query(eventsRef);
 
-//       setEvents(eventsList);
-//     } catch (error) {
-//       console.error("イベント検索エラー:", error);
-//     }
-//   };
+      if (searchName) {
+        q = query(q, where("name", "==", searchName));
+      }
+      if (searchCost) {
+        q = query(q, where("cost", "==", parseInt(searchCost, 10)));
+      }
 
-//   useEffect(() => {
-//     if (searchTriggered) {
-//       fetchEvents();
-//       setSearchTriggered(false);
-//     }
-//   }, [searchTriggered]);
+      const querySnapshot = await getDocs(q);
+      const matchedEvents = [];
+      const matchedDates = {};
 
-//   // コンポーネントがマウントされたときに初期検索を行う
-//   useEffect(() => {
-//     fetchEvents();
-//   }, []);
+      querySnapshot.forEach((doc) => {
+        const eventData = doc.data();
+        matchedEvents.push(eventData);
 
-//   const handleSearch = () => {
-//     setSearchTriggered(true);
-//     setShowSearchModal(false);
-//   // };
+        // 条件に合致する日程を色付け
+        if (eventData.date) {
+          matchedDates[eventData.date] = {
+            marked: true,
+            dotColor: "blue",
+          };
+        }
+      });
 
-//   // 新歓詳細ページへ遷移する関数
-//   const navigateToDetail = (shinkanId: string) => {
-//     navigation.navigate('ShinkanDetail', { shinkanId });
-//   };
+      setResults(matchedEvents);
+      setMarkedDates(matchedDates); // 絞り込み条件に合致する日程のみを色付け
 
-//   return (
-//     <View style={styles.container}>
-//       <TouchableOpacity onPress={() => setShowSearchModal(true)} style={styles.searchTabButton}>
-//         <Text style={styles.searchTabButtonText}>検索タブ</Text>
-//         <View style={styles.hamburgerIcon}>
-//           <View style={styles.hamburgerLine} />
-//           <View style={styles.hamburgerLine} />
-//           <View style={styles.hamburgerLine} />
-//         </View>
-//       </TouchableOpacity>
-      
-//       <Modal
-//         visible={showSearchModal}
-//         animationType="slide"
-//         onRequestClose={() => setShowSearchModal(false)}
-//       >
-//         <ScrollView style={styles.modalContainer}>
-//           <TouchableOpacity onPress={() => setShowSearchModal(false)} style={styles.closeButton}>
-//             <Text style={styles.closeButtonText}>閉じる</Text>
-//           </TouchableOpacity>
-//           <Text style={styles.normalstring}>新歓イベント検索</Text>
-//           <View style={styles.inputContainer}>
-//             <View style={styles.textInputWrapper}>
-//               <TextInput
-//                 placeholder="部活動/サークル検索"
-//                 value={searchText}
-//                 onChangeText={setSearchText}
-//                 style={styles.textInputWithIcon}
-//               />
-//             </View>
-//             <Text style={styles.normalstring}>活動タイプ</Text>
-//             <TouchableOpacity style={styles.pickerButton}>
-//               <RNPickerSelect
-//                 onValueChange={(value) => setSelectedOption(value)}
-//                 items={options}
-//                 style={pickerSelectStyles}
-//                 value={selectedOption}
-//                 useNativeAndroidPickerStyle={false}
-//                 placeholder={{ label: "活動タイプを選択", value: null }}
-//               />
-//             </TouchableOpacity>
-//             <Text style={styles.normalstring}>費用</Text>
-//             <View style={styles.costInputContainer}>
-//               <TextInput
-//                 placeholder="最小費用"
-//                 value={minCost}
-//                 onChangeText={setMinCost}
-//                 keyboardType="numeric"
-//                 style={styles.costInput}
-//               />
-//               <Text style={styles.costInputSeparator}>〜</Text>
-//               <TextInput
-//                 placeholder="最大費用"
-//                 value={maxCost}
-//                 onChangeText={setMaxCost}
-//                 keyboardType="numeric"
-//                 style={styles.costInput}
-//               />
-//             </View>
-//             <Text style={styles.normalstring}>日付選択(複数選択可)</Text>
-//             <Calendar
-//               onDayPress={onDayPress}
-//               markedDates={selectedDates.reduce((acc, date) => {
-//                 acc[date] = { selected: true, marked: true, selectedColor: 'blue' };
-//                 return acc;
-//               }, {} as { [key: string]: { selected: boolean; marked: boolean; selectedColor: string } })}
-//             />
-//           </View>
-//           <Button title="検索" onPress={handleSearch} />
-//         </ScrollView>
-//       </Modal>
-      
-//       <ScrollView style={{ marginTop: 20 }}>
-//         {events.length > 0 ? (
-//           events.map((event) => (
-//             <TouchableOpacity 
-//               key={event.id} 
-//               style={styles.eventContainer}
-//               onPress={() => navigateToDetail(event.id)}
-//             >
-//               <View style={styles.eventTitleContainer}>
-//                 <Text style={styles.eventTitle}>{event.name}</Text>
-//               </View>
-//               <Text style={styles.eventDescription}>{event.explain}</Text>
-//               <Text style={styles.eventInfo}>日程: {event.eventDate.toLocaleDateString()}</Text>
-//               <Text style={styles.eventInfo}>参加費: {event.cost}円</Text>
-//               <Text style={styles.eventInfo}>場所: {event.location}</Text>
-//               <Text style={styles.viewDetailsText}>タップして詳細を表示</Text>
-//             </TouchableOpacity>
-//           ))
-//         ) : (
-//           <View style={styles.centeredContainer}>
-//             <Text style={styles.NotFind}>条件に該当する新歓イベントは見つかりませんでした。</Text>
-//           </View>
-//         )}
-//       </ScrollView>
-//     </View>
-//   );
-// };
+      if (matchedEvents.length === 0) {
+        Alert.alert("結果なし", "条件に一致する新歓が見つかりませんでした");
+      }
+    } catch (error) {
+      console.error("Error searching events: ", error);
+      Alert.alert("エラー", "検索中にエラーが発生しました");
+    }
+  };
 
-// export default EventSearch;
+  return (
+    <FlatList
+      style={styles.container}
+      data={results}
+      keyExtractor={(item, index) => index.toString()}
+      ListHeaderComponent={
+        <View>
+          <Text style={styles.title}>新歓検索</Text>
 
-// const styles = StyleSheet.create({
-//   container: {
-//     backgroundColor: "#fff",
-//     padding: 10,
-//     flex: 1,
-//   },
-//   searchTabButton: {
-//     width: '100%',
-//     padding: 10,
-//     backgroundColor: "#eee",
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     justifyContent: 'space-between',
-//   },
-//   searchTabButtonText: {
-//     fontSize: 16,
-//   },
-//   hamburgerIcon: {
-//     width: 20,
-//     height: 20,
-//     justifyContent: 'space-between',
-//   },
-//   hamburgerLine: {
-//     width: '100%',
-//     height: 2,
-//     backgroundColor: '#000',
-//   },
-//   modalContainer: {
-//     backgroundColor: "#fff",
-//     padding: 20,
-//     flex: 1,
-//   },
-//   closeButton: {
-//     alignSelf: 'flex-end',
-//     padding: 10,
-//     backgroundColor: "#eee",
-//     borderRadius: 4,
-//   },
-//   closeButtonText: {
-//     fontSize: 16,
-//   },
-//   inputContainer: {
-//     marginBottom: 10,
-//   },
-//   textInputWrapper: {
-//     marginTop: 10,
-//     position: 'relative',
-//     justifyContent: 'center',
-//     height: 40,
-//   },
-//   fixedSearchIcon: {
-//     position: 'absolute',
-//     left: 10,
-//     width: 16,
-//     height: 16,
-//     resizeMode: 'contain',
-//     zIndex: 1,
-//   },
-//   textInputWithIcon: {
-//     borderWidth: 1,
-//     borderColor: "#000",
-//     padding: 8,
-//     borderRadius: 4,
-//     flex: 1,
-//     fontSize: 20,  // フォントサイズを調整（必要に応じて）
-//   },
-//   // 費用入力フィールドのスタイル
-//   costInputContainer: {
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     marginTop: 10,
-//   },
-//   costInput: {
-//     flex: 1,
-//     borderWidth: 1,
-//     borderColor: "#000",
-//     padding: 8,
-//     borderRadius: 4,
-//     fontSize: 20,
-//   },
-//   costInputSeparator: {
-//     marginHorizontal: 10,
-//     fontSize: 20,
-//   },
-//   // Pickerのスタイル
-//   pickerButton: {
-//     marginTop: 10,
-//     padding: 10,
-//     backgroundColor: "#fff",
-//     borderRadius: 4,
-//     borderWidth: 1,
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//   },
-//   pickerButtonText: {
-//     fontSize: 16,
-//     flex: 1,
-//   },
-//   // 以下、その他のスタイルはそのまま
-//   searchContainer: {
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//   },
-//   textInput: {
-//     borderWidth: 1,
-//     borderColor: "#ccc",
-//     padding: 8,
-//     borderRadius: 4,
-//     flex: 1,
-//   },
-//   dropdownButton: {
-//     marginTop: 10,
-//     padding: 10,
-//     backgroundColor: "#fff",
-//     borderRadius: 4,
-//     borderWidth: 1,
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//   },
-//   dropdownButtonText: {
-//     fontSize: 16,
-//     flex: 1,
-//   },
-//   dropdownArrow: {
-//     fontSize: 16,
-//     marginLeft: 10,
-//   },
-//   dropdownOptions: {
-//     backgroundColor: "#fff",
-//     borderWidth: 1,
-//     borderColor: "#ccc",
-//     borderRadius: 4,
-//     marginTop: 0,
-//     position: 'relative',
-//     zIndex: 1,
-//     width: '100%',
-//   },
-//   dropdownItem: {
-//     padding: 10,
-//   },
-//   dropdownItemText: {
-//     fontSize: 16,
-//   },
-//   normalstring: {
-//     marginTop: 10,
-//     fontSize: 20,
-//   },
-//   // 既存のスタイル
-//   eventContainer: {
-//     marginBottom: 15,
-//     padding: 16,
-//     borderWidth: 1,
-//     borderColor: "#ddd",
-//     borderRadius: 8,
-//     backgroundColor: '#fff',
-//   },
-//   eventTitle: {
-//     fontSize: 18,
-//     fontWeight: "bold",
-//     marginBottom: 8,
-//     color: '#333',
-//   },
-//   eventDescription: {
-//     fontSize: 16,
-//     marginBottom: 8,
-//     color: '#444',
-//   },
-//   eventInfo: {
-//     fontSize: 14,
-//     color: '#666',
-//     marginBottom: 4,
-//   },
-//   viewDetailsText: {
-//     fontSize: 14,
-//     color: '#4CAF50',
-//     fontWeight: 'bold',
-//     marginTop: 8,
-//     textAlign: 'right',
-//   },
-//   datePicker: {
-//     width: '100%',
-//   },
-//   selectedDatesContainer: {
-//     flexDirection: 'row',
-//     flexWrap: 'wrap',
-//     marginTop: 10,
-//   },
-//   selectedDate: {
-//     backgroundColor: '#ddd',
-//     padding: 5,
-//     borderRadius: 4,
-//     margin: 5,
-//   },
-//   selectedDateText: {
-//     color: '#333',
-//   },
-//   eventTitleContainer: {
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//   },
-//   centeredContainer: {
-//     flex: 1,
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//     marginTop: 200, // 上部に余白を追加
-//   },
-//   NotFind: {
-//     fontSize: 20,
-//     textAlign: 'center',
-//   },
-// });
+          <Text style={styles.label}>名前</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="新歓名を入力"
+            value={searchName}
+            onChangeText={setSearchName}
+          />
 
-// const pickerSelectStyles = StyleSheet.create({
-//   inputIOS: {
-//     fontSize: 16,
-//     paddingVertical: 12,
-//     paddingHorizontal: 10,
-//     borderWidth: 1,
-//     borderColor: 'gray',
-//     borderRadius: 4,
-//     color: 'black',
-//     paddingRight: 30, // to ensure the text is never behind the icon
-//   },
-//   inputAndroid: {
-//     fontSize: 16,
-//     paddingHorizontal: 10,
-//     paddingVertical: 8,
-//     borderWidth: 0.5,
-//     borderColor: 'purple',
-//     borderRadius: 8,
-//     color: 'black',
-//     paddingRight: 30, // to ensure the text is never behind the icon
-//   },
-// });
+          <Text style={styles.label}>費用</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="費用を入力"
+            value={searchCost}
+            onChangeText={setSearchCost}
+            keyboardType="numeric"
+          />
+
+          <Button
+            title="絞り込み"
+            onPress={() => {
+              handleSearch();
+              fetchEventDates(true); // 絞り込み条件に合致する日程を色付け
+            }}
+          />
+          <Text style={styles.resultTitle}>検索結果</Text>
+
+          <Text style={styles.label}>日程</Text>
+          <Calendar
+            onDayPress={onDayPress}
+            markedDates={{
+              ...markedDates,
+              ...selectedDates,
+            }}
+          />
+        </View>
+      }
+      renderItem={({ item }) => (
+        <Text style={styles.resultItem}>
+          {item.name} - {item.date} - ¥{item.cost}
+        </Text>
+      )}
+    />
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: "#f8f9fa",
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 16,
+    textAlign: "center",
+    color: "#1e3a8a",
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginTop: 20,
+    marginBottom: 8,
+    color: "#334155",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderRadius: 12,
+    padding: 12,
+    marginVertical: 8,
+    backgroundColor: "#fff",
+    fontSize: 15,
+  },
+  resultTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginTop: 20,
+    color: "#1e3a8a",
+  },
+  resultItem: {
+    fontSize: 16,
+    padding: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e2e8f0",
+  },
+});
+
+export default Search;

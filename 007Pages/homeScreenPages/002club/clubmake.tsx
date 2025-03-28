@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, Button, Alert, StyleSheet, Scr
 import * as ImagePicker from "expo-image-picker"; // 追加: ImagePickerのインポート
 import { submitDataToFirestore, checkDuplicateName } from "../../../004BackendModules/mainMethod/submitdata";
 import { uploadPhotoToFirestore } from "../../../004BackendModules/mainMethod/uploadPhoto";
-
+import { getAuth } from "firebase/auth";
 const ClubSearchSubmit = ({ navigation }) => {
   const [searchText, setSearchText] = useState("");
   const [isDuplicate, setIsDuplicate] = useState(false);
@@ -153,7 +153,13 @@ const ClubSearchSubmit = ({ navigation }) => {
       Alert.alert("写真のアップロードに失敗しました: " + error.message);
       return;
     }
-
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      Alert.alert('エラー', 'ログインしていません');
+      return;
+    }
+    const uid = currentUser.uid;
     const data = {
       searchText,
       selectedClubType,
@@ -181,6 +187,7 @@ const ClubSearchSubmit = ({ navigation }) => {
       annualSchedule,
       photo1: photo1Local,
       photo2: photo2Local,
+      createdBy: uid,
     };
 
     navigation.navigate("clubmake2", { formData: data });
@@ -294,9 +301,80 @@ const ClubSearchSubmit = ({ navigation }) => {
       </TouchableOpacity>
       {searchTagsDropdownVisible && (
         <View style={styles.dropdownOptions}>
-          {/* 後ほどリストを追加する想定 */}
-          {/* 例: ["タグ1","タグ2","タグ3"] */}
-          {/* ...existing code... */}
+          {[
+            // 参加のしやすさ
+            "初心者歓迎", "経験者歓迎", "ガチ勢集まれ", "飲み会多め", "飲み会少なめ", 
+            
+            // 特別イベント
+            "合宿あり", "名大祭出演あり", "名大祭出店あり", 
+            
+            // インカレ関連
+            "インカレ多め", "インカレあり", "インカレなし",
+            
+            // 活動目的
+            "趣味志向", "競技志向", "研究志向", "社会貢献志向", "就職に役立つ", 
+            "資格取得支援", "スキルアップ", "ガクチカになる", "友人作りに最適",
+            
+            // 所属メンバー特性
+            "留学生歓迎", "大学院生も参加可", "社会人学生歓迎", "理系が多い", 
+            "文系が多い", "学部不問",
+            
+            // 雰囲気
+            "アットホーム", "プロフェッショナル", "自由な雰囲気", "厳しめの指導", 
+            "和気あいあい", "少人数活動", "大人数活動", "個人練習重視", "チーム練習重視",
+            
+            // 参加しやすさ
+            "ゆるく始めたい方向け", "忙しい人も参加可能", "授業優先OK", "長期休暇中心", 
+            "サークル掛け持ちOK", "運動不足解消", "ストレス発散",
+            
+            // イベント・機会
+            "発表会あり", "コンテスト参加", "地域イベント参加", "定期公演", "展示会出展", 
+            "大会参加", "交流試合あり", "大学間交流",
+            
+            // 設備・環境
+            "充実した設備", "練習場所確保", "部室あり", "貸出設備あり", "学外施設利用",
+            
+            // 特典・特性
+            "海外遠征あり", "プロ講師指導", "OB・OG交流", "企業との連携", "奨学金制度あり", 
+            "遠征費サポート", "コミュニティ活発",
+            
+            // 時間・スケジュール
+            "平日活動中心", "土日活動中心", "朝練あり", "夜間活動", "短時間活動", 
+            "集中活動型",
+            
+            // 得られるメリット
+            "人脈が広がる", "リーダーシップが身につく", "専門知識が得られる", "プレゼン力向上", 
+            "コミュニケーション能力向上", "最新技術に触れられる", "国際交流の機会",
+            
+            // ライフスタイル両立
+            "バイトと両立可能", "就活と両立可能", "研究と両立可能", "リモート参加可", 
+            "柔軟な参加スタイル", "女性が活躍", "男女比均等", "1年生から活躍可能",
+            
+            // その他特徴
+            "伝統あり", "新設団体", "学際イベント", "地域貢献活動", "環境活動", 
+            "ボランティア活動", "デザイン経験が積める", "プログラミング経験が積める", 
+            "創作活動", "自己表現の場", "メディア出演実績", "全国大会出場実績", 
+            "学内大会優勝", "技術指導充実", "指導者の質が高い"
+          ].map((tag, index) => (
+            <TouchableOpacity
+              key={index}
+              onPress={() => {
+                if (searchTags.includes(tag)) {
+                  setSearchTags(searchTags.filter(item => item !== tag));
+                } else {
+                  setSearchTags([...searchTags, tag]);
+                }
+              }}
+              style={[
+                styles.dropdownOption,
+                searchTags.includes(tag) && { backgroundColor: "#dbeafe" }
+              ]}
+            >
+              <Text style={styles.dropdownOptionText}>
+                {searchTags.includes(tag) ? "● " : "○ "}{tag}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
       )}
 

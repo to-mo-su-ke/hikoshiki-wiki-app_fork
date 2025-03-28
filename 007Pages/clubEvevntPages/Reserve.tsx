@@ -1,22 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TextInput, 
-  TouchableOpacity, 
-  ScrollView, 
-  Alert, 
-  ActivityIndicator 
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+  ActivityIndicator
 } from 'react-native';
 import { doc, getDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { db } from '../../006Configs/firebaseConfig2';
+import { db } from '../../006Configs/firebaseConfig';
 import { Picker } from '@react-native-picker/picker';
 
 const ShinkanReserve = ({ route, navigation }) => {
   // 詳細画面から渡されたパラメータを取得
   const { shinkanId, shinkanName, date, location, availableDates: routeAvailableDates } = route.params || {};
-  
+
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [shinkan, setShinkan] = useState(null);
@@ -57,11 +57,11 @@ const ShinkanReserve = ({ route, navigation }) => {
         // なければFirestoreから取得
         const shinkanDocRef = doc(db, 'shinkantest', shinkanId);
         const shinkanDoc = await getDoc(shinkanDocRef);
-        
+
         if (shinkanDoc.exists()) {
           const data = shinkanDoc.data();
           setShinkan({ id: shinkanDoc.id, ...data });
-          
+
           // 日程データがあれば設定
           if (data.availableDates && data.availableDates.length > 0) {
             setAvailableDates(data.availableDates);
@@ -69,7 +69,7 @@ const ShinkanReserve = ({ route, navigation }) => {
             // 単一の日付しかない場合
             setAvailableDates([data.date]);
           }
-          
+
         } else {
           Alert.alert('エラー', '新歓情報が見つかりませんでした。');
           navigation.goBack();
@@ -98,12 +98,12 @@ const ShinkanReserve = ({ route, navigation }) => {
       Alert.alert('エラー', '名前を入力してください');
       return false;
     }
-    
+
     if (!formData.studentId.trim()) {
       Alert.alert('エラー', '学籍番号を入力してください');
       return false;
     }
-    
+
     if (!formData.email.trim()) {
       Alert.alert('エラー', 'メールアドレスを入力してください');
       return false;
@@ -111,20 +111,20 @@ const ShinkanReserve = ({ route, navigation }) => {
       Alert.alert('エラー', '有効なメールアドレスを入力してください');
       return false;
     }
-    
+
     if (!formData.preferredDate) {
       Alert.alert('エラー', '希望日を選択してください');
       return false;
     }
-    
+
     return true;
   };
 
   const handleSubmit = async () => {
     if (!validateForm()) return;
-    
+
     setSubmitting(true);
-    
+
     try {
       // 予約データをFirestoreに送信
       const reservationData = {
@@ -139,14 +139,14 @@ const ShinkanReserve = ({ route, navigation }) => {
         createdAt: serverTimestamp(),
         status: 'pending', // 予約ステータス
       };
-      
+
       await addDoc(collection(db, 'shinkanReservations'), reservationData);
-      
+
       Alert.alert(
-        '予約完了', 
+        '予約完了',
         '新歓予約が送信されました。確認のメールが届きます。',
-        [{ 
-          text: 'OK', 
+        [{
+          text: 'OK',
           onPress: () => navigation.reset({
             index: 0,
             routes: [{ name: 'Home' }]
@@ -176,7 +176,7 @@ const ShinkanReserve = ({ route, navigation }) => {
         <View style={styles.headerContainer}>
           <Text style={styles.title}>{shinkanName || '新歓イベント'} - 予約</Text>
         </View>
-        
+
         <View style={styles.formContainer}>
           {/* 開催情報表示セクション */}
           <View style={styles.eventInfoContainer}>
@@ -190,7 +190,7 @@ const ShinkanReserve = ({ route, navigation }) => {
               <Text style={styles.eventInfoValue}>{location || '未定'}</Text>
             </View>
           </View>
-          
+
           {/* 名前 */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>名前 <Text style={styles.required}>*</Text></Text>
@@ -201,7 +201,7 @@ const ShinkanReserve = ({ route, navigation }) => {
               placeholder="例：山田 太郎"
             />
           </View>
-          
+
           {/* 学籍番号 */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>学籍番号 <Text style={styles.required}>*</Text></Text>
@@ -212,7 +212,7 @@ const ShinkanReserve = ({ route, navigation }) => {
               placeholder="例：12345678"
             />
           </View>
-          
+
           {/* メールアドレス */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>メールアドレス <Text style={styles.required}>*</Text></Text>
@@ -225,7 +225,7 @@ const ShinkanReserve = ({ route, navigation }) => {
               autoCapitalize="none"
             />
           </View>
-          
+
           {/* 電話番号 */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>電話番号（任意）</Text>
@@ -237,7 +237,7 @@ const ShinkanReserve = ({ route, navigation }) => {
               keyboardType="phone-pad"
             />
           </View>
-          
+
           {/* 希望日時 */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>希望日時 <Text style={styles.required}>*</Text></Text>
@@ -254,7 +254,7 @@ const ShinkanReserve = ({ route, navigation }) => {
               </Picker>
             </View>
           </View>
-          
+
           {/* コメント */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>質問・コメント（任意）</Text>
@@ -268,7 +268,7 @@ const ShinkanReserve = ({ route, navigation }) => {
               numberOfLines={4}
             />
           </View>
-          
+
           {/* 送信ボタン */}
           <TouchableOpacity
             style={styles.submitButton}
@@ -281,7 +281,7 @@ const ShinkanReserve = ({ route, navigation }) => {
               <Text style={styles.submitButtonText}>予約を確定する</Text>
             )}
           </TouchableOpacity>
-          
+
           <TouchableOpacity
             style={styles.cancelButton}
             onPress={() => navigation.goBack()}

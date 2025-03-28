@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../../006Configs/firebaseConfig2';
+import { db } from '../../006Configs/firebaseConfig';
 
 const ShinkanDetail = ({ route, navigation }) => {
   // Searchページから渡されたshinkanIdパラメータを取得
@@ -21,10 +21,10 @@ const ShinkanDetail = ({ route, navigation }) => {
         // 'shinkantest' コレクションから指定IDのドキュメントを取得
         const shinkanDocRef = doc(db, 'shinkantest', shinkanId);
         const shinkanDoc = await getDoc(shinkanDocRef);
-        
+
         if (shinkanDoc.exists()) {
           const data = shinkanDoc.data();
-          setShinkan({ 
+          setShinkan({
             id: shinkanDoc.id,
             name: data.name || '名称未設定',
             explain: data.explain || '説明なし',
@@ -51,8 +51,8 @@ const ShinkanDetail = ({ route, navigation }) => {
   // 予約画面に遷移する関数
   const handleReservation = () => {
     if (!shinkan) return;
-    
-    navigation.navigate('ShinkanReserve', { 
+
+    navigation.navigate('ShinkanReserve', {
       shinkanId: shinkan.id,
       shinkanName: shinkan.name,
       // 予約画面で表示するために追加情報を渡す
@@ -75,7 +75,7 @@ const ShinkanDetail = ({ route, navigation }) => {
     return (
       <View style={styles.container}>
         <Text style={styles.errorText}>新歓情報が見つかりませんでした</Text>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
@@ -91,7 +91,7 @@ const ShinkanDetail = ({ route, navigation }) => {
         <View style={styles.headerContainer}>
           <Text style={styles.shinkanName}>{shinkan.name}</Text>
         </View>
-        
+
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>新歓内容</Text>
           <Text style={styles.explainText}>{shinkan.explain}</Text>
@@ -106,20 +106,20 @@ const ShinkanDetail = ({ route, navigation }) => {
           <Text style={styles.sectionTitle}>場所</Text>
           <Text style={styles.infoText}>{shinkan.location}</Text>
         </View>
-        
+
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>参加費</Text>
           <Text style={styles.infoText}>{shinkan.cost}円</Text>
         </View>
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           style={styles.reservationButton}
           onPress={handleReservation}
         >
           <Text style={styles.reservationButtonText}>予約する</Text>
         </TouchableOpacity>
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           style={styles.backToListButton}
           onPress={() => navigation.goBack()}
         >

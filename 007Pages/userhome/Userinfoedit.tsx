@@ -13,7 +13,7 @@ const Userinfoedit = ({ navigation }) => {
   const [course, setCourse] = useState('');
   const [major, setMajor] = useState('');
   const [researchroom, setResearchroom] = useState('');
-  const [role, setRole] = useState('');
+  // const [role, setRole] = useState('');
   const [club, setClub] = useState([]);
 
   useEffect(() => {
@@ -41,7 +41,7 @@ const Userinfoedit = ({ navigation }) => {
           setCourse(userData.course || '');
           setMajor(userData.major || '');
           setResearchroom(userData.researchroom || '');
-          setRole(userData.role || '');
+          // setRole(userData.role || '');
           setClub(userData.club || []);
         } else {
           Alert.alert('エラー', 'ユーザー情報が見つかりません');
@@ -56,7 +56,7 @@ const Userinfoedit = ({ navigation }) => {
   }, []);
 
   const handleSubmit = async () => {
-    if (!username.trim() || !grade.trim() || !school.trim() || !department.trim() || !course.trim() || !major.trim() || !researchroom.trim() || !role.trim()) {
+    if (!username.trim() || !grade.trim() || !school.trim() || !department.trim() || !course.trim() || !major.trim() || !researchroom.trim()) {
       Alert.alert('入力エラー', '全ての項目を入力してください');
       return;
     }
@@ -81,7 +81,7 @@ const Userinfoedit = ({ navigation }) => {
         course,
         major,
         researchroom,
-        role,
+        // role,
         club,
       });
 
@@ -161,13 +161,7 @@ const Userinfoedit = ({ navigation }) => {
         placeholder="研究室を入力..."
       />
 
-      <Text style={styles.label}>ロール</Text>
-      <TextInput
-        style={styles.input}
-        value={role}
-        onChangeText={setRole}
-        placeholder="ロールを入力..."
-      />
+      
 
       <Text style={styles.label}>部活動</Text>
       <TextInput
