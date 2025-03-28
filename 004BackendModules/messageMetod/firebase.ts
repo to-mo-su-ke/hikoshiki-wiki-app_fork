@@ -2,7 +2,8 @@
 import { initializeApp, getApps, FirebaseApp } from "firebase/app";
 import { getFirestore, collection, doc } from "firebase/firestore";
 import ReactNativeAsyncStorage from "@react-native-async-storage/async-storage";
-import { getAuth, signInAnonymously, initializeAuth } from "firebase/auth"; // signInAnonymouslyをインポート
+import { getAuth, signInAnonymously } from "firebase/auth"; // signInAnonymouslyをインポート
+import { initializeAuth, getReactNativePersistence } from "firebase/auth";
 import { firebaseConfig } from "../../006Configs/firebaseConfig";
   
 // Firebaseアプリの初期化
@@ -16,6 +17,9 @@ if (!getApps().length) {
 // Firestoreインスタンスを取得
 export const db = getFirestore(firebaseApp);
 export const auth = getAuth(firebaseApp); // Authインスタンスを取得
+// export const auth = initializeAuth(firebaseApp, {
+//   persistence: getReactNativePersistence(ReactNativeAsyncStorage), // 修正: getReactNativePersistence()を呼び出す
+// });
 export const firestore = getFirestore(firebaseApp);
 
 // メッセージのドキュメント参照を取得する関数
