@@ -26,7 +26,7 @@ import ClubConfirmSubmit from "./007Pages/homeScreenPages/002club/clubmake2";
 import EventSearch from "./007Pages/clubEvevntPages/Search"
 import GradeInfo from "./007Pages/userhome/gradeinfo";
 import EventRegist from "./007Pages/clubEvevntPages/EventRegist";
-
+import SearchDetail from "./007Pages/clubEvevntPages/Searchdetail";
 const Stack = createStackNavigator();
 
 const App = () => {
@@ -82,6 +82,7 @@ const App = () => {
             <Stack.Screen name="Userinfoedit" component={Userinfoedit} />
             <Stack.Screen name="EventRegist" component={EventRegist} />
             <Stack.Screen name="EventSearch" component={EventSearch} />
+            <Stack.Screen name="SearchDetail" component={SearchDetail} />
           </Stack.Navigator>
         </NavigationContainer>
       </Provider>

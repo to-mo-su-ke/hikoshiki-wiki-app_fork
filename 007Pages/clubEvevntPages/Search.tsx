@@ -7,10 +7,18 @@ import {
   StyleSheet,
   FlatList,
   Alert,
+  TouchableOpacity,
 } from "react-native";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../../006Configs/firebaseConfig2";
 import { Calendar } from "react-native-calendars";
+import { useNavigation } from "@react-navigation/native";
+import type { StackNavigationProp } from "@react-navigation/stack";
+
+type RootStackParamList = {
+  Search: undefined;
+  SearchDetail: { eventId: string }; // SearchDetail に渡すパラメータを定義
+};
 
 const Search = () => {
   const [searchName, setSearchName] = useState("");
@@ -18,14 +26,13 @@ const Search = () => {
   const [results, setResults] = useState([]);
   const [selectedDates, setSelectedDates] = useState({});
   const [markedDates, setMarkedDates] = useState({});
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList, "Search">>();
 
-  // Firestoreから新歓がある日付を取得してカレンダーに色付け
   const fetchEventDates = async (filter = false) => {
     try {
       const eventsRef = collection(db, "events");
       let q = query(eventsRef);
 
-      // 絞り込み条件が入力されている場合はクエリを追加
       if (filter) {
         if (searchName) {
           q = query(q, where("name", "==", searchName));
@@ -42,8 +49,8 @@ const Search = () => {
         const eventData = doc.data();
         if (eventData.date) {
           dates[eventData.date] = {
-            selected: true,
-            selectedtColor:  "blue" // 絞り込み時は青、それ以外は赤
+            marked: true,
+            dotColor: filter ? "blue" : "red",
           };
         }
       });
@@ -56,12 +63,10 @@ const Search = () => {
   };
 
   useEffect(() => {
-    // 初回ロード時はすべての日程を色付け
     fetchEventDates();
   }, []);
 
-  // カレンダーで日付を選択または解除
-  const onDayPress = (day) => {
+  const onDayPress = async (day) => {
     const date = day.dateString;
 
     setSelectedDates((prevSelectedDates) => {
@@ -80,9 +85,39 @@ const Search = () => {
 
       return updatedDates;
     });
+
+    // 選択されたすべての日付の新歓を検索
+    try {
+      const selectedDateKeys = Object.keys(selectedDates);
+      const datesToQuery = selectedDateKeys.includes(date)
+        ? selectedDateKeys
+        : [...selectedDateKeys, date];
+
+      if (datesToQuery.length === 0) {
+        setResults([]);
+        return;
+      }
+
+      const eventsRef = collection(db, "events");
+      const q = query(eventsRef, where("date", "in", datesToQuery));
+      const querySnapshot = await getDocs(q);
+      const matchedEvents = [];
+
+      querySnapshot.forEach((doc) => {
+        matchedEvents.push({ id: doc.id, ...doc.data() });
+      });
+
+      setResults(matchedEvents);
+
+      if (matchedEvents.length === 0) {
+        Alert.alert("結果なし", "選択した日付に新歓が見つかりませんでした");
+      }
+    } catch (error) {
+      console.error("Error fetching events for selected dates: ", error);
+      Alert.alert("エラー", "選択した日付のイベント取得中にエラーが発生しました");
+    }
   };
 
-  // 検索処理
   const handleSearch = async () => {
     if (!searchName && !searchCost) {
       Alert.alert("エラー", "少なくとも1つの条件を入力してください");
@@ -106,9 +141,8 @@ const Search = () => {
 
       querySnapshot.forEach((doc) => {
         const eventData = doc.data();
-        matchedEvents.push(eventData);
+        matchedEvents.push({ id: doc.id, ...eventData });
 
-        // 条件に合致する日程を色付け
         if (eventData.date) {
           matchedDates[eventData.date] = {
             marked: true,
@@ -118,7 +152,7 @@ const Search = () => {
       });
 
       setResults(matchedEvents);
-      setMarkedDates(matchedDates); // 絞り込み条件に合致する日程のみを色付け
+      setMarkedDates(matchedDates);
 
       if (matchedEvents.length === 0) {
         Alert.alert("結果なし", "条件に一致する新歓が見つかりませんでした");
@@ -133,7 +167,7 @@ const Search = () => {
     <FlatList
       style={styles.container}
       data={results}
-      keyExtractor={(item, index) => index.toString()}
+      keyExtractor={(item) => item.id} // 一意のキーを設定
       ListHeaderComponent={
         <View>
           <Text style={styles.title}>新歓検索</Text>
@@ -159,11 +193,9 @@ const Search = () => {
             title="絞り込み"
             onPress={() => {
               handleSearch();
-              fetchEventDates(true); // 絞り込み条件に合致する日程を色付け
+              fetchEventDates(true);
             }}
           />
-          <Text style={styles.resultTitle}>検索結果</Text>
-
           <Text style={styles.label}>日程</Text>
           <Calendar
             onDayPress={onDayPress}
@@ -172,12 +204,17 @@ const Search = () => {
               ...selectedDates,
             }}
           />
+          <Text style={styles.resultTitle}>検索結果</Text>
         </View>
       }
       renderItem={({ item }) => (
-        <Text style={styles.resultItem}>
-          {item.name} - {item.date} - ¥{item.cost}
-        </Text>
+        <TouchableOpacity
+          onPress={() => navigation.navigate("SearchDetail", { eventId: item.id })}
+        >
+          <Text style={styles.resultItem}>
+            {item.name} 
+          </Text>
+        </TouchableOpacity>
       )}
     />
   );
