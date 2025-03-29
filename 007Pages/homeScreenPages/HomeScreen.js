@@ -6,6 +6,7 @@ import UserInfo from "../userhome/Userinfo";
 import ClubSearch from "./002club/Clubsearch";
 import ClubDetail from "./002club/Clubdetail";
 import ClubInfo from "../userhome/Cubinfo";
+import EventSearch from "../clubEvevntPages/Search"; // EventSearchをインポート
 
 const HomeScreen = ({ navigation }) => {
   const [mainTab, setMainTab] = useState("家");
@@ -32,7 +33,7 @@ const HomeScreen = ({ navigation }) => {
 
   const renderBukatsuContent = () => {
     return (
-      <View style={styles.commonContent}>
+      <View style={styles.bukatsuContentContainer}>
         <View style={styles.commonTabsContainer}>
           <TouchableOpacity
             style={[styles.commonTab, bukatsuTab === "部活動" && styles.activeTab]}
@@ -47,9 +48,22 @@ const HomeScreen = ({ navigation }) => {
             <Text style={styles.tabText}>新歓</Text>
           </TouchableOpacity>
         </View>
-        <View style={styles.commonContent}>
+        <View style={styles.bukatsuTabContent}>
           {bukatsuTab === "部活動" && <ClubSearch navigation={navigation} />}
-          {bukatsuTab === "新歓" && <Text>新歓の内容</Text>}
+          {bukatsuTab === "新歓" && (
+            <View style={styles.shinkanContainer}>
+              <View style={styles.shinkanHeader}>
+                <Text style={styles.shinkanTitle}>新歓イベント</Text>
+                <TouchableOpacity 
+                  style={styles.createEventButton}
+                  onPress={() => navigation.navigate("EventRegist")}
+                >
+                  <Text style={styles.createEventButtonText}>新歓を登録</Text>
+                </TouchableOpacity>
+              </View>
+              <EventSearch navigation={navigation} />
+            </View>
+          )}
         </View>
       </View>
     );
@@ -378,9 +392,46 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     width: "50%",
     alignItems: "center",
-
+  },
+  bukatsuContentContainer: {
+    flex: 1,
+    width: '100%',
+  },
+  bukatsuTabContent: {
+    flex: 1,
+    width: '100%',
+  },
+  shinkanContainer: {
+    flex: 1,
+    width: '100%',
+    paddingHorizontal: 0,
+  },
+  shinkanHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 12,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e2e8f0',
+    width: '100%',
+  },
+  shinkanTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1e3a8a',
+  },
+  createEventButton: {
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  createEventButtonText: {
+    color: '#fff',
+    fontWeight: '500',
+    fontSize: 12,
   },
 });
-
 
 export default HomeScreen;

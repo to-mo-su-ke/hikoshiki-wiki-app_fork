@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../../006Configs/firebaseConfig';
+import { db } from '../../006Configs/firebaseConfig2'; // 修正：firebaseConfig2を使用
 
 const ShinkanDetail = ({ route, navigation }) => {
   // Searchページから渡されたshinkanIdパラメータを取得
@@ -18,8 +18,8 @@ const ShinkanDetail = ({ route, navigation }) => {
       }
 
       try {
-        // 'shinkantest' コレクションから指定IDのドキュメントを取得
-        const shinkanDocRef = doc(db, 'shinkantest', shinkanId);
+        // 'events' コレクションから指定IDのドキュメントを取得
+        const shinkanDocRef = doc(db, 'events', shinkanId);
         const shinkanDoc = await getDoc(shinkanDocRef);
 
         if (shinkanDoc.exists()) {
@@ -28,7 +28,8 @@ const ShinkanDetail = ({ route, navigation }) => {
             id: shinkanDoc.id,
             name: data.name || '名称未設定',
             explain: data.explain || '説明なし',
-            date: data.date || data.eventDate ? new Date(data.eventDate.toDate()).toLocaleDateString() : '日程未定',
+            // 日付処理を修正: eventDateが存在するときのみtoDate()を呼び出す
+            date: data.date || (data.eventDate && new Date(data.eventDate.toDate()).toLocaleDateString()) || '日程未定',
             location: data.location || '場所未定',
             cost: data.cost || 0,
             // 予約に必要なその他の情報
@@ -134,10 +135,12 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flex: 1,
     backgroundColor: '#f8f8f8',
+    width: '100%',
   },
   container: {
     flex: 1,
     padding: 16,
+    width: '100%',
   },
   loadingContainer: {
     flex: 1,
@@ -161,6 +164,7 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
     alignItems: 'center',
+    width: '100%',
   },
   shinkanName: {
     fontSize: 24,

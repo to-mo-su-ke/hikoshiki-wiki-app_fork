@@ -9,8 +9,9 @@ import {
   Alert,
   ActivityIndicator
 } from 'react-native';
-import { doc, getDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { db } from '../../006Configs/firebaseConfig';
+import { doc, getDoc, updateDoc, arrayUnion, serverTimestamp } from 'firebase/firestore';
+import { db } from '../../006Configs/firebaseConfig2'; // firebaseConfig2に変更
+import { getAuth } from 'firebase/auth'; // ログイン情報を取得するためにimport
 import { Picker } from '@react-native-picker/picker';
 
 const ShinkanReserve = ({ route, navigation }) => {
@@ -29,13 +30,7 @@ const ShinkanReserve = ({ route, navigation }) => {
     comments: '',
   });
 
-  // デモ用の仮の日程選択肢
-  const [availableDates, setAvailableDates] = useState([
-    '2023年5月1日 15:00-17:00',
-    '2023年5月3日 13:00-15:00',
-    '2023年5月5日 10:00-12:00',
-    '2023年5月7日 18:00-20:00',
-  ]);
+  const [availableDates, setAvailableDates] = useState([]);
 
   useEffect(() => {
     const fetchShinkanDetails = async () => {
@@ -54,8 +49,8 @@ const ShinkanReserve = ({ route, navigation }) => {
           return;
         }
 
-        // なければFirestoreから取得
-        const shinkanDocRef = doc(db, 'shinkantest', shinkanId);
+        // なければFirestoreから取得（eventsコレクションに変更）
+        const shinkanDocRef = doc(db, 'events', shinkanId);
         const shinkanDoc = await getDoc(shinkanDocRef);
 
         if (shinkanDoc.exists()) {
@@ -67,7 +62,8 @@ const ShinkanReserve = ({ route, navigation }) => {
             setAvailableDates(data.availableDates);
           } else if (data.date) {
             // 単一の日付しかない場合
-            setAvailableDates([data.date]);
+            const timeStr = data.time ? ` ${data.time}` : '';
+            setAvailableDates([`${data.date}${timeStr}`]);
           }
 
         } else {
@@ -126,31 +122,41 @@ const ShinkanReserve = ({ route, navigation }) => {
     setSubmitting(true);
 
     try {
-      // 予約データをFirestoreに送信
+      // 現在のユーザーIDを取得
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) {
+        Alert.alert("エラー", "予約にはログインが必要です");
+        setSubmitting(false);
+        return;
+      }
+
+      // 予約情報をユーザーIDと共に保存
       const reservationData = {
-        shinkanId,
-        shinkanName,
+        uid: currentUser.uid,
         name: formData.name,
         studentId: formData.studentId,
         email: formData.email,
         phoneNumber: formData.phoneNumber,
         preferredDate: formData.preferredDate,
         comments: formData.comments,
-        createdAt: serverTimestamp(),
-        status: 'pending', // 予約ステータス
+        timestamp: new Date().toISOString(),
       };
 
-      await addDoc(collection(db, 'shinkanReservations'), reservationData);
+      // イベントのmember配列にユーザー情報を追加
+      const eventDocRef = doc(db, 'events', shinkanId);
+      
+      await updateDoc(eventDocRef, {
+        member: arrayUnion(reservationData)
+      });
 
       Alert.alert(
         '予約完了',
-        '新歓予約が送信されました。確認のメールが届きます。',
+        '新歓予約が送信されました。',
         [{
           text: 'OK',
-          onPress: () => navigation.reset({
-            index: 0,
-            routes: [{ name: 'Home' }]
-          })
+          onPress: () => navigation.goBack()
         }]
       );
     } catch (error) {

@@ -23,9 +23,11 @@ import { StyleSheet, StatusBar } from "react-native";
 import ClubSearchSubmit from "./007Pages/homeScreenPages/002club/clubmake";
 import Gradenavi from "./001Navigation/gradenavi";
 import ClubConfirmSubmit from "./007Pages/homeScreenPages/002club/clubmake2";
-import EventSearch from "./007Pages/clubEvevntPages/Search"
+import EventSearch from "./007Pages/clubEvevntPages/Search";
 import GradeInfo from "./007Pages/userhome/gradeinfo";
 import EventRegist from "./007Pages/clubEvevntPages/EventRegist";
+import ShinkanDetail from "./007Pages/clubEvevntPages/detail"; 
+import ShinkanReserve from "./007Pages/clubEvevntPages/Reserve"; // 予約画面をインポート
 
 const Stack = createStackNavigator();
 
@@ -72,9 +74,9 @@ const App = () => {
             <Stack.Screen name="Clubdetail" component={Clubdetail} />
             <Stack.Screen name="UserInfo" component={UserInfo} />
           
-        <Stack.Screen name="ClubInfo" component={ClubInfo}  />
-        <Stack.Screen name="ClubMakeEdit" component={ClubMakeEdit} />
-        <Stack.Screen name="GradeInfo" component={GradeInfo} /> 
+            <Stack.Screen name="ClubInfo" component={ClubInfo}  />
+            <Stack.Screen name="ClubMakeEdit" component={ClubMakeEdit} />
+            <Stack.Screen name="GradeInfo" component={GradeInfo} /> 
             <Stack.Screen name="ClubSearchSubmit" component={ClubSearchSubmit} />
             <Stack.Screen name="Input" component={Inputnavi} />
             <Stack.Screen name="Grade" component={Gradenavi} />
@@ -82,6 +84,10 @@ const App = () => {
             <Stack.Screen name="Userinfoedit" component={Userinfoedit} />
             <Stack.Screen name="EventRegist" component={EventRegist} />
             <Stack.Screen name="EventSearch" component={EventSearch} />
+            {/* 追加：詳細ページのナビゲーション設定 */}
+            <Stack.Screen name="ShinkanDetail" component={ShinkanDetail} />
+            {/* 追加：予約画面のナビゲーション設定 */}
+            <Stack.Screen name="ShinkanReserve" component={ShinkanReserve} />
           </Stack.Navigator>
         </NavigationContainer>
       </Provider>
