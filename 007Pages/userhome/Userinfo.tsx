@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../006Configs/firebaseConfig2'; // 他のファイルからインポート。firebase設定済みのdbインスタンスを参照してください
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { doSignOut } from '../../004BackendModules/loginMethod/signOut';
 
 interface UserData {
   name?: string;
@@ -38,8 +39,17 @@ const UserInfo = () => {
   }, []);
 
   if (loading) return <ActivityIndicator size="large" color="#0000ff" />;
-  if (error) return <Text>{error}</Text>;
-
+  if (error) return( 
+    <>
+    <Text>{error}</Text>
+    {/* expo-secure-storeはサインアウトしないと認証情報がクリアされなかったので、デバッグ用においています */}
+    <Text
+      onPress={doSignOut}
+    >
+      サインアウト
+    </Text>
+  </>);
+  
   return (
     <View style={styles.container}>
       <Text style={styles.header}>ユーザー情報</Text>

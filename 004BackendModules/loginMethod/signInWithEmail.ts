@@ -26,7 +26,7 @@ const SignInWithEmail = async (email: string, password: string): Promise<string>
         return userCredential.user.uid; // ユーザーのUIDを返す
         // console.log("ログイン成功:", userCredential.user.uid);
     } catch (error) {
-        console.log("ログイン失敗:", error.code);
+        console.log("ログイン失敗:", error);
         // エラーハンドリング
         switch (error.code) {
             case "auth/user-not-found":
@@ -45,7 +45,7 @@ const SignInWithEmail = async (email: string, password: string): Promise<string>
                 Alert.alert("メールアドレスの確認が必要です。");
                 throw new Error("alert-displayed-error");
             default: // user-token-expiredの対処は保留
-                Alert.alert("ログインに失敗しました。入力したメールアドレス及びパスワードを確認してください");
+                Alert.alert("ログインに失敗しました。メールアドレスとパスワードを確認してください。");
                 throw new Error("alert-displayed-error");
         }
         return "" ;

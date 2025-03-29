@@ -2,9 +2,10 @@
 import { initializeApp, getApps, FirebaseApp } from "firebase/app";
 import { getFirestore, collection, doc } from "firebase/firestore";
 import ReactNativeAsyncStorage from "@react-native-async-storage/async-storage";
-import { getAuth, signInAnonymously } from "firebase/auth"; // signInAnonymouslyをインポート
-import { initializeAuth, getReactNativePersistence } from "firebase/auth";
+import { getAuth, signInAnonymously, initializeAuth } from "firebase/auth"; // signInAnonymouslyをインポート
+import { getReactNativePersistence } from "firebase/auth"; // React Native用の永続化をインポート
 import { firebaseConfig } from "../../006Configs/firebaseConfig";
+import { ExpoSecureStore } from "./expoSecureStoreAdapter";
   
 // Firebaseアプリの初期化
 let firebaseApp: FirebaseApp;
@@ -13,13 +14,16 @@ if (!getApps().length) {
 } else {
   firebaseApp = getApps()[0];
 }
-// const app = initializeApp(firebaseConfig); 初期化が2回行われるのを防ぐためにコメントアウトしました
 // Firestoreインスタンスを取得
 export const db = getFirestore(firebaseApp);
-export const auth = getAuth(firebaseApp); // Authインスタンスを取得
-// export const auth = initializeAuth(firebaseApp, {
-//   persistence: getReactNativePersistence(ReactNativeAsyncStorage), // 修正: getReactNativePersistence()を呼び出す
-// });
+// export const auth = getAuth(firebaseApp); // Authインスタンスを取得
+/*
+* より安全性の高いexpo-secure-storeに認証情報を保存します
+* 認証情報をクリアするにはホーム画面の「自」からサインアウトを押してください
+*/
+export const auth = initializeAuth(firebaseApp, { 
+  persistence: getReactNativePersistence(ExpoSecureStore), 
+});
 export const firestore = getFirestore(firebaseApp);
 
 // メッセージのドキュメント参照を取得する関数
