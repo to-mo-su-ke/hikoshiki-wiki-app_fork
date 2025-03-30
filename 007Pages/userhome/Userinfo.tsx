@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIn
 import { getAuth } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../006Configs/firebaseConfig2';
+import { doSignOut } from '../../004BackendModules/loginMethod/signOut';
 
 const UserInfoScreen = ({ navigation }) => {
   const [userName, setUserName] = useState(''); // ユーザー名
@@ -12,6 +13,25 @@ const UserInfoScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true); // ローディング状態
   const [error, setError] = useState(null); // エラー状態
   const [Id, setId] = useState(''); // ユーザーID
+
+  // サインアウト確認
+  const handleSignOut = async () => {
+    Alert.alert(
+      'サインアウト',
+      '本当にサインアウトしますか？',
+      [
+        {
+          text: 'キャンセル',
+          style: 'cancel',
+        },
+        {
+          text: 'OK',
+          onPress: () => doSignOut(),
+        },
+      ],
+      { cancelable: false }
+    );
+  };
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -124,6 +144,12 @@ const UserInfoScreen = ({ navigation }) => {
         <TouchableOpacity style={styles.menuItem}>
           <Text style={styles.menuText}>フリマ</Text>
         </TouchableOpacity>
+        <TouchableOpacity 
+          style={styles.menuItem} 
+          onPress={() => handleSignOut()} // サインアウト処理
+        >
+          <Text style={styles.signoutText}>サインアウト</Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
@@ -200,6 +226,10 @@ const styles = StyleSheet.create({
   menuText: {
     fontSize: 18,
     color: '#333',
+  },
+  signoutText: {
+    fontSize: 18,
+    color: '#ff0000',
   },
 });
 

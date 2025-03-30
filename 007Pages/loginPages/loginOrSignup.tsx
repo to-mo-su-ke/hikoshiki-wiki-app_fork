@@ -38,7 +38,14 @@ export default function LoginOrSignupScreen() {
       dispatch(setUserToken(uid));
       navigation.navigate("HomeNavigator"); // ホーム画面に遷移
     } catch (error: any) {
-      Alert.alert("ログインエラー", error.message);
+      if (error.code === "alert-displayed-error") {
+        // エラーがアラートで表示された場合は何もしない
+        return;
+      } else {
+        // その他のエラーはアラートで表示
+        Alert.alert("ログインエラー", error.message);
+
+      }
     }
   };
 

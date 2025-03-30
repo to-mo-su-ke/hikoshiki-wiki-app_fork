@@ -8,7 +8,7 @@ export async function doSignOut() {
     await signOut(auth);
     console.log("サインアウト成功");
   } catch (error) {
-    console.error("サインアウトエラー:", error);
+    console.error("サインアウトエラー:");
   }
 }
 
