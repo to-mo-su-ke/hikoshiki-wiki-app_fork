@@ -6,7 +6,10 @@ import UserInfo from "../userhome/Userinfo";
 import ClubSearch from "./002club/Clubsearch";
 import ClubDetail from "./002club/Clubdetail";
 import ClubInfo from "../userhome/Cubinfo";
+import ShinkanInfo from "../userhome/Shinkaninfo";
 import EventSearch from "../clubEvevntPages/Search"; // EventSearchをインポート
+import Classsearch from "./Class/Classsearch";
+import ClassReviewAdd from "./Class/Classrreviewadd";
 
 const HomeScreen = ({ navigation }) => {
   const [mainTab, setMainTab] = useState("家");
@@ -76,6 +79,7 @@ const HomeScreen = ({ navigation }) => {
           <TouchableOpacity
             style={[styles.commonTab, curriculumTab === "授業検索" && styles.activeTab]}
             onPress={() => setCurriculumTab("授業検索")}
+
           >
             <Text style={styles.tabText}>授業検索</Text>
           </TouchableOpacity>
@@ -87,8 +91,9 @@ const HomeScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
         <View style={styles.commonContent}>
-          {curriculumTab === "授業検索" && <Text>授業検索の内容</Text>}
-          {curriculumTab === "レビュー投稿" && <Text>レビュー投稿の内容</Text>}
+          {curriculumTab === "授業検索" &&<Classsearch navigation={navigation} />}
+
+          {curriculumTab === "レビュー投稿" && <ClassReviewAdd navigation={navigation} />}
         </View>
       </View>
     );
@@ -168,16 +173,22 @@ const renderEventContent = () => {
             <Text style={styles.tabText}>部活・サークル</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.commonTab, selfTab === "団体" && styles.activeTab]}
-            onPress={() => setSelfTab("団体")}
+            style={[styles.commonTab, selfTab === "新歓" && styles.activeTab]}
+            onPress={() => setSelfTab("新歓")}
           >
-            <Text style={styles.tabText}>団体</Text>
+            <Text style={styles.tabText}>新歓</Text>
           </TouchableOpacity>
         </View>
         <View style={styles.commonContent}>
-          {selfTab === "ユーザー" && <UserInfo navigation={navigation} />}
-          {selfTab === "部活・サークル" && <ClubInfo navigation={navigation} />}
-          {selfTab === "団体" && <Text>団体の内容</Text>}
+          {selfTab === "ユーザー" ? (
+            <UserInfo navigation={navigation} />
+          ) : selfTab === "部活・サークル" ? (
+            <ClubInfo navigation={navigation} />
+          ) : selfTab === "新歓" ? (
+            <ShinkanInfo navigation={navigation} />
+          ) : (
+            <Text>遷移してない</Text>
+          )}
         </View>
       </View>
     );
@@ -358,8 +369,7 @@ const styles = StyleSheet.create({
   },
   commonContent: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+   
   },
   tabText: {
     fontSize: 8,

@@ -108,10 +108,10 @@ const ShinkanReserve = ({ route, navigation }) => {
       return false;
     }
 
-    if (!formData.preferredDate) {
-      Alert.alert('エラー', '希望日を選択してください');
-      return false;
-    }
+    // if (!formData.preferredDate) {
+    //   Alert.alert('エラー', '希望日を選択してください');
+    //   return false;
+    // }
 
     return true;
   };
@@ -125,27 +125,35 @@ const ShinkanReserve = ({ route, navigation }) => {
       // 現在のユーザーIDを取得
       const auth = getAuth();
       const currentUser = auth.currentUser;
+      const uid =currentUser.uid
 
       if (!currentUser) {
         Alert.alert("エラー", "予約にはログインが必要です");
         setSubmitting(false);
         return;
       }
-
+      const eventDocRef = doc(db, 'events', shinkanId);
+      const eventDoc = await getDoc(eventDocRef);
+      const eventData = eventDoc.data();
+      if (eventData.member && eventData.member.some((member) => member.uid === uid)) {
+        Alert.alert("エラー", "すでに予約済みです");
+        setSubmitting(false);
+        return;
+      }
       // 予約情報をユーザーIDと共に保存
       const reservationData = {
-        uid: currentUser.uid,
+        uid: uid,
         name: formData.name,
         studentId: formData.studentId,
         email: formData.email,
         phoneNumber: formData.phoneNumber,
-        preferredDate: formData.preferredDate,
+        // preferredDate: formData.preferredDate,
         comments: formData.comments,
         timestamp: new Date().toISOString(),
       };
 
       // イベントのmember配列にユーザー情報を追加
-      const eventDocRef = doc(db, 'events', shinkanId);
+     
       
       await updateDoc(eventDocRef, {
         member: arrayUnion(reservationData)
@@ -245,7 +253,7 @@ const ShinkanReserve = ({ route, navigation }) => {
           </View>
 
           {/* 希望日時 */}
-          <View style={styles.inputGroup}>
+          {/* <View style={styles.inputGroup}>
             <Text style={styles.label}>希望日時 <Text style={styles.required}>*</Text></Text>
             <View style={styles.pickerContainer}>
               <Picker
@@ -259,7 +267,7 @@ const ShinkanReserve = ({ route, navigation }) => {
                 ))}
               </Picker>
             </View>
-          </View>
+          </View> */}
 
           {/* コメント */}
           <View style={styles.inputGroup}>

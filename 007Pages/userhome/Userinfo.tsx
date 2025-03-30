@@ -11,6 +11,7 @@ const UserInfoScreen = ({ navigation }) => {
   const [department, setDepartment] = useState(''); // 学科
   const [loading, setLoading] = useState(true); // ローディング状態
   const [error, setError] = useState(null); // エラー状態
+  const [Id, setId] = useState(''); // ユーザーID
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -26,6 +27,7 @@ const UserInfoScreen = ({ navigation }) => {
         }
 
         const uid = currentUser.uid;
+        setId(uid); // ユーザーIDを保存
 
         // Firestoreの"user"コレクションからユーザー情報を取得
         const userDocRef = doc(db, 'user', uid);
@@ -100,8 +102,12 @@ const UserInfoScreen = ({ navigation }) => {
             
             成績管理</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem}>
-          <Text style={styles.menuText}>新歓予約確認</Text>
+        <TouchableOpacity style={styles.menuItem}
+
+
+          onPress={() => navigation.navigate('ShinkanConfirmforuser',{Id})} // 新歓予約確認画面に遷移
+          >
+          <Text style={styles.menuText}>新歓予約確認</Text> 
         </TouchableOpacity>
         <TouchableOpacity style={styles.menuItem}>
           <Text style={styles.menuText}>部活/サークル/団体登録申請</Text>
