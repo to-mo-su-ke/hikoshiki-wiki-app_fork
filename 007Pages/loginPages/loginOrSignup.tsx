@@ -9,17 +9,11 @@ import {
   SafeAreaView,
   TouchableOpacity,
 } from "react-native";
-import {
-  getAuth,
-  signInWithEmailAndPassword,
-  setPersistence,
-  browserLocalPersistence,
-} from "firebase/auth";
-import { auth } from "../../004BackendModules/messageMetod/firebase";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useDispatch } from "react-redux";
 import { setUserToken } from "../../010Redux/actions";
+import SignInWithEmail from "../../004BackendModules/loginMethod/signInWithEmail";
 
 export default function LoginOrSignupScreen() {
   const [email, setEmail] = useState("");
@@ -40,8 +34,8 @@ export default function LoginOrSignupScreen() {
     }
 
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      dispatch(setUserToken(userCredential.user.uid));
+      const uid = await SignInWithEmail(email, password);
+      dispatch(setUserToken(uid));
       navigation.navigate("HomeNavigator"); // ホーム画面に遷移
     } catch (error: any) {
       Alert.alert("ログインエラー", error.message);

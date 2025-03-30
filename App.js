@@ -34,7 +34,7 @@ import ClubConfirmSubmit from "./007Pages/homeScreenPages/002club/clubmake2";
 import EventSearch from "./007Pages/clubEvevntPages/Search";
 import GradeInfo from "./007Pages/userhome/gradeinfo";
 import EventRegist from "./007Pages/clubEvevntPages/EventRegist";
-import ShinkanDetail from "./007Pages/clubEvevntPages/Detail"; // 詳細ページをインポート 
+import ShinkanDetail from "./007Pages/clubEvevntPages/detail"; // 詳細ページをインポート 
 import ShinkanReserve from "./007Pages/clubEvevntPages/Reserve"; // 予約画面をインポート
 import ShinkanInfo from "./007Pages/userhome/Shinkaninfo";
 import Classsearch from "./007Pages/homeScreenPages/Class/Classsearch";
