@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { View, Text, Button, TouchableOpacity, StyleSheet, Image } from "react-native";
 import TimeTable from "../timetableCreatePages/TimeTable"; 
 import TimeTableView from "../timetableCreatePages/TimeTableView";
@@ -10,6 +10,11 @@ import ShinkanInfo from "../userhome/Shinkaninfo";
 import EventSearch from "../clubEvevntPages/Search"; // EventSearchをインポート
 import Classsearch from "./Class/Classsearch";
 import ClassReviewAdd from "./Class/Classrreviewadd";
+import { NotificationServiceImpl,NotificationService,Notification } from "../notification/notificationService";
+import { getAuth } from 'firebase/auth';
+import { db } from '../../006Configs/firebaseConfig2'; // firebaseConfig2を使用
+import { doc, getDoc, collection, query, getDocs, updateDoc } from 'firebase/firestore'; // updateDocを追加
+
 
 const HomeScreen = ({ navigation }) => {
   const [mainTab, setMainTab] = useState("家");
@@ -21,6 +26,11 @@ const HomeScreen = ({ navigation }) => {
   const [isVerticalTabOpen, setIsVerticalTabOpen] = useState(false);
   const [showTimeTable, setShowTimeTable] = useState(true);
   const [showUserInfo, setShowUserInfo] = useState(true);
+  const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false); // 未読通知の有無
+  const auth = getAuth();
+  const currentUser = auth.currentUser;
+
+  
 
   const toggleVerticalTab = () => {
     setIsVerticalTabOpen((prev) => !prev);
@@ -33,6 +43,34 @@ const HomeScreen = ({ navigation }) => {
       </View>
     );
   };
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      if (!currentUser) {
+        console.error("ログインしていません。");
+        return;
+      }
+
+      try {
+        const notificationCollection = collection(db, "Notifications");
+        const notificationQuery = query(notificationCollection);
+        const notificationSnapshot = await getDocs(notificationQuery);
+
+        const uid = currentUser.uid;
+        const hasUnread = notificationSnapshot.docs.some((doc) => {
+          const data = doc.data();
+          return !data.readBy?.includes(uid); // 未読通知があるか確認
+        });
+
+        setHasUnreadNotifications(hasUnread);
+      } catch (error) {
+        console.error("通知の取得中にエラーが発生しました:", error);
+      }
+    };
+
+    fetchNotifications();
+  }, [currentUser]);
+
+
 
   const renderBukatsuContent = () => {
     return (
@@ -201,13 +239,16 @@ const renderEventContent = () => {
         <View style={styles.homeContentContainer}>
           <TouchableOpacity
             style={styles.notificationButton}
-            onPress={() => navigation.navigate("Notification")}
+            onPress={() => navigation.navigate("NotificationPage")}
           >
-          <Image 
-            style={styles.mainTabImage}
-            source={require("../../008picture/Notifications.png")}
-          />
-            {/* ...通知ボタンの内容 */}
+           <Image
+              style={styles.mainTabImage}
+              source={
+                hasUnreadNotifications
+                  ? require("../../008picture/Notifications_with_dot.png") // 未読通知がある場合
+                  : require("../../008picture/Notifications.png") // 未読通知がない場合
+              }
+            />
           </TouchableOpacity>
 
           {/* 表示切替用のボタン */}

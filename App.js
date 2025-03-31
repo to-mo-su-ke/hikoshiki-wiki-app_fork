@@ -19,12 +19,13 @@ import Userinfoedit from "./007Pages/userhome/Userinfoedit";
 import ShinkanConfirmforuser from "./007Pages/userhome/Shinkanconfirmforuser";
 import NotificationNavi from "./001Navigation/notificationnavi";
 import { Notification } from "./007Pages/notification/notificationService";
-import { NotificationPage } from "./007Pages/notification/notificationPages";
+
 import { DMListPage } from "./007Pages/notification/DMpages";
 import { DMDetailPage } from "./007Pages/notification/DMpages";
 import ShinkanConfirm from "./007Pages/clubEvevntPages/ShinkanConfirm";
 import { Provider } from "react-redux";
 import store from "./010Redux/store";
+import { NotificationPage } from "./007Pages/notification/notificationPages";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StyleSheet, StatusBar } from "react-native";
 import ClubSearchSubmit from "./007Pages/homeScreenPages/002club/clubmake";
@@ -34,10 +35,11 @@ import ClubConfirmSubmit from "./007Pages/homeScreenPages/002club/clubmake2";
 import EventSearch from "./007Pages/clubEvevntPages/Search";
 import GradeInfo from "./007Pages/userhome/gradeinfo";
 import EventRegist from "./007Pages/clubEvevntPages/EventRegist";
-import ShinkanDetail from "./007Pages/clubEvevntPages/detail"; // 詳細ページをインポート 
+import ShinkanDetail from "./007Pages/clubEvevntPages/Detail"; // 詳細ページをインポート 
 import ShinkanReserve from "./007Pages/clubEvevntPages/Reserve"; // 予約画面をインポート
 import ShinkanInfo from "./007Pages/userhome/Shinkaninfo";
 import Classsearch from "./007Pages/homeScreenPages/Class/Classsearch";
+import Administnotification from "./007Pages/notification/Administnotification";
 
 const Stack = createStackNavigator();
 
@@ -78,6 +80,7 @@ const App = () => {
             />
           
             <Stack.Screen name="Club" component={Club} />
+            
             <Stack.Screen name="TimeTable" component={TimeTable} />
             <Stack.Screen name="ClassSelection" component={ClassSelection} />
             <Stack.Screen name="CourseDetail" component={CourseDetail} />
@@ -110,6 +113,9 @@ const App = () => {
             <Stack.Screen name="ShinkanDetail" component={ShinkanDetail} />
             {/* 追加：予約画面のナビゲーション設定 */}
             <Stack.Screen name="ShinkanReserve" component={ShinkanReserve} />
+
+
+            <Stack.Screen name="Administnotification" component={Administnotification} />
 
           </Stack.Navigator>
         </NavigationContainer>
