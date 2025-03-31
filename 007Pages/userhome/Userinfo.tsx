@@ -26,7 +26,14 @@ const UserInfoScreen = ({ navigation }) => {
         },
         {
           text: 'OK',
-          onPress: () => doSignOut(),
+          onPress: async () => {
+            await doSignOut();
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "LoginNavigator" }],
+            });
+          },
+          
         },
       ],
       { cancelable: false }

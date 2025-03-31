@@ -36,9 +36,12 @@ export default function LoginOrSignupScreen() {
     try {
       const uid = await SignInWithEmail(email, password);
       dispatch(setUserToken(uid));
-      navigation.navigate("HomeNavigator"); // ホーム画面に遷移
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "HomeNavigator" }],
+      })
     } catch (error: any) {
-      if (error.code === "alert-displayed-error") {
+      if (error.message === "alert-displayed-error") {
         // エラーがアラートで表示された場合は何もしない
         return;
       } else {

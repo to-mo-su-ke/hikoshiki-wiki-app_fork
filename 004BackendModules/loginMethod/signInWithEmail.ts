@@ -20,7 +20,7 @@ const SignInWithEmail = async (email: string, password: string): Promise<string>
         const isVerified = await checkEmailVerified();
         console.log("isVerified:", isVerified);
         if (!isVerified) {
-            throw new ErrorWithCode("email-not-verified", "メールアドレスの確認が必要です。");
+            throw new ErrorWithCode("メールアドレスの確認が必要です。");
             return "";
         }
         return userCredential.user.uid; // ユーザーのUIDを返す

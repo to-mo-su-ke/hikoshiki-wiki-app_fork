@@ -42,27 +42,27 @@ import Classsearch from "./007Pages/homeScreenPages/Class/Classsearch";
 const Stack = createStackNavigator();
 
 const App = () => {
-  const [loading, setLoading] = useState(true);
+  // const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const loadApp = async () => {
-      await new Promise((resolve) => setTimeout(resolve, 2000)); // 2秒待つ
-      setLoading(false);
-    };
+  // useEffect(() => {
+  //   const loadApp = async () => {
+  //     await new Promise((resolve) => setTimeout(resolve, 2000)); // 2秒待つ
+  //     setLoading(false);
+  //   };
 
-    loadApp();
-  }, []);
+  //   loadApp();
+  // }, []);
 
-  if (loading) {
-    return <LoadingScreen />;
-  }
+  // if (loading) {
+  //   return <LoadingScreen />;
+  // }
 
   return (
     <SafeAreaView style={styles.root}>
       <StatusBar />
       <Provider store={store}>
         <NavigationContainer>
-          <Stack.Navigator initialRouteName="TestHome">
+          <Stack.Navigator initialRouteName="LoginNavigator">
             <Stack.Screen name="TestHome" component={TestHomeScreen} />
             <Stack.Screen
               name="HomeNavigator"
