@@ -24,6 +24,9 @@ export class Notification {
         public registeredDate: Date,
         public note: string,
         public link: URL,
+        public role: string = "general", // デフォルトは一般ユーザ
+        public readBy: string[] = [], // 既読にしたユーザーのUIDを格納
+        public dismissedBy: string[] = [] // 削除したユーザーのUIDを格納
     ) {}
     // 通知情報をクライアント端末に保存するためにjsonエンコード・デコードを実現します．
     toString() {
@@ -46,6 +49,7 @@ export class Notification {
             new Date(obj.registeredDate),
             obj.note,
             new URL(obj.link),
+            obj.role,
         );
     }
 }
@@ -116,7 +120,12 @@ export class MockNotificationService implements NotificationService {
             pictogram: new PictogramResource(new URL("https://example.com")),
             registeredDate: new Date(),
             note: "note1",
-            link: new URL("https://example.com")
+            link: new URL("https://example.com"),
+            role: "superAdministrator",
+            readBy: [],
+            dismissedBy: [],
+           
+            
         },        
         {
             id: "2",
@@ -124,7 +133,10 @@ export class MockNotificationService implements NotificationService {
             pictogram: new PictogramResource(new URL("https://example.com")),
             registeredDate: new Date(),
             note: "note2",
-            link: new URL("https://example.com")
+            link: new URL("https://example.com"),
+            role: "superAdministrator",
+            readBy: [],
+            dismissedBy: [],
         },       
         {
             id: "3",
@@ -132,7 +144,10 @@ export class MockNotificationService implements NotificationService {
             pictogram: new PictogramResource(new URL("https://example.com")),
             registeredDate: new Date(),
             note: "note3",
-            link: new URL("https://example.com")
+            link: new URL("https://example.com"),
+            role: "superAdministrator",
+            readBy: [],
+            dismissedBy: [],
         },
     ];
     public directMessages:DirectMessage[] = [
@@ -189,7 +204,10 @@ export class MockNotificationService implements NotificationService {
                 pictogram: new PictogramResource(new URL("https://example.com")),
                 registeredDate: new Date(),
                 note: "note1",
-                link: new URL("https://example.com")
+                link: new URL("https://example.com"),
+                role: "superAdministrator",
+                readBy: [],
+                dismissedBy: [],
             },        
             {
                 id: "2",
@@ -197,7 +215,11 @@ export class MockNotificationService implements NotificationService {
                 pictogram: new PictogramResource(new URL("https://example.com")),
                 registeredDate: new Date(),
                 note: "note2",
-                link: new URL("https://example.com")
+                link: new URL("https://example.com"),
+                role: "superAdministrator",
+                readBy: [],
+                dismissedBy: [],
+
             },       
             {
                 id: "3",
@@ -205,7 +227,10 @@ export class MockNotificationService implements NotificationService {
                 pictogram: new PictogramResource(new URL("https://example.com")),
                 registeredDate: new Date(),
                 note: "note3",
-                link: new URL("https://example.com")
+                link: new URL("https://example.com"),
+                role: "superAdministrator",
+                readBy: [],
+                dismissedBy: [],
             },
         ];
         this.directMessages = [
@@ -412,6 +437,7 @@ export class NotificationServiceImpl implements NotificationService {
                 data.publishedAt.toDate(),
                 data.note,
                 new URL(data.link),
+                data.role,
             );
         });
         // 取得したお知らせを各処理に分配
