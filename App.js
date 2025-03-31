@@ -16,41 +16,50 @@ import ClassSelection from "./007Pages/timetableCreatePages/ClassSelection";
 import Clubdetail from "./007Pages/homeScreenPages/002club/Clubdetail";
 import UserInfo from "./007Pages/userhome/Userinfo";
 import Userinfoedit from "./007Pages/userhome/Userinfoedit";
+import ShinkanConfirmforuser from "./007Pages/userhome/Shinkanconfirmforuser";
+import NotificationNavi from "./001Navigation/notificationnavi";
+import { Notification } from "./007Pages/notification/notificationService";
+
+import { DMListPage } from "./007Pages/notification/DMpages";
+import { DMDetailPage } from "./007Pages/notification/DMpages";
+import ShinkanConfirm from "./007Pages/clubEvevntPages/ShinkanConfirm";
 import { Provider } from "react-redux";
 import store from "./010Redux/store";
+import { NotificationPage } from "./007Pages/notification/notificationPages";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StyleSheet, StatusBar } from "react-native";
 import ClubSearchSubmit from "./007Pages/homeScreenPages/002club/clubmake";
 import Gradenavi from "./001Navigation/gradenavi";
+import ClassReviewAdd from "./007Pages/homeScreenPages/Class/Classrreviewadd";
 import ClubConfirmSubmit from "./007Pages/homeScreenPages/002club/clubmake2";
-import EventSearch from "./007Pages/clubEvevntPages/Search"
+import EventSearch from "./007Pages/clubEvevntPages/Search";
 import GradeInfo from "./007Pages/userhome/gradeinfo";
 import EventRegist from "./007Pages/clubEvevntPages/EventRegist";
 import SearchDetail from "./007Pages/clubEvevntPages/Searchdetail";
 const Stack = createStackNavigator();
 
 const App = () => {
-  const [loading, setLoading] = useState(true);
+  // const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const loadApp = async () => {
-      await new Promise((resolve) => setTimeout(resolve, 2000)); // 2秒待つ
-      setLoading(false);
-    };
+  // useEffect(() => {
+  //   const loadApp = async () => {
+  //     await new Promise((resolve) => setTimeout(resolve, 2000)); // 2秒待つ
+  //     setLoading(false);
+  //   };
 
-    loadApp();
-  }, []);
+  //   loadApp();
+  // }, []);
 
-  if (loading) {
-    return <LoadingScreen />;
-  }
+  // if (loading) {
+  //   return <LoadingScreen />;
+  // }
 
   return (
     <SafeAreaView style={styles.root}>
       <StatusBar />
       <Provider store={store}>
         <NavigationContainer>
-          <Stack.Navigator initialRouteName="TestHome">
+          <Stack.Navigator initialRouteName="LoginNavigator">
             <Stack.Screen name="TestHome" component={TestHomeScreen} />
             <Stack.Screen
               name="HomeNavigator"
@@ -66,15 +75,26 @@ const App = () => {
             />
           
             <Stack.Screen name="Club" component={Club} />
+            
             <Stack.Screen name="TimeTable" component={TimeTable} />
             <Stack.Screen name="ClassSelection" component={ClassSelection} />
             <Stack.Screen name="CourseDetail" component={CourseDetail} />
             <Stack.Screen name="Clubdetail" component={Clubdetail} />
             <Stack.Screen name="UserInfo" component={UserInfo} />
+            <Stack.Screen name="ClassReviewAdd" component={ClassReviewAdd} />
+
           
-        <Stack.Screen name="ClubInfo" component={ClubInfo}  />
-        <Stack.Screen name="ClubMakeEdit" component={ClubMakeEdit} />
-        <Stack.Screen name="GradeInfo" component={GradeInfo} /> 
+            <Stack.Screen name="ShinkanConfirm" component={ShinkanConfirm} />
+            <Stack.Screen name="ShinkanConfirmforuser" component={ShinkanConfirmforuser} />
+            
+            <Stack.Screen name="NotificationNavi" component={NotificationNavi} />
+            <Stack.Screen name="NotificationPage" component={NotificationPage} />
+            <Stack.Screen name="DMListPage" component={DMListPage} />
+
+
+            <Stack.Screen name="ClubInfo" component={ClubInfo}  />
+            <Stack.Screen name="ClubMakeEdit" component={ClubMakeEdit} />
+            <Stack.Screen name="GradeInfo" component={GradeInfo} /> 
             <Stack.Screen name="ClubSearchSubmit" component={ClubSearchSubmit} />
             <Stack.Screen name="Input" component={Inputnavi} />
             <Stack.Screen name="Grade" component={Gradenavi} />

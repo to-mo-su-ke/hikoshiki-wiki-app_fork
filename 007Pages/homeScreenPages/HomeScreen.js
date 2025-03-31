@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { View, Text, Button, TouchableOpacity, StyleSheet, Image } from "react-native";
 import TimeTable from "../timetableCreatePages/TimeTable"; 
 import TimeTableView from "../timetableCreatePages/TimeTableView";
@@ -6,6 +6,15 @@ import UserInfo from "../userhome/Userinfo";
 import ClubSearch from "./002club/Clubsearch";
 import ClubDetail from "./002club/Clubdetail";
 import ClubInfo from "../userhome/Cubinfo";
+import ShinkanInfo from "../userhome/Shinkaninfo";
+import EventSearch from "../clubEvevntPages/Search"; // EventSearchをインポート
+import Classsearch from "./Class/Classsearch";
+import ClassReviewAdd from "./Class/Classrreviewadd";
+import { NotificationServiceImpl,NotificationService,Notification } from "../notification/notificationService";
+import { getAuth } from 'firebase/auth';
+import { db } from '../../006Configs/firebaseConfig2'; // firebaseConfig2を使用
+import { doc, getDoc, collection, query, getDocs, updateDoc } from 'firebase/firestore'; // updateDocを追加
+
 
 const HomeScreen = ({ navigation }) => {
   const [mainTab, setMainTab] = useState("家");
@@ -17,6 +26,11 @@ const HomeScreen = ({ navigation }) => {
   const [isVerticalTabOpen, setIsVerticalTabOpen] = useState(false);
   const [showTimeTable, setShowTimeTable] = useState(true);
   const [showUserInfo, setShowUserInfo] = useState(true);
+  const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false); // 未読通知の有無
+  const auth = getAuth();
+  const currentUser = auth.currentUser;
+
+  
 
   const toggleVerticalTab = () => {
     setIsVerticalTabOpen((prev) => !prev);
@@ -29,10 +43,38 @@ const HomeScreen = ({ navigation }) => {
       </View>
     );
   };
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      if (!currentUser) {
+        console.error("ログインしていません。");
+        return;
+      }
+
+      try {
+        const notificationCollection = collection(db, "Notifications");
+        const notificationQuery = query(notificationCollection);
+        const notificationSnapshot = await getDocs(notificationQuery);
+
+        const uid = currentUser.uid;
+        const hasUnread = notificationSnapshot.docs.some((doc) => {
+          const data = doc.data();
+          return !data.readBy?.includes(uid); // 未読通知があるか確認
+        });
+
+        setHasUnreadNotifications(hasUnread);
+      } catch (error) {
+        console.error("通知の取得中にエラーが発生しました:", error);
+      }
+    };
+
+    fetchNotifications();
+  }, [currentUser]);
+
+
 
   const renderBukatsuContent = () => {
     return (
-      <View style={styles.commonContent}>
+      <View style={styles.bukatsuContentContainer}>
         <View style={styles.commonTabsContainer}>
           <TouchableOpacity
             style={[styles.commonTab, bukatsuTab === "部活動" && styles.activeTab]}
@@ -47,9 +89,22 @@ const HomeScreen = ({ navigation }) => {
             <Text style={styles.tabText}>新歓</Text>
           </TouchableOpacity>
         </View>
-        <View style={styles.commonContent}>
+        <View style={styles.bukatsuTabContent}>
           {bukatsuTab === "部活動" && <ClubSearch navigation={navigation} />}
-          {bukatsuTab === "新歓" && <Text>新歓の内容</Text>}
+          {bukatsuTab === "新歓" && (
+            <View style={styles.shinkanContainer}>
+              <View style={styles.shinkanHeader}>
+                <Text style={styles.shinkanTitle}>新歓イベント</Text>
+                <TouchableOpacity 
+                  style={styles.createEventButton}
+                  onPress={() => navigation.navigate("EventRegist")}
+                >
+                  <Text style={styles.createEventButtonText}>新歓を登録</Text>
+                </TouchableOpacity>
+              </View>
+              <EventSearch navigation={navigation} />
+            </View>
+          )}
         </View>
       </View>
     );
@@ -62,6 +117,7 @@ const HomeScreen = ({ navigation }) => {
           <TouchableOpacity
             style={[styles.commonTab, curriculumTab === "授業検索" && styles.activeTab]}
             onPress={() => setCurriculumTab("授業検索")}
+
           >
             <Text style={styles.tabText}>授業検索</Text>
           </TouchableOpacity>
@@ -73,8 +129,9 @@ const HomeScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
         <View style={styles.commonContent}>
-          {curriculumTab === "授業検索" && <Text>授業検索の内容</Text>}
-          {curriculumTab === "レビュー投稿" && <Text>レビュー投稿の内容</Text>}
+          {curriculumTab === "授業検索" &&<Classsearch navigation={navigation} />}
+
+          {curriculumTab === "レビュー投稿" && <ClassReviewAdd navigation={navigation} />}
         </View>
       </View>
     );
@@ -154,16 +211,22 @@ const renderEventContent = () => {
             <Text style={styles.tabText}>部活・サークル</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.commonTab, selfTab === "団体" && styles.activeTab]}
-            onPress={() => setSelfTab("団体")}
+            style={[styles.commonTab, selfTab === "新歓" && styles.activeTab]}
+            onPress={() => setSelfTab("新歓")}
           >
-            <Text style={styles.tabText}>団体</Text>
+            <Text style={styles.tabText}>新歓</Text>
           </TouchableOpacity>
         </View>
         <View style={styles.commonContent}>
-          {selfTab === "ユーザー" && <UserInfo navigation={navigation} />}
-          {selfTab === "部活・サークル" && <ClubInfo navigation={navigation} />}
-          {selfTab === "団体" && <Text>団体の内容</Text>}
+          {selfTab === "ユーザー" ? (
+            <UserInfo navigation={navigation} />
+          ) : selfTab === "部活・サークル" ? (
+            <ClubInfo navigation={navigation} />
+          ) : selfTab === "新歓" ? (
+            <ShinkanInfo navigation={navigation} />
+          ) : (
+            <Text>遷移してない</Text>
+          )}
         </View>
       </View>
     );
@@ -176,13 +239,16 @@ const renderEventContent = () => {
         <View style={styles.homeContentContainer}>
           <TouchableOpacity
             style={styles.notificationButton}
-            onPress={() => navigation.navigate("Notification")}
+            onPress={() => navigation.navigate("NotificationPage")}
           >
-          <Image 
-            style={styles.mainTabImage}
-            source={require("../../008picture/Notifications.png")}
-          />
-            {/* ...通知ボタンの内容 */}
+           <Image
+              style={styles.mainTabImage}
+              source={
+                hasUnreadNotifications
+                  ? require("../../008picture/Notifications_with_dot.png") // 未読通知がある場合
+                  : require("../../008picture/Notifications.png") // 未読通知がない場合
+              }
+            />
           </TouchableOpacity>
 
           {/* 表示切替用のボタン */}
@@ -344,8 +410,7 @@ const styles = StyleSheet.create({
   },
   commonContent: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+   
   },
   tabText: {
     fontSize: 8,
@@ -378,9 +443,46 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     width: "50%",
     alignItems: "center",
-
+  },
+  bukatsuContentContainer: {
+    flex: 1,
+    width: '100%',
+  },
+  bukatsuTabContent: {
+    flex: 1,
+    width: '100%',
+  },
+  shinkanContainer: {
+    flex: 1,
+    width: '100%',
+    paddingHorizontal: 0,
+  },
+  shinkanHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 12,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e2e8f0',
+    width: '100%',
+  },
+  shinkanTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1e3a8a',
+  },
+  createEventButton: {
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  createEventButtonText: {
+    color: '#fff',
+    fontWeight: '500',
+    fontSize: 12,
   },
 });
-
 
 export default HomeScreen;

@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Alert } from 'react-native';
 import { getAuth } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc , collection, query, getDocs, updateDoc } from 'firebase/firestore';
 import { db } from '../../006Configs/firebaseConfig2';
+import { doSignOut } from '../../004BackendModules/loginMethod/signOut';
 
 const UserInfoScreen = ({ navigation }) => {
   const [userName, setUserName] = useState(''); // ユーザー名
@@ -11,6 +12,34 @@ const UserInfoScreen = ({ navigation }) => {
   const [department, setDepartment] = useState(''); // 学科
   const [loading, setLoading] = useState(true); // ローディング状態
   const [error, setError] = useState(null); // エラー状態
+  const [Id, setId] = useState(''); // ユーザーID
+  const [hasUnreadNotifications, setHasUnreadNotifications] = useState<boolean>(false); // 未読通知の有無
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  // サインアウト確認
+  const handleSignOut = async () => {
+    Alert.alert(
+      'サインアウト',
+      '本当にサインアウトしますか？',
+      [
+        {
+          text: 'キャンセル',
+          style: 'cancel',
+        },
+        {
+          text: 'OK',
+          onPress: async () => {
+            await doSignOut();
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "LoginNavigator" }],
+            });
+          },
+          
+        },
+      ],
+      { cancelable: false }
+    );
+  };
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -26,6 +55,7 @@ const UserInfoScreen = ({ navigation }) => {
         }
 
         const uid = currentUser.uid;
+        setId(uid); // ユーザーIDを保存
 
         // Firestoreの"user"コレクションからユーザー情報を取得
         const userDocRef = doc(db, 'user', uid);
@@ -37,9 +67,10 @@ const UserInfoScreen = ({ navigation }) => {
           setRole(userData.role || '一般');
           setGrade(userData.grade || '未設定');
           setDepartment(userData.department || '未設定');
-        } else {
-          setError('ユーザー情報が見つかりません。');
-        }
+        } 
+        // else {
+        //   setError('ユーザー情報が見つかりません。');
+        // }
       } catch (err) {
         console.error('Error fetching user details:', err);
         setError('ユーザー情報の取得中にエラーが発生しました。');
@@ -47,9 +78,13 @@ const UserInfoScreen = ({ navigation }) => {
         setLoading(false);
       }
     };
+   
 
+      
+
+    
     fetchUserInfo();
-  }, []);
+  });
 
   if (loading) {
     return (
@@ -100,12 +135,24 @@ const UserInfoScreen = ({ navigation }) => {
             
             成績管理</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem}>
-          <Text style={styles.menuText}>新歓予約確認</Text>
+        <TouchableOpacity style={styles.menuItem}
+
+
+          onPress={() => navigation.navigate('ShinkanConfirmforuser',{Id})} // 新歓予約確認画面に遷移
+          >
+          <Text style={styles.menuText}>新歓予約確認</Text> 
         </TouchableOpacity>
         <TouchableOpacity style={styles.menuItem}>
           <Text style={styles.menuText}>部活/サークル/団体登録申請</Text>
         </TouchableOpacity>
+        {role === 'clubCircleManager' && (
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => navigation.navigate('Administnotification')}
+          >
+            <Text style={styles.menuText}>お知らせ管理</Text>
+          </TouchableOpacity>
+        )}
         <TouchableOpacity
           style={styles.menuItem}
           onPress={() => navigation.navigate('Userinfoedit')} // ユーザー情報編集画面に遷移
@@ -118,6 +165,13 @@ const UserInfoScreen = ({ navigation }) => {
         <TouchableOpacity style={styles.menuItem}>
           <Text style={styles.menuText}>フリマ</Text>
         </TouchableOpacity>
+        <TouchableOpacity 
+          style={styles.menuItem} 
+          onPress={() => handleSignOut()} // サインアウト処理
+        >
+          <Text style={styles.signoutText}>サインアウト</Text>
+        </TouchableOpacity>
+       
       </View>
     </ScrollView>
   );
@@ -194,6 +248,10 @@ const styles = StyleSheet.create({
   menuText: {
     fontSize: 18,
     color: '#333',
+  },
+  signoutText: {
+    fontSize: 18,
+    color: '#ff0000',
   },
 });
 

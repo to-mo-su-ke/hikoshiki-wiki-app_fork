@@ -20,13 +20,15 @@ type RootStackParamList = {
   SearchDetail: { eventId: string }; // SearchDetail に渡すパラメータを定義
 };
 
-const Search = () => {
+const Search = ({ navigation }) => {
   const [searchName, setSearchName] = useState("");
   const [searchCost, setSearchCost] = useState("");
   const [results, setResults] = useState([]);
+  const [filteredResults, setFilteredResults] = useState([]);
   const [selectedDates, setSelectedDates] = useState({});
   const [markedDates, setMarkedDates] = useState({});
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList, "Search">>();
+  // const navigation = useNavigation<StackNavigationProp<RootStackParamList, "Search">>();
+  // すみません、マージしたときに分からなくなってしまいました。修正お願いします
 
   const fetchEventDates = async (filter = false) => {
     try {
@@ -66,6 +68,28 @@ const Search = () => {
     fetchEventDates();
   }, []);
 
+  const fetchAllEvents = async () => {
+    try {
+      const eventsRef = collection(db, "events");
+      const querySnapshot = await getDocs(query(eventsRef));
+      const events = [];
+
+      querySnapshot.forEach((doc) => {
+        const eventData = doc.data();
+        events.push({
+          ...eventData,
+          id: doc.id,
+        });
+      });
+
+      setResults(events);
+      setFilteredResults(events);
+    } catch (error) {
+      console.error("Error fetching all events: ", error);
+      Alert.alert("エラー", "イベントの取得中にエラーが発生しました");
+    }
+  };
+
   const onDayPress = async (day) => {
     const date = day.dateString;
 
@@ -73,14 +97,18 @@ const Search = () => {
       const updatedDates = { ...prevSelectedDates };
 
       if (updatedDates[date]) {
-        // 選択解除
         delete updatedDates[date];
       } else {
-        // 選択
         updatedDates[date] = {
           selected: true,
           selectedColor: "green",
         };
+      }
+
+      if (Object.keys(updatedDates).length > 0) {
+        fetchEventsForDates(Object.keys(updatedDates));
+      } else {
+        setResults([]);
       }
 
       return updatedDates;
@@ -118,14 +146,57 @@ const Search = () => {
     }
   };
 
+  const fetchEventsForDates = async (dates) => {
+    try {
+      const eventsRef = collection(db, "events");
+      let allEvents = [];
+
+      for (const date of dates) {
+        let q = query(eventsRef, where("date", "==", date));
+
+        if (searchName) {
+          q = query(q, where("name", "==", searchName));
+        }
+        if (searchCost) {
+          q = query(q, where("cost", "==", parseInt(searchCost, 10)));
+        }
+
+        const querySnapshot = await getDocs(q);
+        querySnapshot.forEach((doc) => {
+          const eventData = doc.data();
+          allEvents.push({
+            ...eventData,
+            id: doc.id,
+          });
+        });
+      }
+
+      setResults(allEvents);
+
+      if (allEvents.length === 0) {
+        Alert.alert("結果なし", "選択した日付のイベントはありません");
+      }
+    } catch (error) {
+      console.error("Error fetching events for dates: ", error);
+      Alert.alert("エラー", "イベントの取得中にエラーが発生しました");
+    }
+  };
+
   const handleSearch = async () => {
-    if (!searchName && !searchCost) {
+    if (!searchName && !searchCost && Object.keys(selectedDates).length === 0) {
       Alert.alert("エラー", "少なくとも1つの条件を入力してください");
       return;
     }
 
     try {
       const eventsRef = collection(db, "events");
+      const selectedDatesList = Object.keys(selectedDates);
+
+      if (selectedDatesList.length > 0) {
+        fetchEventsForDates(selectedDatesList);
+        return;
+      }
+
       let q = query(eventsRef);
 
       if (searchName) {
@@ -161,6 +232,12 @@ const Search = () => {
       console.error("Error searching events: ", error);
       Alert.alert("エラー", "検索中にエラーが発生しました");
     }
+  };
+
+  const navigateToDetail = (item) => {
+    navigation.navigate("ShinkanDetail", {
+      shinkanId: item.id,
+    });
   };
 
   return (
@@ -209,13 +286,18 @@ const Search = () => {
       }
       renderItem={({ item }) => (
         <TouchableOpacity
-          onPress={() => navigation.navigate("SearchDetail", { eventId: item.id })}
+          style={styles.resultItemContainer}
+          onPress={() => navigateToDetail(item)}
         >
           <Text style={styles.resultItem}>
-            {item.name} 
+            {item.name} - {item.date} - ¥{item.cost}
           </Text>
+          <Text style={styles.viewDetailText}>詳細を見る</Text>
         </TouchableOpacity>
       )}
+      ListEmptyComponent={
+        <Text style={styles.emptyResult}>表示するイベントがありません</Text>
+      }
     />
   );
 };
@@ -255,11 +337,35 @@ const styles = StyleSheet.create({
     marginTop: 20,
     color: "#1e3a8a",
   },
+  resultItemContainer: {
+    backgroundColor: "#fff",
+    padding: 12,
+    marginVertical: 6,
+    borderRadius: 8,
+    borderLeftWidth: 4,
+    borderLeftColor: "#3b82f6",
+    elevation: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 1,
+  },
   resultItem: {
     fontSize: 16,
-    padding: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e2e8f0",
+    color: "#333",
+    marginBottom: 4,
+  },
+  viewDetailText: {
+    fontSize: 14,
+    color: "#3b82f6",
+    textAlign: "right",
+    fontWeight: "500",
+  },
+  emptyResult: {
+    fontSize: 16,
+    textAlign: "center",
+    marginTop: 20,
+    color: "#666",
   },
 });
 

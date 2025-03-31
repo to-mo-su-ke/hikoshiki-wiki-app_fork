@@ -97,6 +97,8 @@ const EventRegist = ({ navigation }) => {
         capacity: eventCapacity,
         photo: photoUrl,
         createdBy: uid,
+        // 定員分の空の要素を持つmember配列を追加
+        member: Array(parseInt(eventCapacity) || 0).fill(null),
       };
 
       await addDoc(collection(db, "events"), eventData);

@@ -9,16 +9,11 @@ import {
   SafeAreaView,
   TouchableOpacity,
 } from "react-native";
-import {
-  getAuth,
-  signInWithEmailAndPassword,
-  setPersistence,
-  browserLocalPersistence,
-} from "firebase/auth";
-import  SignInWithEmail  from "../../004BackendModules/loginMethod/signInWithEmail";
 import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useDispatch } from "react-redux";
 import { setUserToken } from "../../010Redux/actions";
+import SignInWithEmail from "../../004BackendModules/loginMethod/signInWithEmail";
 
 export default function LoginOrSignupScreen() {
   const [email, setEmail] = useState("");
@@ -26,30 +21,34 @@ export default function LoginOrSignupScreen() {
   const navigation = useNavigation(); // ホーム画面への遷移に使用
   const dispatch = useDispatch();
 
+  // 永続化をbrowserLocalPersistenceで設定
+  // 案：https://github.com/react-native-jp/praiser/blob/9962c9c11e4fedfccdb9571d9289d78b1dbeb747/src/lib/local-store/user-information.ts
 
   const LoginWithEmail = async (email: string, password: string) => {
     if (!email.endsWith("s.thers.ac.jp")) {
       Alert.alert(
+        "エラー",
         "メールアドレスは s.thers.ac.jp で終わる必要があります"
       );
       return;
     }
 
     try {
-      const uid = await SignInWithEmail(email, password); // ログインに失敗した場合error.message:alert-displayed-errorがthrownされる
+      const uid = await SignInWithEmail(email, password);
       dispatch(setUserToken(uid));
-      navigation.navigate("HomeNavi"); // ホーム画面に遷移
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "HomeNavigator" }],
+      })
     } catch (error: any) {
-      // エラーハンドリング
-      switch (error.message) {
-        case "alert-displayed-error":
-          // すでにアラートが表示されているので何もしない
-          break;
-        default:
-          // その他のエラー
-          Alert.alert("ログインに失敗しました。");
-          break;
-      }    
+      if (error.message === "alert-displayed-error") {
+        // エラーがアラートで表示された場合は何もしない
+        return;
+      } else {
+        // その他のエラーはアラートで表示
+        Alert.alert("ログインエラー", error.message);
+
+      }
     }
   };
 

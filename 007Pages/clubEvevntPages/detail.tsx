@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../../006Configs/firebaseConfig';
+import { db } from '../../006Configs/firebaseConfig2'; // 修正：firebaseConfig2を使用
 
 const ShinkanDetail = ({ route, navigation }) => {
-  // Searchページから渡されたshinkanIdパラメータを取得
   const { shinkanId } = route.params || {};
   const [shinkan, setShinkan] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [remainingCapacity, setRemainingCapacity] = useState(0);
 
   useEffect(() => {
     const fetchShinkanDetails = async () => {
@@ -18,22 +18,28 @@ const ShinkanDetail = ({ route, navigation }) => {
       }
 
       try {
-        // 'shinkantest' コレクションから指定IDのドキュメントを取得
-        const shinkanDocRef = doc(db, 'shinkantest', shinkanId);
+        const shinkanDocRef = doc(db, 'events', shinkanId);
         const shinkanDoc = await getDoc(shinkanDocRef);
 
         if (shinkanDoc.exists()) {
           const data = shinkanDoc.data();
+          const capacity = parseInt(data.capacity, 10) || 0;
+          const memberCount = data.member ? data.member.filter((m) => m !== null).length : 0;
+          const remaining = capacity - memberCount;
+
           setShinkan({
             id: shinkanDoc.id,
             name: data.name || '名称未設定',
             explain: data.explain || '説明なし',
-            date: data.date || data.eventDate ? new Date(data.eventDate.toDate()).toLocaleDateString() : '日程未定',
+            date: data.date || '日程未定',
             location: data.location || '場所未定',
             cost: data.cost || 0,
-            // 予約に必要なその他の情報
-            availableDates: data.availableDates || []
+            capacity: capacity,
+            memberCount: memberCount,
+            availableDates: data.availableDates || [],
           });
+
+          setRemainingCapacity(remaining);
         } else {
           Alert.alert('エラー', '新歓情報が見つかりませんでした。');
         }
@@ -48,17 +54,18 @@ const ShinkanDetail = ({ route, navigation }) => {
     fetchShinkanDetails();
   }, [shinkanId]);
 
-  // 予約画面に遷移する関数
   const handleReservation = () => {
-    if (!shinkan) return;
+    if (!shinkan || remainingCapacity <= 0) {
+      Alert.alert('予約不可', '予約可能な人数がありません');
+      return;
+    }
 
     navigation.navigate('ShinkanReserve', {
       shinkanId: shinkan.id,
       shinkanName: shinkan.name,
-      // 予約画面で表示するために追加情報を渡す
       date: shinkan.date,
       location: shinkan.location,
-      availableDates: shinkan.availableDates
+      availableDates: shinkan.availableDates,
     });
   };
 
@@ -112,12 +119,28 @@ const ShinkanDetail = ({ route, navigation }) => {
           <Text style={styles.infoText}>{shinkan.cost}円</Text>
         </View>
 
-        <TouchableOpacity
-          style={styles.reservationButton}
-          onPress={handleReservation}
-        >
-          <Text style={styles.reservationButtonText}>予約する</Text>
-        </TouchableOpacity>
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionTitle}>定員</Text>
+          <Text style={styles.infoText}>
+            定員: {shinkan.capacity} 人 / 現在の予約人数: {shinkan.memberCount} 人
+          </Text>
+          <Text style={styles.infoText}>
+            残り予約可能人数: {remainingCapacity} 人
+          </Text>
+        </View>
+
+        {remainingCapacity > 0 ? (
+          <TouchableOpacity
+            style={styles.reservationButton}
+            onPress={handleReservation}
+          >
+            <Text style={styles.reservationButtonText}>予約する</Text>
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.disabledButton}>
+            <Text style={styles.disabledButtonText}>予約不可</Text>
+          </View>
+        )}
 
         <TouchableOpacity
           style={styles.backToListButton}
@@ -134,10 +157,12 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flex: 1,
     backgroundColor: '#f8f8f8',
+    width: '100%',
   },
   container: {
     flex: 1,
     padding: 16,
+    width: '100%',
   },
   loadingContainer: {
     flex: 1,
@@ -161,6 +186,7 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
     alignItems: 'center',
+    width: '100%',
   },
   shinkanName: {
     fontSize: 24,
@@ -212,22 +238,17 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
-  errorText: {
-    fontSize: 16,
-    color: 'red',
-    textAlign: 'center',
-  },
-  backButton: {
+  disabledButton: {
     backgroundColor: '#9E9E9E',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
+    paddingVertical: 14,
+    paddingHorizontal: 32,
     borderRadius: 8,
     marginVertical: 16,
     alignItems: 'center',
   },
-  backButtonText: {
+  disabledButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
   },
   backToListButton: {
@@ -241,6 +262,25 @@ const styles = StyleSheet.create({
     color: '#666',
     fontSize: 16,
   },
+  // 追加されたスタイル
+  errorText: {
+    fontSize: 16,
+    color: 'red',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  backButton: {
+    backgroundColor: '#f0f0f0',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  backButtonText: {
+    color: '#333',
+    fontSize: 16,
+  },
 });
+
 
 export default ShinkanDetail;
