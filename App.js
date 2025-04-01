@@ -36,6 +36,8 @@ import EventSearch from "./007Pages/clubEvevntPages/Search";
 import GradeInfo from "./007Pages/userhome/gradeinfo";
 import EventRegist from "./007Pages/clubEvevntPages/EventRegist";
 import SearchDetail from "./007Pages/clubEvevntPages/Searchdetail";
+import * as authContext from "./011Context/authContext";
+
 const Stack = createStackNavigator();
 
 const App = () => {
@@ -54,57 +56,61 @@ const App = () => {
   //   return <LoadingScreen />;
   // }
 
+  const [authState, setAuthState] = useState(authContext.creatInitialAuthState());
+
   return (
     <SafeAreaView style={styles.root}>
       <StatusBar />
       <Provider store={store}>
-        <NavigationContainer>
-          <Stack.Navigator initialRouteName="LoginNavigator">
-            <Stack.Screen name="TestHome" component={TestHomeScreen} />
-            <Stack.Screen
-              name="HomeNavigator"
-              component={HomeScreenNavigator}
-            />
-            <Stack.Screen
-              name="MessageNavigator"
-              component={MessageScreenNavigator}
-            />
-            <Stack.Screen
-              name="LoginNavigator"
-              component={LoginScreenNavigator}
-            />
-          
-            <Stack.Screen name="Club" component={Club} />
+        <authContext.authContext.Provider value={{ authState, setAuthState }}>
+          <NavigationContainer>
+            <Stack.Navigator initialRouteName="LoginNavigator">
+              <Stack.Screen name="TestHome" component={TestHomeScreen} />
+              <Stack.Screen
+                name="HomeNavigator"
+                component={HomeScreenNavigator}
+              />
+              <Stack.Screen
+                name="MessageNavigator"
+                component={MessageScreenNavigator}
+              />
+              <Stack.Screen
+                name="LoginNavigator"
+                component={LoginScreenNavigator}
+              />
             
-            <Stack.Screen name="TimeTable" component={TimeTable} />
-            <Stack.Screen name="ClassSelection" component={ClassSelection} />
-            <Stack.Screen name="CourseDetail" component={CourseDetail} />
-            <Stack.Screen name="Clubdetail" component={Clubdetail} />
-            <Stack.Screen name="UserInfo" component={UserInfo} />
-            <Stack.Screen name="ClassReviewAdd" component={ClassReviewAdd} />
+              <Stack.Screen name="Club" component={Club} />
+              
+              <Stack.Screen name="TimeTable" component={TimeTable} />
+              <Stack.Screen name="ClassSelection" component={ClassSelection} />
+              <Stack.Screen name="CourseDetail" component={CourseDetail} />
+              <Stack.Screen name="Clubdetail" component={Clubdetail} />
+              <Stack.Screen name="UserInfo" component={UserInfo} />
+              <Stack.Screen name="ClassReviewAdd" component={ClassReviewAdd} />
 
-          
-            <Stack.Screen name="ShinkanConfirm" component={ShinkanConfirm} />
-            <Stack.Screen name="ShinkanConfirmforuser" component={ShinkanConfirmforuser} />
             
-            <Stack.Screen name="NotificationNavi" component={NotificationNavi} />
-            <Stack.Screen name="NotificationPage" component={NotificationPage} />
-            <Stack.Screen name="DMListPage" component={DMListPage} />
+              <Stack.Screen name="ShinkanConfirm" component={ShinkanConfirm} />
+              <Stack.Screen name="ShinkanConfirmforuser" component={ShinkanConfirmforuser} />
+              
+              <Stack.Screen name="NotificationNavi" component={NotificationNavi} />
+              <Stack.Screen name="NotificationPage" component={NotificationPage} />
+              <Stack.Screen name="DMListPage" component={DMListPage} />
 
 
-            <Stack.Screen name="ClubInfo" component={ClubInfo}  />
-            <Stack.Screen name="ClubMakeEdit" component={ClubMakeEdit} />
-            <Stack.Screen name="GradeInfo" component={GradeInfo} /> 
-            <Stack.Screen name="ClubSearchSubmit" component={ClubSearchSubmit} />
-            <Stack.Screen name="Input" component={Inputnavi} />
-            <Stack.Screen name="Grade" component={Gradenavi} />
-            <Stack.Screen name="clubmake2" component={ClubConfirmSubmit} />
-            <Stack.Screen name="Userinfoedit" component={Userinfoedit} />
-            <Stack.Screen name="EventRegist" component={EventRegist} />
-            <Stack.Screen name="EventSearch" component={EventSearch} />
-            <Stack.Screen name="SearchDetail" component={SearchDetail} />
-          </Stack.Navigator>
-        </NavigationContainer>
+              <Stack.Screen name="ClubInfo" component={ClubInfo}  />
+              <Stack.Screen name="ClubMakeEdit" component={ClubMakeEdit} />
+              <Stack.Screen name="GradeInfo" component={GradeInfo} /> 
+              <Stack.Screen name="ClubSearchSubmit" component={ClubSearchSubmit} />
+              <Stack.Screen name="Input" component={Inputnavi} />
+              <Stack.Screen name="Grade" component={Gradenavi} />
+              <Stack.Screen name="clubmake2" component={ClubConfirmSubmit} />
+              <Stack.Screen name="Userinfoedit" component={Userinfoedit} />
+              <Stack.Screen name="EventRegist" component={EventRegist} />
+              <Stack.Screen name="EventSearch" component={EventSearch} />
+              <Stack.Screen name="SearchDetail" component={SearchDetail} />
+            </Stack.Navigator>
+          </NavigationContainer>
+        </authContext.authContext.Provider>
       </Provider>
     </SafeAreaView>
   );

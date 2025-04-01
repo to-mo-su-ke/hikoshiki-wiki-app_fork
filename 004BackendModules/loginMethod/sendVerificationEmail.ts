@@ -10,8 +10,8 @@ const sendVerificationEmail = async () => {
       await sendEmailVerification(user);
     }
   } catch (error) { //エラー時に「メールが送信できませんでした。メールアドレスを確認してください」と表示する。アプリが強制終了しないようにする
-    console.error('Error sending email verification:', error);
-    throw error;
+    console.log('メールが送信できませんでした。');
+    throw new Error('メールが送信できませんでした。');
   }
 }
 

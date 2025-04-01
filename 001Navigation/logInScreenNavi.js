@@ -10,8 +10,7 @@ import SelectClubScreen from '../007Pages/loginPages/selectClub';
 import ConfirmScreen from '../007Pages/loginPages/confirmScreen';
 import EmailResendScreen from '../007Pages/loginPages/emailResend';
 import LoadingScreen from '../007Pages/loginPages/loading';
-import HomeScreenNavigator from './homeScreenNavi';
-
+import EmailResendSignInScreen from '../007Pages/loginPages/emailResendSignIn';
 // 実験用
 import { useEffect, useState } from 'react';
 import { auth } from "../004BackendModules/messageMetod/firebase";
@@ -48,6 +47,7 @@ const LoginScreenNavigator = () => {
           <Stack.Screen name="SelectClubScreen" component={SelectClubScreen} />
           <Stack.Screen name="ConfirmScreen" component={ConfirmScreen} />
           <Stack.Screen name="EmailResendScreen" component={EmailResendScreen} />
+          <Stack.Screen name="EmailResendSignInScreen" component={EmailResendSignInScreen} />
       </Stack.Navigator>
     </PaperProvider>
   );

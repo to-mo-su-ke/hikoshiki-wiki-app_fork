@@ -10,22 +10,14 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useDispatch } from "react-redux";
-import { setUserToken } from "../../010Redux/actions";
-import SignInWithEmail from "../../004BackendModules/loginMethod/signInWithEmail";
-import { checkEmailVerified } from "../../004BackendModules/loginMethod/signInWithEmail";
-import { authContext } from "../../011Context/authContext";
+import SignInWithEmailWithoutVerified from "../../004BackendModules/loginMethod/signInWithEmailWithoutVerified";
 
-
-export default function LoginOrSignupScreen() {
+export default function EmailResendSignInScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigation = useNavigation(); // ホーム画面への遷移に使用
-  const dispatch = useDispatch();
-  const { authState } = React.useContext(authContext);
 
-  const LoginWithEmail = async (email: string, password: string) => {
+  const handleGoEmailResend = async (email: string, password: string) => {
     if (!email.endsWith("s.thers.ac.jp")) {
       Alert.alert(
         "エラー",
@@ -35,12 +27,10 @@ export default function LoginOrSignupScreen() {
     }
 
     try {
-      const uid = await SignInWithEmail(email, password);
-      dispatch(setUserToken(uid));
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "HomeNavigator" }],
-      })
+      const uid = await SignInWithEmailWithoutVerified(email, password);
+      navigation.navigate("EmailResendScreen");
+
+      return;
     } catch (error: any) {
       if (error.message === "alert-displayed-error") {
         // エラーがアラートで表示された場合は何もしない
@@ -53,17 +43,10 @@ export default function LoginOrSignupScreen() {
     }
   };
 
-  const handleGoEmailResendSignIn = async () => {
-    if (authState === "signedIn") {
-      Alert.alert("メールアドレスは確認済みです");
-      return;
-    }
-    navigation.navigate("EmailResendSignInScreen");
-  }    
-
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>ログイン</Text>
+      <Text style={styles.title}>メール送信</Text>
+      <Text style={styles.infoText}>メールを送信するために一度ログインする必要があります</Text>
       <Text style={styles.infoText}>メールはs.thers.ac.jpで終わる機構メールを使用してください</Text>
       <TextInput
         style={styles.input}
@@ -86,28 +69,12 @@ export default function LoginOrSignupScreen() {
       {/* ログインボタン */}
       <TouchableOpacity
         style={[styles.button, { backgroundColor: "green" }]}
-        onPress={() => LoginWithEmail(email, password)}
+        onPress={() => handleGoEmailResend(email, password)}
         activeOpacity={0.7}
       >
-        <Text style={styles.buttonText}>ログイン</Text>
+        <Text style={styles.buttonText}>メール送信</Text>
       </TouchableOpacity>
 
-      {/* 新規登録ボタン */}
-      <TouchableOpacity
-        style={[styles.button, { backgroundColor: "green" }]}
-        onPress={() => navigation.navigate("SignUpScreen")}
-        activeOpacity={0.7}
-      >
-        <Text style={styles.buttonText}>新規登録</Text>
-      </TouchableOpacity>
-      {/*メール再送*/}
-      <TouchableOpacity
-        style={[styles.button, { backgroundColor: "green" }]}
-        onPress={() => { handleGoEmailResendSignIn() }} 
-        activeOpacity={0.7}
-      >
-        <Text style={styles.buttonText}>メールが未認証の場合</Text>
-      </TouchableOpacity>
     </SafeAreaView>
   );
 }

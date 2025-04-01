@@ -1,9 +1,34 @@
-import { Text, View, StyleSheet, TouchableOpacity } from "react-native";
+import { Text, View, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import sendVerificationEmail from "../../004BackendModules/loginMethod/sendVerificationEmail";
+import { checkEmailVerified } from "../../004BackendModules/loginMethod/signInWithEmail";
 
-export default function EmailResendScreen() {
-  const navigation = useNavigation();
+export default function EmailResendScreen({ navigation }) {
+  function handleSendVerificationEmail() {
+    try {
+      sendVerificationEmail();
+    } catch (e) {
+      Alert.alert("エラーが発生しました")
+    }
+  }
+
+  async function handleGoToHome() {
+    try {
+      const isVerified = await checkEmailVerified();
+      if (!isVerified) {
+        Alert.alert("メールアドレスの確認が必要です。");
+        return;
+      }
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "LoadingScreen" }],
+      });
+    } catch (error) {
+      Alert.alert("エラーが発生しました");
+    }
+    
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.sectionContainer}>
@@ -14,7 +39,7 @@ export default function EmailResendScreen() {
         
         <TouchableOpacity 
           style={styles.buttonContainer} 
-          onPress={sendVerificationEmail}
+          onPress={handleSendVerificationEmail}
         >
           <Text style={styles.buttonText}>メールを再送する</Text>
         </TouchableOpacity>
@@ -22,10 +47,10 @@ export default function EmailResendScreen() {
         <TouchableOpacity
           style={styles.buttonOutline}
           onPress={() => {
-            navigation.navigate("LoginOrSignUpScreen");
+            handleGoToHome();
           }}
         >
-          <Text style={styles.buttonOutlineText}>ログイン画面に戻る</Text>
+          <Text style={styles.buttonOutlineText}>タイトル画面へ</Text>
         </TouchableOpacity>
       </View>
     </View>

@@ -7,6 +7,7 @@ export async function doSignOut() {
     // Firebase Authからサインアウト
     await signOut(auth);
     console.log("サインアウト成功");
+
   } catch (error) {
     console.error("サインアウトエラー:");
   }
