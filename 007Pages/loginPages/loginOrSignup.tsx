@@ -1,3 +1,5 @@
+// 必ずローディング画面からログイン画面に遷移すること
+
 import React, { useState } from "react";
 import {
   StyleSheet,
@@ -107,6 +109,14 @@ export default function LoginOrSignupScreen() {
         activeOpacity={0.7}
       >
         <Text style={styles.buttonText}>メールが未認証の場合</Text>
+      </TouchableOpacity>
+      {/* パスワード再設定用メール送信 */}
+      <TouchableOpacity
+        style={[styles.button, { backgroundColor: "green" }]}
+        onPress={() => navigation.navigate("SendPasswordResetEmailScreen")}
+        activeOpacity={0.7}
+      >
+        <Text style={styles.buttonText}>パスワード再設定メール送信</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );

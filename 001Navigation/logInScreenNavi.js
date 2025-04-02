@@ -11,6 +11,7 @@ import ConfirmScreen from '../007Pages/loginPages/confirmScreen';
 import EmailResendScreen from '../007Pages/loginPages/emailResend';
 import LoadingScreen from '../007Pages/loginPages/loading';
 import EmailResendSignInScreen from '../007Pages/loginPages/emailResendSignIn';
+import SendPasswordResetEmailScreen from '../007Pages/loginPages/sendPasswordResetEmailScreen';
 // 実験用
 import { useEffect, useState } from 'react';
 import { auth } from "../004BackendModules/messageMetod/firebase";
@@ -48,6 +49,7 @@ const LoginScreenNavigator = () => {
           <Stack.Screen name="ConfirmScreen" component={ConfirmScreen} />
           <Stack.Screen name="EmailResendScreen" component={EmailResendScreen} />
           <Stack.Screen name="EmailResendSignInScreen" component={EmailResendSignInScreen} />
+          <Stack.Screen name="SendPasswordResetEmailScreen" component={SendPasswordResetEmailScreen} />
       </Stack.Navigator>
     </PaperProvider>
   );
