@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, Button, Alert, ScrollView } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Button, Alert, ScrollView, TouchableOpacity } from 'react-native';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../006Configs/firebaseConfig2';
 import { getAuth } from 'firebase/auth';
@@ -172,6 +172,15 @@ const Userinfoedit = ({ navigation }) => {
       />
 
       <Button title="更新する" onPress={handleSubmit} />
+
+      <Text style={styles.title}>ユーザー情報</Text>
+      <View style={styles.menu}>
+        <TouchableOpacity 
+          style={styles.menuItem} 
+          onPress={() => navigation.navigate("ChangePasswordScreen")}>
+          <Text style={styles.menuText}>パスワード変更</Text>
+        </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 };
@@ -201,6 +210,18 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     backgroundColor: '#f9f9f9',
     marginBottom: 10,
+  },
+  menu: {
+    padding: 20,
+  },
+  menuItem: {
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+  },
+  menuText: {
+    fontSize: 18,
+    color: '#333',
   },
 });
 
