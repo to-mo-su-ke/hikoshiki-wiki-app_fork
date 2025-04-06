@@ -1,6 +1,6 @@
 // サインアウト処理を実装します。
 import { getAuth, signOut } from 'firebase/auth';
-import { auth } from '../messageMetod/firebase';
+import { auth } from '../firebaseMetod/firebase';
 
 export async function doSignOut() {
   try {

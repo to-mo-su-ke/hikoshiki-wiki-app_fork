@@ -1,4 +1,5 @@
-import { firestore, storage } from "../../firebaseConfig";
+import { firestore } from "../firebaseMetod/firestore"; // 正しいパスにアップデート
+import { storage } from "../../006Configs/firebaseConfig"; // 正しいパスにアップデート
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 
 // 引数をBlobとして利用。fetchによる変換処理は不要となります。
@@ -14,4 +15,3 @@ export const uploadPhotoToFirestore = async (imageBlob) => {
     throw error; // エラーを呼び出し元に伝播
   }
 };
-　

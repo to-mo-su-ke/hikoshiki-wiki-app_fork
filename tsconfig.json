@@ -3,9 +3,10 @@
     "types": [
       "jest",
       "node"
-    ]
+    ],
+    "jsx": "react-jsx",  // JSXサポートを追加
+    "allowJs": true      // allowJsをcompilerOptionsの中に移動
   },
-  "allowJs": true,
   "include": [
     "**/*.ts",
     "**/*.tsx",

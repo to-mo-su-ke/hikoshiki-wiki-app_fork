@@ -1,4 +1,4 @@
-import { firestore } from "../../firebaseConfig"; 
+import { firestore } from "../firebaseMetod/firestore"; // 正しいパスにアップデート
 
 export const submitDataToFirestore = async (formData, collectionName = "information") => {
   try {

@@ -1,7 +1,7 @@
 //メールアドレスとパスワードでユーザー登録する関数です
 
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../messageMetod/firebase";
+import { auth } from "../firebaseMetod/firebase";
 
 const SignUpWithEmail = async (email: string, password: string) => {
 
