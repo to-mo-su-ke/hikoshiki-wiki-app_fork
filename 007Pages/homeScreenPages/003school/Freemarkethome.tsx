@@ -9,7 +9,7 @@ import {
   Image,
   Alert,
 } from "react-native";
-import { db } from "../../../006Configs/firebaseConfig2";
+import { db } from "../../../004BackendModules/firebaseMetod/firebase"; // Firebaseの初期化
 import { collection, getDocs, query, where } from "firebase/firestore";
 
 const FreemarketHome = () => {
