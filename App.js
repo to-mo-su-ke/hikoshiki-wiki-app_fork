@@ -7,8 +7,10 @@ import HomeScreenNavigator from "./001Navigation/homeScreenNavi";
 import MessageScreenNavigator from "./001Navigation/messageScreenNavi";
 import LoginScreenNavigator from "./001Navigation/logInScreenNavi";
 import ClubInfo from './007Pages/userhome/Cubinfo';
+import LunchHome from "./007Pages/homeScreenPages/003school/lunchhome";
 import ClubMakeEdit from './007Pages/homeScreenPages/002club/clubmake_edit';
-import Club from "./001Navigation/clubnavi";
+import ColumAdminist from "./007Pages/userhome/ColumAdminist";
+import ColumSearch from "./007Pages/homeScreenPages/005event/ColumSearch";
 import Inputnavi from "./001Navigation/inputnavi";
 import TimeTable from "./007Pages/timetableCreatePages/TimeTable";
 import CourseDetail from "./007Pages/timetableCreatePages/CourseDetail";
@@ -19,12 +21,14 @@ import Userinfoedit from "./007Pages/userhome/Userinfoedit";
 import ShinkanConfirmforuser from "./007Pages/userhome/Shinkanconfirmforuser";
 import NotificationNavi from "./001Navigation/notificationnavi";
 import { Notification } from "./007Pages/notification/notificationService";
-
+import LunchSearch from "./007Pages/homeScreenPages/003school/lunchsearch";
 import { DMListPage } from "./007Pages/notification/DMpages";
 import { DMDetailPage } from "./007Pages/notification/DMpages";
 import ShinkanConfirm from "./007Pages/clubEvevntPages/ShinkanConfirm";
+import FreemarketHome from "./007Pages/homeScreenPages/003school/Freemarkethome";
 import { Provider } from "react-redux";
 import store from "./010Redux/store";
+import Club from "./001Navigation/clubnavi";
 import { NotificationPage } from "./007Pages/notification/notificationPages";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StyleSheet, StatusBar } from "react-native";
@@ -40,6 +44,8 @@ import ShinkanReserve from "./007Pages/clubEvevntPages/Reserve"; // 予約画面
 import ShinkanInfo from "./007Pages/userhome/Shinkaninfo";
 import Classsearch from "./007Pages/homeScreenPages/Class/Classsearch";
 import Administnotification from "./007Pages/notification/Administnotification";
+import Colum from "./007Pages/homeScreenPages/005event/Colum";
+import FreemarketInput from "./007Pages/userhome/FreemarketInput";
 
 const Stack = createStackNavigator();
 
@@ -79,8 +85,11 @@ const App = () => {
               component={LoginScreenNavigator}
             />
           
-            <Stack.Screen name="Club" component={Club} />
-            
+           
+            <Stack.Screen name="Colum" component={Colum} />
+            <Stack.Screen name="FreemarketInput" component={FreemarketInput} />
+            <Stack.Screen name="LunchSearch" component={LunchSearch} />
+            <Stack.Screen name="ColumSearch" component={ColumSearch} />
             <Stack.Screen name="TimeTable" component={TimeTable} />
             <Stack.Screen name="ClassSelection" component={ClassSelection} />
             <Stack.Screen name="CourseDetail" component={CourseDetail} />
@@ -89,6 +98,9 @@ const App = () => {
             <Stack.Screen name="Classsearch" component={Classsearch} />
             <Stack.Screen name="ClassReviewAdd" component={ClassReviewAdd} />
 
+            <Stack.Screen name="FreemarketHome" component={FreemarketHome} />
+            <Stack.Screen name="LunchHome" component={LunchHome} />
+            <Stack.Screen name="ColumAdminist" component={ColumAdminist} />
           
             <Stack.Screen name="ShinkanConfirm" component={ShinkanConfirm} />
             <Stack.Screen name="ShinkanConfirmforuser" component={ShinkanConfirmforuser} />
@@ -97,6 +109,7 @@ const App = () => {
             <Stack.Screen name="NotificationNavi" component={NotificationNavi} />
             <Stack.Screen name="NotificationPage" component={NotificationPage} />
             <Stack.Screen name="DMListPage" component={DMListPage} />
+            <Stack.Screen name="Club" component={Club} />
 
 
             <Stack.Screen name="ClubInfo" component={ClubInfo}  />

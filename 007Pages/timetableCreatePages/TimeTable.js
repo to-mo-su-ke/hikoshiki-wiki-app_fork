@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity,ScrollView } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
 import { useSelector, useDispatch } from "react-redux";
 import { setDegree, setDepartment, setTermDayPeriod } from "../../010Redux/actions";
@@ -255,6 +255,7 @@ const TimeTable = ({ navigation }) => {
   };
 
   return (
+    
     <View style={styles.container}>
       <View style={styles.headerConstainer}>
         <View style={styles.headerLeft}>
@@ -360,6 +361,7 @@ const TimeTable = ({ navigation }) => {
         <Text style={styles.totalText}>総単位数: {totalCredits}</Text>
       </View>
     </View>
+   
   );
 };
 

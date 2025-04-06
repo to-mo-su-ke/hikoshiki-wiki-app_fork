@@ -14,7 +14,11 @@ import { NotificationServiceImpl,NotificationService,Notification } from "../not
 import { getAuth } from 'firebase/auth';
 import { db } from '../../006Configs/firebaseConfig2'; // firebaseConfig2を使用
 import { doc, getDoc, collection, query, getDocs, updateDoc } from 'firebase/firestore'; // updateDocを追加
-
+import Colum from "./005event/Colum";
+import ColumSearch from "./005event/ColumSearch";
+import LunchHome from "./003school/lunchhome";
+import LunchSearch from "./003school/lunchsearch";
+import FreemarketHome from "./003school/Freemarkethome";
 
 const HomeScreen = ({ navigation }) => {
   const [mainTab, setMainTab] = useState("家");
@@ -23,6 +27,8 @@ const HomeScreen = ({ navigation }) => {
   const [curriculumTab, setCurriculumTab] = useState("授業検索");
   const [selfTab, setSelfTab] = useState("ユーザー");
   const [eventTab, setEventTab] = useState("イベント");
+
+
   const [isVerticalTabOpen, setIsVerticalTabOpen] = useState(false);
   const [showTimeTable, setShowTimeTable] = useState(true);
   const [showUserInfo, setShowUserInfo] = useState(true);
@@ -161,24 +167,84 @@ const HomeScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
         <View style={styles.commonContent}>
-          {schoolTab === "学食" && <Text>学食の内容</Text>}
-          {schoolTab === "フリマ" && <Text>フリマの内容</Text>}
+          {schoolTab === "学食" && renderLunchcontent() }
+          {schoolTab === "フリマ" && renderFreemarketcontent()}
           {schoolTab === "履修" && renderCurriculumContent()}
         </View>
       </View>
     );
   };
+
+
+  const renderFreemarketcontent = () => {
+    return (
+      <View style={styles.commonContent}>
+        <View style={styles.commonTabsContainer}>
+          <TouchableOpacity
+            style={[styles.commonTab, curriculumTab === "出品中" && styles.activeTab]}
+            onPress={() => setCurriculumTab("出品中")}
+          >
+            <Text style={styles.tabText}>出品中</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.commonTab, curriculumTab === "取引中" && styles.activeTab]}
+            onPress={() => setCurriculumTab("取引中")}
+          >
+            <Text style={styles.tabText}>取引中</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.commonContent}>
+          {curriculumTab === "出品中" && <FreemarketHome navigation={navigation} />}
+          {curriculumTab === "取引中" && <LunchSearch navigation={navigation} />}
+        </View>
+      </View>
+    );
+  };
+
+        
+
+
+  const renderLunchcontent = () => {
+    return (
+      <View style={styles.commonContent}>
+        <View style={styles.commonTabsContainer}>
+          <TouchableOpacity
+            style={[styles.commonTab, curriculumTab === "レビュー投稿/ホーム" && styles.activeTab]}
+            onPress={() => setCurriculumTab("レビュー投稿/ホーム")}
+
+          >
+            <Text style={styles.tabText}>レビュー投稿/ホーム</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.commonTab, curriculumTab === "レビュー検索" && styles.activeTab]}
+            onPress={() => setCurriculumTab("レビュー検索")}
+          >
+            <Text style={styles.tabText}>レビュー検索</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.commonContent}>
+          {curriculumTab === "レビュー投稿/ホーム" &&<LunchHome navigation={navigation} />}
+
+          {curriculumTab === "レビュー検索" && <LunchSearch navigation={navigation} />}
+        </View>
+      </View>
+    );
+  };
+  
+          
   
 const renderEventContent = () => {
     return (
       <View style={styles.commonContent}> 
         <View style={styles.commonTabsContainer}>
           <TouchableOpacity
-            style={[styles.commonTab, eventTab === "イベント" && styles.activeTab]}
-            onPress={() => setEventTab("イベント")}
+            style={[styles.commonTab, eventTab === "イベント" && styles.activeTab] }
+            onPress={() => setEventTab("イベント") }
           >
+            
             <Text style={styles.tabText}>イベント</Text>
           </TouchableOpacity>
+
           <TouchableOpacity
             style={[styles.commonTab, eventTab === "イベント検索" && styles.activeTab]}
             onPress={() => setEventTab("イベント検索")}
@@ -187,8 +253,8 @@ const renderEventContent = () => {
           </TouchableOpacity>
         </View>
         <View style={styles.commonContent}>
-          {eventTab === "イベント" && <Text>イベント</Text>}
-          {eventTab === "団体募集" && <Text>団体募集</Text>}
+          {eventTab === "イベント" && <Colum navigation={navigation} />}
+          {eventTab === "イベント検索" &&<ColumSearch navigation={navigation} />}
         </View>
       </View>
     );

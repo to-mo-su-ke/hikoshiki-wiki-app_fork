@@ -138,7 +138,7 @@ const UserInfoScreen = ({ navigation }) => {
         <TouchableOpacity style={styles.menuItem}>
           <Text style={styles.menuText}>部活/サークル/団体登録申請</Text>
         </TouchableOpacity>
-        {role === 'clubCircleManager' && (
+        {role === 'superAdministrator' && (
           <TouchableOpacity
             style={styles.menuItem}
             onPress={() => navigation.navigate('Administnotification')}
@@ -146,6 +146,20 @@ const UserInfoScreen = ({ navigation }) => {
             <Text style={styles.menuText}>お知らせ管理</Text>
           </TouchableOpacity>
         )}
+
+        {(role === 'superAdministrator'|| role === 'columnContributor') && (
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => navigation.navigate('ColumAdminist')}
+          >
+            <Text style={styles.menuText}>コラム管理</Text>
+          </TouchableOpacity>
+        )}
+
+
+
+         
+
         <TouchableOpacity
           style={styles.menuItem}
           onPress={() => navigation.navigate('Userinfoedit')} // ユーザー情報編集画面に遷移
@@ -155,7 +169,10 @@ const UserInfoScreen = ({ navigation }) => {
         <TouchableOpacity style={styles.menuItem}>
           <Text style={styles.menuText}>募集中の団体</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity style={styles.menuItem}
+          onPress={() => navigation.navigate('FreemarketInput')} // フリーマーケット商品登録画面に遷移
+        
+        >
           <Text style={styles.menuText}>フリマ</Text>
         </TouchableOpacity>
         <TouchableOpacity 
