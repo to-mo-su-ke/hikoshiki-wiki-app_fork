@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, Image } from "react-native";
 import { doc, getDoc } from "firebase/firestore";
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
-import { db } from "../../006Configs/firebaseConfig2";
+import { db } from "../../../006Configs/firebaseConfig";
 
 const SearchDetail = ({ route }) => {
   const { eventId } = route.params;

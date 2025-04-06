@@ -1,14 +1,14 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StyleSheet } from 'react-native';
-import Classsearch from '../007Pages/01homeScreenPages/02-1club/Clubsearch';
+import Classsearch from '../007Pages/01homeScreenPages/06userhome/Class/Classsearch';
 import Clubsearch from '../007Pages/01homeScreenPages/02-1club/Clubsearch';
 import clubmake from '../007Pages/01homeScreenPages/02-1club/clubmake';
 import ClubConfirmSubmit from '../007Pages/01homeScreenPages/02-1club/clubmake2';
 import ClubMakeEdit from '../007Pages/01homeScreenPages/02-1club/clubmake_edit';
 import Clubdetail from '../007Pages/01homeScreenPages/02-1club/Clubdetail';
 import EditAndResubmit from '../007Pages/01homeScreenPages/02-1club/clubhen';
-import ShinkanTab from '../007Pages/clubEvevntPages/ShinkanTab';
+import ShinkanTab from '../007Pages/01homeScreenPages/02-2clubEvevnt/ShinkanTab';
 
 const Stack = createStackNavigator();
 

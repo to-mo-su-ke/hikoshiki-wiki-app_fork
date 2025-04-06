@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import UserInfo from '../../007Pages/userhome/Userinfo';
-import ClubInfo from '../../007Pages/userhome/Cubinfo';
-import ShinkanInfo from '../../007Pages/userhome/Shinkaninfo';
+import UserInfo from '../../007Pages/01homeScreenPages/06userhome/Userinfo';
+import ClubInfo from '../../007Pages/01homeScreenPages/06userhome/Cubinfo';
+import ShinkanInfo from '../../007Pages/01homeScreenPages/06userhome/Shinkaninfo';
 import { tabStyles } from '../../002Styles/homescreenstyles';
 
 const SelfTab = ({ navigation }) => {

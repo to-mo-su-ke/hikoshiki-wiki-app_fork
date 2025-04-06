@@ -55,8 +55,12 @@ export default function LoginOrSignupScreen() {
         routes: [{ name: "HomeNavigator" }],
       })
     } catch (error: unknown) {
-      const err = error as { message: string };
-      if (err.message === "alert-displayed-error") {
+      const err = error as { code?: string; message: string };
+      if (err.code === "auth/invalid-email" || err.code === "auth/user-not-found") {
+        Alert.alert("ログインエラー", "メールアドレスが間違っています");
+      } else if (err.code === "auth/wrong-password") {
+        Alert.alert("ログインエラー", "パスワードが間違っています");
+      } else if (err.message === "alert-displayed-error") {
         return;
       } else {
         Alert.alert("ログインエラー", err.message);

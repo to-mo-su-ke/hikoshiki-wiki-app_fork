@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Alert } from 'react-native';
 import { getAuth } from 'firebase/auth';
 import { doc, getDoc , collection, query, getDocs, updateDoc } from 'firebase/firestore';
-import { db } from '../../006Configs/firebaseConfig2';
-import { doSignOut } from '../../004BackendModules/loginMethod/signOut';
+import { db } from '../../../006Configs/firebaseConfig';
+import { doSignOut } from '../../../004BackendModules/loginMethod/signOut';
 
 const UserInfoScreen = ({ navigation }) => {
   const [userName, setUserName] = useState(''); // ユーザー名

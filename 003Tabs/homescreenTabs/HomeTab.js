@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
-import TimeTable from "../../007Pages/timetableCreatePages/TimeTable";
-import TimeTableView from "../../007Pages/timetableCreatePages/TimeTableView";
+// 修正：インポートパスを正しいディレクトリに更新
+import TimeTable from "../../007Pages/01homeScreenPages/timetableCreatePages/TimeTable";
+import TimeTableView from "../../007Pages/01homeScreenPages/timetableCreatePages/TimeTableView";
 import { homeTabStyles } from "../../002Styles/homescreenstyles";
 
 const HomeTab = ({ navigation }) => {

@@ -15,7 +15,7 @@ import {
   arrayRemove,
   doc,
 } from "firebase/firestore";
-import { db } from "../../006Configs/firebaseConfig2";
+import { db } from "../../../006Configs/firebaseConfig";
 
 const ShinkanConfirmForUser = ({ route, navigation }) => {
   const { Id } = route.params || {}; // route.params から Id を取得

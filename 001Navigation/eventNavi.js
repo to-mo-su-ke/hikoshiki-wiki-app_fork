@@ -1,9 +1,9 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import EventSearch from "../007Pages/clubEvevntPages/Search";
-import EventRegist from "../007Pages/clubEvevntPages/EventRegist";
-import SearchDetail from "../007Pages/clubEvevntPages/Searchdetail";
-import ShinkanConfirm from "../007Pages/clubEvevntPages/ShinkanConfirm";
+import EventSearch from "../007Pages/01homeScreenPages/02-2clubEvevnt/Search";
+import EventRegist from "../007Pages/01homeScreenPages/02-2clubEvevnt/EventRegist";
+import SearchDetail from "../007Pages/01homeScreenPages/02-2clubEvevnt/Searchdetail";
+import ShinkanConfirm from "../007Pages/01homeScreenPages/02-2clubEvevnt/ShinkanConfirm";
 
 const Stack = createStackNavigator();
 

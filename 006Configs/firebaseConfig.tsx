@@ -8,7 +8,7 @@ import 'firebase/auth';
 import 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyABT5pEPk4QpsxElFk3E1IElr4Y3ICuYYs",
+  apiKey: "AIzaSyDBUTuJaOcEdQvT2jAaoEdZV52IPQDKqH4",
   authDomain: "unofficialwikigroup4.firebaseapp.com",
   databaseURL: "https://unofficialwikigroup4-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "unofficialwikigroup4",

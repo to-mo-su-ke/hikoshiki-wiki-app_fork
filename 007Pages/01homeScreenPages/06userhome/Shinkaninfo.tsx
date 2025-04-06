@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { getAuth } from "firebase/auth";
 import { collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "../../006Configs/firebaseConfig2";
+import { db } from "../../../006Configs/firebaseConfig";
 
 const ShinkanInfo = ({ navigation }) => {
   const [events, setEvents] = useState([]);

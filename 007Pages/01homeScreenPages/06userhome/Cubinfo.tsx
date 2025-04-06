@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { getAuth } from 'firebase/auth';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../../006Configs/firebaseConfig2';
+import { db } from '../../../006Configs/firebaseConfig';
 
 const ClubInfo = ({ navigation }) => {
   const [clubs, setClubs] = useState([]);

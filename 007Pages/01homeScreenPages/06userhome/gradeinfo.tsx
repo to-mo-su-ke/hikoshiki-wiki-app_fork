@@ -15,7 +15,7 @@ import {
 import { Dropdown } from "react-native-paper-dropdown";
 import { getAuth } from "firebase/auth";
 import { doc, updateDoc } from "firebase/firestore";
-import { db } from "../../006Configs/firebaseConfig2";
+import { db } from "../../../006Configs/firebaseConfig";
 
 const GradeInfo = (navigation) => {
   const [selectedDepartment, setSelectedDepartment] = useState(""); // 初期値を空文字列に設定

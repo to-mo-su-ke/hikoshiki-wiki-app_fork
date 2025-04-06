@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "../../006Configs/firebaseConfig2";
+import { db } from "../../../006Configs/firebaseConfig";
 import { Calendar } from "react-native-calendars";
 import { useNavigation } from "@react-navigation/native";
 import type { StackNavigationProp } from "@react-navigation/stack";

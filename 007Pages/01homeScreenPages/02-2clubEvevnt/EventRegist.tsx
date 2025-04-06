@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { getAuth } from "firebase/auth";
 import { collection, addDoc } from "firebase/firestore";
-import { db, storage } from "../../006Configs/firebaseConfig2";
+import { db, storage } from "../../../006Configs/firebaseConfig";
 import { ref, uploadBytes } from "firebase/storage";
 import { Calendar } from "react-native-calendars";
 import * as ImagePicker from "expo-image-picker";

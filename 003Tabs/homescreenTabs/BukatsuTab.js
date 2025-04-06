@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import ClubSearch from '../../007Pages/01homeScreenPages/02-1club/Clubsearch';
-import EventSearch from '../../007Pages/clubEvevntPages/Search';
+// 修正: フォルダ名をclubEventPagesに変更
+import EventSearch from '../../007Pages/01homeScreenPages/02-2clubEvevnt/Search';
 import { tabStyles, bukatsuTabStyles } from '../../002Styles/homescreenstyles';
 
 const BukatsuTab = ({ navigation }) => {

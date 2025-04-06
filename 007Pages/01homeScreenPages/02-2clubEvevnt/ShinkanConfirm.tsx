@@ -4,7 +4,7 @@ import { View, Text, StyleSheet, ScrollView,  TextInput,
     TouchableOpacity,
     Alert,} from "react-native";
 import { doc, getDoc,updateDoc } from "firebase/firestore";
-import { db } from "../../006Configs/firebaseConfig2";
+import { db } from "../../../006Configs/firebaseConfig";
 
 const ShinkanConfirm = ({ route, navigation }) => {
   const { docId } = route.params; // ShinkanInfo から渡されたドキュメント ID
