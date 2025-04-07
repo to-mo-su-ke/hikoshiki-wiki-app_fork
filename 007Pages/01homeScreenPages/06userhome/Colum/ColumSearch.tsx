@@ -1,10 +1,20 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Linking } from "react-native";
-import { db } from "../../../006Configs/firebaseConfig2";
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  Linking,
+} from "react-native";
+import { db } from "../../../../004BackendModules/firebaseMetod/firebase";
 import { collection, getDocs } from "firebase/firestore";
 
-const Colum = () => {
-  const [columns, setColumns] = useState([]);
+const ColumSearch = () => {
+  const [columns, setColumns] = useState([]); // 全コラムデータ
+  const [filteredColumns, setFilteredColumns] = useState([]); // フィルタリングされたコラムデータ
+  const [searchKeyword, setSearchKeyword] = useState(""); // 検索キーワード
 
   useEffect(() => {
     const fetchColumns = async () => {
@@ -23,6 +33,7 @@ const Colum = () => {
         });
 
         setColumns(fetchedColumns);
+        setFilteredColumns(fetchedColumns); // 初期状態では全データを表示
       } catch (error) {
         console.error("コラムの取得中にエラーが発生しました:", error);
       }
@@ -30,6 +41,18 @@ const Colum = () => {
 
     fetchColumns();
   }, []);
+
+  const handleSearch = (keyword) => {
+    setSearchKeyword(keyword);
+    if (keyword.trim() === "") {
+      setFilteredColumns(columns); // キーワードが空の場合は全データを表示
+    } else {
+      const filtered = columns.filter((column) =>
+        column.title.toLowerCase().includes(keyword.toLowerCase())
+      );
+      setFilteredColumns(filtered);
+    }
+  };
 
   const renderColumnItem = ({ item }) => (
     <View style={styles.columnItem}>
@@ -42,9 +65,15 @@ const Colum = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>コラム一覧</Text>
+      <Text style={styles.header}>コラム検索</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="キーワードを入力"
+        value={searchKeyword}
+        onChangeText={handleSearch}
+      />
       <FlatList
-        data={columns}
+        data={filteredColumns}
         renderItem={renderColumnItem}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
@@ -65,6 +94,15 @@ const styles = StyleSheet.create({
     color: "#1e3a8a",
     marginBottom: 16,
     textAlign: "center",
+  },
+  input: {
+    height: 48,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    marginBottom: 16,
+    backgroundColor: "#fff",
   },
   listContent: {
     paddingBottom: 16,
@@ -95,4 +133,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Colum;
+export default ColumSearch;

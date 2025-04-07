@@ -3,11 +3,11 @@ import { View, Text, TouchableOpacity, Image } from "react-native";
 import { getAuth } from 'firebase/auth';
 import { db } from '../../006Configs/firebaseConfig2'; // firebaseConfig2を使用
 import { doc, getDoc, collection, query, getDocs, updateDoc } from 'firebase/firestore'; // updateDocを追加
-import Colum from "./005event/Colum";
-import ColumSearch from "./005event/ColumSearch";
+import Colum from "../01homeScreenPages/06userhome/Colum/Colum";
+import ColumSearch from "../01homeScreenPages/06userhome/Colum/ColumSearch";
 import LunchHome from "../01homeScreenPages/06userhome/inputpages/lunchhome";
 import LunchSearch from "../01homeScreenPages/06userhome/inputpages/lunchsearch";
-import FreemarketHome from "./003school/Freemarkethome";
+import FreemarketHome from "../01homeScreenPages/06userhome/FreeMarket/Freemarkethome";
 
 const HomeScreen = ({ navigation }) => {
   const [mainTab, setMainTab] = useState("家");

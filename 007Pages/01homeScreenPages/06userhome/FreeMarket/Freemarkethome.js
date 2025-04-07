@@ -9,15 +9,18 @@ import {
   Image,
   Alert,
 } from "react-native";
-import { db } from "../../../004BackendModules/firebaseMetod/firebase"; // Firebaseの初期化
+import { db } from "../../../../004BackendModules/firebaseMetod/firebase"; // Firebaseの初期化
 import { collection, getDocs, query, where } from "firebase/firestore";
+import { useNavigation } from "@react-navigation/native"; // ナビゲーションを追加
 
 const FreemarketHome = () => {
   const [searchKeyword, setSearchKeyword] = useState(""); // 検索キーワード
-  const [searchResults, setSearchResults] = useState([]); // 検索結果
+  const [searchResults, setSearchResults] = useState([]); // 検索結果を管理する状態を追加
+ 
+  const navigation = useNavigation(); // ナビゲーションフック
 
   const handleSearch = async () => {
-    if (!searchKeyword.trim()) {
+    if (!searchKeyword || !searchKeyword.trim()) { // 空文字やundefinedをチェック
       Alert.alert("エラー", "検索キーワードを入力してください。");
       return;
     }
@@ -31,26 +34,35 @@ const FreemarketHome = () => {
       );
       const snapshot = await getDocs(q);
 
-      const results = snapshot.docs.map((doc) => doc.data());
-      setSearchResults(results);
+      const results = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setSearchResults(results); // 検索結果を状態に保存
     } catch (error) {
       console.error("検索中にエラーが発生しました:", error);
       Alert.alert("エラー", "検索に失敗しました。");
     }
   };
 
+  
+
   const renderSearchResultItem = ({ item }) => (
-    <View style={styles.resultItem}>
-      <Text style={styles.resultItemName}>{item.itemName}</Text>
-      {item.images && item.images.length > 0 && (
-        <Image source={{ uri: item.images[0] }} style={styles.resultItemImage} />
-      )}
-    </View>
+    <TouchableOpacity onPress={() => navigation.navigate("FreeMarketDetail", { MarketId: item.id })}>
+      <View style={styles.resultItem}>
+        <Text style={styles.resultItemName}>{item.itemName}</Text>
+        <Text>価格: {item.cost}円</Text>
+        {item.images && item.images.length > 0 && (
+          <Image source={{ uri: item.images[0] }} style={styles.resultItemImage} />
+        )}
+      </View>
+    </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
       <Text style={styles.header}>フリーマーケット検索</Text>
+     
 
       {/* 検索入力 */}
       <TextInput

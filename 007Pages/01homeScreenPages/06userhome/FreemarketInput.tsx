@@ -10,13 +10,16 @@ import {
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { db } from "../../../004BackendModules/firebaseMetod/firebase"; 
-import { collection, addDoc, Timestamp } from "firebase/firestore";
+import { collection, addDoc, Timestamp, doc, setDoc } from "firebase/firestore";
 
 const FreemarketInput = () => {
   const [itemName, setItemName] = useState(""); // 商品名
   const [itemDescription, setItemDescription] = useState(""); // 商品の説明
   const [images, setImages] = useState([]); // 写真
   const [itemCondition, setItemCondition] = useState(""); // 商品の状態
+  const [cost, setCost] = useState(""); // 価格
+  const [receivestate, setreceivestate] = useState(""); // 受け取り状態
+  const buystate=false;
 
   const conditions = [
     "未使用",
@@ -25,6 +28,12 @@ const FreemarketInput = () => {
     "やや汚れ傷あり",
     "全体的に状態が悪い",
   ];
+
+  const receive=[
+
+    "郵送",
+    "対面手渡し",
+  ]
 
   const handleImagePick = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -50,12 +59,16 @@ const FreemarketInput = () => {
 
     try {
       const freemarketCollection = collection(db, "freemarketItems");
-      await addDoc(freemarketCollection, {
+      const newDocRef = doc(freemarketCollection); // ドキュメント参照を作成
+      await setDoc(newDocRef, {
         itemName,
         itemDescription,
         images,
         itemCondition,
         createdAt: Timestamp.now(),
+        cost,
+        receivestate,
+        buystate,
       });
 
       Alert.alert("成功", "商品を登録しました！");
@@ -79,6 +92,15 @@ const FreemarketInput = () => {
         placeholder="商品名を入力"
         value={itemName}
         onChangeText={setItemName}
+      />
+
+      {/* 価格 */}
+      <TextInput
+        style={styles.input}
+        placeholder="価格を入力"
+        value={cost}
+        onChangeText={setCost}
+        keyboardType="numeric"
       />
 
       {/* 商品の説明 */}
@@ -123,6 +145,34 @@ const FreemarketInput = () => {
           </TouchableOpacity>
         ))}
       </View>
+
+      {/* 受け取り状態 */}
+      <Text style={styles.label}>受け取り</Text>
+      <View style={styles.conditionContainer}>
+        {receive.map((condition) => (
+          <TouchableOpacity
+            key={condition}
+            style={[
+              styles.conditionButton,
+              receivestate === condition && styles.activeConditionButton,
+            ]}
+            onPress={() => setreceivestate(condition)}
+          >
+            <Text
+              style={[
+                styles.conditionButtonText,
+                receivestate === condition && styles.activeConditionButtonText,
+              ]}
+            >
+              {condition}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+      <Text style={styles.label}>注意</Text>
+      
+      <Text style={styles.label}>金銭のやり取りについてのトラブルはこちらでは一切責任を負いません。</Text>
+      <Text style={styles.label}>ご承知のうえ、取引をお願いいたします。</Text>
 
       {/* 登録ボタン */}
       <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>

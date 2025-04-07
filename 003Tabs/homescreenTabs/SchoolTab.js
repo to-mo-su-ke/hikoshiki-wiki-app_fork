@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import CurriculumTab from './CurriculumTab';
 import LunchTab from '../LunchTab';
+import FreemarketHome from '../../007Pages/01homeScreenPages/06userhome/FreeMarket/Freemarkethome';
 import { tabStyles } from '../../002Styles/homescreenstyles';
 
 const SchoolTab = ({ navigation }) => {
@@ -31,7 +32,7 @@ const SchoolTab = ({ navigation }) => {
       </View>
       <View style={tabStyles.content}>
         {schoolTab === "学食" && <LunchTab navigation={navigation} />}
-        {schoolTab === "フリマ" && <Text>フリマの内容</Text>}
+        {schoolTab === "フリマ" && <FreemarketHome navigation={navigation} />}
         {schoolTab === "履修" && <CurriculumTab navigation={navigation} />}
       </View>
     </View>

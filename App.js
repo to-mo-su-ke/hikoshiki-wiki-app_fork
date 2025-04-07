@@ -40,6 +40,9 @@ import SearchDetail from "./007Pages/01homeScreenPages/02-2clubEvevnt/Searchdeta
 import Administnotification from "./007Pages/0Anotification/Administnotification";
 import ColumAdminist from "./007Pages/01homeScreenPages/06userhome/ColumAdminist";
 import FreemarketInput from "./007Pages/01homeScreenPages/06userhome/FreemarketInput";
+import Colum from "./007Pages/01homeScreenPages/06userhome/Colum/Colum";
+import ColumSearch from "./007Pages/01homeScreenPages/06userhome/Colum/ColumSearch";
+import FreeMarketDetail from "./007Pages/01homeScreenPages/06userhome/FreeMarket/FreeMarketDetail";
 
 const Stack = createStackNavigator();
 
@@ -90,8 +93,11 @@ const App = () => {
             <Stack.Screen name="CourseDetailView" component={CourseDetailView} />
             <Stack.Screen name="Administnotification" component={Administnotification} />
             <Stack.Screen name="ColumAdminist" component={ColumAdminist} />
+            <Stack.Screen name="Colum" component={Colum} />
+            <Stack.Screen name="ColumSearch" component={ColumSearch} />
 
             <Stack.Screen name="FreemarketInput" component={FreemarketInput} />
+            <Stack.Screen name="FreeMarketDetail" component={FreeMarketDetail} />
             
           </Stack.Navigator>
         </NavigationContainer>
