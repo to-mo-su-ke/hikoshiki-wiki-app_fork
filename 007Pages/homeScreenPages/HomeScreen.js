@@ -1,48 +1,24 @@
-import React, { useState,useEffect } from "react";
-import { View, Text, Button, TouchableOpacity, StyleSheet, Image } from "react-native";
-import TimeTable from "../timetableCreatePages/TimeTable"; 
-import TimeTableView from "../timetableCreatePages/TimeTableView";
-import UserInfo from "../userhome/Userinfo";
-import ClubSearch from "./002club/Clubsearch";
-import ClubDetail from "./002club/Clubdetail";
-import ClubInfo from "../userhome/Cubinfo";
-import ShinkanInfo from "../userhome/Shinkaninfo";
-import EventSearch from "../clubEvevntPages/Search"; // EventSearchをインポート
-import Classsearch from "./Class/Classsearch";
-import ClassReviewAdd from "./Class/Classrreviewadd";
-import { NotificationServiceImpl,NotificationService,Notification } from "../notification/notificationService";
+import React, { useState, useEffect } from "react";
+import { View, Text, TouchableOpacity, Image } from "react-native";
 import { getAuth } from 'firebase/auth';
-import { db } from '../../006Configs/firebaseConfig2'; // firebaseConfig2を使用
-import { doc, getDoc, collection, query, getDocs, updateDoc } from 'firebase/firestore'; // updateDocを追加
+import { db } from '../../006Configs/firebaseConfig';
+import { collection, query, getDocs } from 'firebase/firestore';
+import { homeScreenStyles } from '../../002Styles/homescreenstyles';
 
+// タブコンポーネントのインポート
+import HomeTab from "../../003Tabs/homescreenTabs/HomeTab";
+import BukatsuTab from "../../003Tabs/homescreenTabs/BukatsuTab";
+import SchoolTab from "../../003Tabs/homescreenTabs/SchoolTab";
+import SelfTab from "../../003Tabs/homescreenTabs/SelfTab";
+import EventTab from "../../003Tabs/homescreenTabs/EventTab";
+import MapTab from "../../003Tabs/homescreenTabs/MapTab";
 
 const HomeScreen = ({ navigation }) => {
   const [mainTab, setMainTab] = useState("家");
-  const [bukatsuTab, setBukatsuTab] = useState("部活動");
-  const [schoolTab, setSchoolTab] = useState("学食");
-  const [curriculumTab, setCurriculumTab] = useState("授業検索");
-  const [selfTab, setSelfTab] = useState("ユーザー");
-  const [eventTab, setEventTab] = useState("イベント");
-  const [isVerticalTabOpen, setIsVerticalTabOpen] = useState(false);
-  const [showTimeTable, setShowTimeTable] = useState(true);
-  const [showUserInfo, setShowUserInfo] = useState(true);
-  const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false); // 未読通知の有無
+  const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
   const auth = getAuth();
   const currentUser = auth.currentUser;
 
-  
-
-  const toggleVerticalTab = () => {
-    setIsVerticalTabOpen((prev) => !prev);
-  };
-
-  const renderTest1Content = () => {
-    return (
-      <View style={styles.contentContainer}>
-        <Text>テスト用の内容</Text>
-      </View>
-    );
-  };
   useEffect(() => {
     const fetchNotifications = async () => {
       if (!currentUser) {
@@ -58,7 +34,7 @@ const HomeScreen = ({ navigation }) => {
         const uid = currentUser.uid;
         const hasUnread = notificationSnapshot.docs.some((doc) => {
           const data = doc.data();
-          return !data.readBy?.includes(uid); // 未読通知があるか確認
+          return !data.readBy?.includes(uid);
         });
 
         setHasUnreadNotifications(hasUnread);
@@ -70,419 +46,111 @@ const HomeScreen = ({ navigation }) => {
     fetchNotifications();
   }, [currentUser]);
 
-
-
-  const renderBukatsuContent = () => {
-    return (
-      <View style={styles.bukatsuContentContainer}>
-        <View style={styles.commonTabsContainer}>
-          <TouchableOpacity
-            style={[styles.commonTab, bukatsuTab === "部活動" && styles.activeTab]}
-            onPress={() => setBukatsuTab("部活動")}
-          >
-            <Text style={styles.tabText}>部活動</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.commonTab, bukatsuTab === "新歓" && styles.activeTab]}
-            onPress={() => setBukatsuTab("新歓")}
-          >
-            <Text style={styles.tabText}>新歓</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.bukatsuTabContent}>
-          {bukatsuTab === "部活動" && <ClubSearch navigation={navigation} />}
-          {bukatsuTab === "新歓" && (
-            <View style={styles.shinkanContainer}>
-              <View style={styles.shinkanHeader}>
-                <Text style={styles.shinkanTitle}>新歓イベント</Text>
-                <TouchableOpacity 
-                  style={styles.createEventButton}
-                  onPress={() => navigation.navigate("EventRegist")}
-                >
-                  <Text style={styles.createEventButtonText}>新歓を登録</Text>
-                </TouchableOpacity>
-              </View>
-              <EventSearch navigation={navigation} />
-            </View>
-          )}
-        </View>
-      </View>
-    );
-  };
-  
-  const renderCurriculumContent = () => {
-    return (
-      <View style={styles.commonContent}>
-        <View style={styles.commonTabsContainer}>
-          <TouchableOpacity
-            style={[styles.commonTab, curriculumTab === "授業検索" && styles.activeTab]}
-            onPress={() => setCurriculumTab("授業検索")}
-
-          >
-            <Text style={styles.tabText}>授業検索</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.commonTab, curriculumTab === "レビュー投稿" && styles.activeTab]}
-            onPress={() => setCurriculumTab("レビュー投稿")}
-          >
-            <Text style={styles.tabText}>レビュー投稿</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.commonContent}>
-          {curriculumTab === "授業検索" &&<Classsearch navigation={navigation} />}
-
-          {curriculumTab === "レビュー投稿" && <ClassReviewAdd navigation={navigation} />}
-        </View>
-      </View>
-    );
-  };
-  
-  const renderSchoolContent = () => {
-    return (
-      <View style={styles.commonContent}>
-        <View style={styles.commonTabsContainer}>
-          <TouchableOpacity
-            style={[styles.commonTab, schoolTab === "学食" && styles.activeTab]}
-            onPress={() => setSchoolTab("学食")}
-          >
-            <Text style={styles.tabText}>学食</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.commonTab, schoolTab === "フリマ" && styles.activeTab]}
-            onPress={() => setSchoolTab("フリマ")}
-          >
-            <Text style={styles.tabText}>フリマ</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.commonTab, schoolTab === "履修" && styles.activeTab]}
-            onPress={() => setSchoolTab("履修")}
-          >
-            <Text style={styles.tabText}>履修</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.commonContent}>
-          {schoolTab === "学食" && <Text>学食の内容</Text>}
-          {schoolTab === "フリマ" && <Text>フリマの内容</Text>}
-          {schoolTab === "履修" && renderCurriculumContent()}
-        </View>
-      </View>
-    );
-  };
-  
-const renderEventContent = () => {
-    return (
-      <View style={styles.commonContent}> 
-        <View style={styles.commonTabsContainer}>
-          <TouchableOpacity
-            style={[styles.commonTab, eventTab === "イベント" && styles.activeTab]}
-            onPress={() => setEventTab("イベント")}
-          >
-            <Text style={styles.tabText}>イベント</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.commonTab, eventTab === "イベント検索" && styles.activeTab]}
-            onPress={() => setEventTab("イベント検索")}
-          >
-            <Text style={styles.tabText}>イベント検索</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.commonContent}>
-          {eventTab === "イベント" && <Text>イベント</Text>}
-          {eventTab === "団体募集" && <Text>団体募集</Text>}
-        </View>
-      </View>
-    );
-  };
-
-  const renderSelfContent = () => {
-    return (
-      <View style={styles.commonContent}>
-        <View style={styles.commonTabsContainer}>
-          <TouchableOpacity
-            style={[styles.commonTab, selfTab === "ユーザー" && styles.activeTab]}
-            onPress={() => setSelfTab("ユーザー")}
-          >
-            <Text style={styles.tabText}>ユーザー</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.commonTab, selfTab === "部活・サークル" && styles.activeTab]}
-            onPress={() => setSelfTab("部活・サークル")}
-          >
-            <Text style={styles.tabText}>部活・サークル</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.commonTab, selfTab === "新歓" && styles.activeTab]}
-            onPress={() => setSelfTab("新歓")}
-          >
-            <Text style={styles.tabText}>新歓</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.commonContent}>
-          {selfTab === "ユーザー" ? (
-            <UserInfo navigation={navigation} />
-          ) : selfTab === "部活・サークル" ? (
-            <ClubInfo navigation={navigation} />
-          ) : selfTab === "新歓" ? (
-            <ShinkanInfo navigation={navigation} />
-          ) : (
-            <Text>遷移してない</Text>
-          )}
-        </View>
-      </View>
-    );
+  // 各タブを直接コンポーネントとして使用するように変更
+  const renderMainContent = () => {
+    switch (mainTab) {
+      case "家":
+        return <HomeTab navigation={navigation} />;
+      case "学内":
+        return <SchoolTab navigation={navigation} />;
+      case "部活":
+        return <BukatsuTab navigation={navigation} />;
+      case "自":
+        return <SelfTab navigation={navigation} />;
+      case "イベ":
+        return <EventTab navigation={navigation} />;
+      case "地図":
+        return <MapTab navigation={navigation} />;
+      default:
+        return <Text>コンテンツがありません</Text>;
+    }
   };
 
   return (
-    <View style={styles.container}>
-      {/* メインタブのコンテンツ */}
-      {mainTab === "家" ? (
-        <View style={styles.homeContentContainer}>
-          <TouchableOpacity
-            style={styles.notificationButton}
-            onPress={() => navigation.navigate("NotificationPage")}
-          >
-           <Image
-              style={styles.mainTabImage}
-              source={
-                hasUnreadNotifications
-                  ? require("../../008picture/Notifications_with_dot.png") // 未読通知がある場合
-                  : require("../../008picture/Notifications.png") // 未読通知がない場合
-              }
-            />
-          </TouchableOpacity>
+    <View style={homeScreenStyles.container}>
+      {/* 通知ボタン - 全てのタブで表示 */}
+      <TouchableOpacity
+        style={homeScreenStyles.notificationButton}
+        onPress={() => navigation.navigate("NotificationPage")}
+      >
+        <Image
+          style={homeScreenStyles.mainTabImage}
+          source={
+            hasUnreadNotifications
+              ? require("../../008picture/Notifications_with_dot.png") 
+              : require("../../008picture/Notifications.png")
+          }
+        />
+      </TouchableOpacity>
 
-          {/* 表示切替用のボタン */}
-          <TouchableOpacity
-            onPress={() => setShowTimeTable(!showTimeTable)}
-            style={styles.bottun}
-          >
-            <Text style={styles.toggleButtonText}>
-              {showTimeTable ? "タイムテーブル編集" : "タイムテーブルビュー表示"}
-            </Text>
-          </TouchableOpacity>
-
-          {showTimeTable ? (
-            <TimeTable navigation={navigation} />
-          ) : (
-            <TimeTableView navigation={navigation} />
-          )}
-        </View>
-      ) : mainTab === "学内" ? (
-        renderSchoolContent()
-      ) : mainTab === "部活" ? (
-        renderBukatsuContent()
-      ) : mainTab === "自" ? (
-        renderSelfContent()
-      ) : mainTab === "イベ" ? (
-        renderEventContent()
-      ) : (
-        <Text>地図の内容</Text>
-      )}
+      {/* タブコンテンツ */}
+      {renderMainContent()}
         
-
-      {/* 画面下部の水平タブ */}
-      <View style={styles.mainTabsContainer}>
+      {/* メインタブナビゲーション */}
+      <View style={homeScreenStyles.mainTabsContainer}>
         <TouchableOpacity
-          style={[styles.mainTab, mainTab === "家" && styles.activeTab]}
+          style={[homeScreenStyles.mainTab, mainTab === "家" && homeScreenStyles.activeTab]}
           onPress={() => setMainTab("家")}
         >
           <Image
-            style={styles.mainTabImage}
+            style={homeScreenStyles.mainTabImage}
             source={require("../../008picture/home.png")}
           />
-          <Text style={styles.tabText}>家</Text>
+          <Text style={homeScreenStyles.tabText}>家</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.mainTab, mainTab === "部活" && styles.activeTab]}
+          style={[homeScreenStyles.mainTab, mainTab === "部活" && homeScreenStyles.activeTab]}
           onPress={() => setMainTab("部活")}
         >
           <Image
-            style={styles.mainTabImage}
+            style={homeScreenStyles.mainTabImage}
             source={require("../../008picture/run.png")}
           />
-          <Text style={styles.tabText}>部活</Text>
+          <Text style={homeScreenStyles.tabText}>部活</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.mainTab, mainTab === "学内" && styles.activeTab]}
+          style={[homeScreenStyles.mainTab, mainTab === "学内" && homeScreenStyles.activeTab]}
           onPress={() => setMainTab("学内")}
         >
           <Image
-            style={styles.mainTabImage}
+            style={homeScreenStyles.mainTabImage}
             source={require("../../008picture/building.png")}
           />
-          <Text style={styles.tabText}>学内</Text>
+          <Text style={homeScreenStyles.tabText}>学内</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.mainTab, mainTab === "地図" && styles.activeTab]}
+          style={[homeScreenStyles.mainTab, mainTab === "地図" && homeScreenStyles.activeTab]}
           onPress={() => setMainTab("地図")}
         >
           <Image
-            style={styles.mainTabImage}
+            style={homeScreenStyles.mainTabImage}
             source={require("../../008picture/map.png")}
           />
-          <Text style={styles.tabText}>地図</Text>
+          <Text style={homeScreenStyles.tabText}>地図</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.mainTab, mainTab === "イベ" && styles.activeTab]}
+          style={[homeScreenStyles.mainTab, mainTab === "イベ" && homeScreenStyles.activeTab]}
           onPress={() => setMainTab("イベ")}
         >
           <Image
-            style={styles.mainTabImage}
+            style={homeScreenStyles.mainTabImage}
             source={require("../../008picture/event.png")}
           />
-          <Text style={styles.tabText}>イベ</Text>
+          <Text style={homeScreenStyles.tabText}>イベ</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.mainTab, mainTab === "自" && styles.activeTab]}
+          style={[homeScreenStyles.mainTab, mainTab === "自" && homeScreenStyles.activeTab]}
           onPress={() => setMainTab("自")}
         >
           <Image
-            style={styles.mainTabImage}
+            style={homeScreenStyles.mainTabImage}
             source={require("../../008picture/account.png")}
           />
-          <Text style={styles.tabText}>自</Text>
+          <Text style={homeScreenStyles.tabText}>自</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingTop: 20,
-  },
-  homeContentContainer: {
-    flex: 1,
-    width: "100%",
-    justifyContent: "center",
-    alignItems: "center",
-    position: "relative",
-    paddingTop: 60,
-  },
-  notificationButton: {
-    position: "absolute",
-    top: 10,
-    right: 10,
-    padding: 10,
-    backgroundColor: "#ddd",
-    borderRadius: 5,
-    zIndex: 100,
-  },
-  contentContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  mainTabsContainer: {
-    flexDirection: "row",
-    backgroundColor: "#000",
-    justifyContent: "space-around",
-    gap: 3,
-    paddingVertical: 0, // 修正
-  },
-  mainTab: {
-    flex: 1,
-    alignItems: "center",
-    backgroundColor: "#ddd",
-    paddingVertical: 5,
-  },
-  mainTabImage: {
-    width: 32,
-    height: 32,
-  },
-  activeTab: {
-    backgroundColor: "#aaa",
-  },
-  // 共通のタブスタイル
-  commonTabsContainer: {
-    flexDirection: "row",
-    backgroundColor: "#000",
-    justifyContent: "space-around",
-    gap: 3,
-    paddingVertical: 3, // 修正
-  },
-  commonTab: {
-    flex: 1,
-    alignItems: "center",
-    backgroundColor: "#ddd",
-    paddingVertical: 15,
-  },
-  commonContent: {
-    flex: 1,
-   
-  },
-  tabText: {
-    fontSize: 8,
-  },
-  // 縦タブ・リンク用スタイル
-  verticalTabsContainer: {
-    marginTop: 10,
-    width: "100%",
-    paddingHorizontal: 20,
-  },
-  verticalTab: {
-    width: "100%",
-    padding: 15,
-    backgroundColor: "#ccc",
-    marginVertical: 5,
-    alignItems: "center",
-  },
-  link: {
-    width: "100%",
-    padding: 15,
-    backgroundColor: "#ccc",
-    marginVertical: 5,
-    alignItems: "center",
-  },
-  // ボタンスタイル
-  bottun: {
-    padding: 10,
-    backgroundColor: "#fff",
-    borderRadius: 5,
-    marginVertical: 10,
-    width: "50%",
-    alignItems: "center",
-  },
-  bukatsuContentContainer: {
-    flex: 1,
-    width: '100%',
-  },
-  bukatsuTabContent: {
-    flex: 1,
-    width: '100%',
-  },
-  shinkanContainer: {
-    flex: 1,
-    width: '100%',
-    paddingHorizontal: 0,
-  },
-  shinkanHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 12,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
-    width: '100%',
-  },
-  shinkanTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1e3a8a',
-  },
-  createEventButton: {
-    backgroundColor: '#4CAF50',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 6,
-  },
-  createEventButtonText: {
-    color: '#fff',
-    fontWeight: '500',
-    fontSize: 12,
-  },
-});
 
 export default HomeScreen;

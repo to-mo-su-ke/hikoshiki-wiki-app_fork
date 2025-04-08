@@ -20,7 +20,7 @@ firestore
 
 */
 
-import { db } from "../messageMetod/firebase";
+import { db } from "../firebaseMetod/firebase";
 import { doc, setDoc } from "firebase/firestore";
 
 //個人情報を登録する関数の引数の型定義のために定義します

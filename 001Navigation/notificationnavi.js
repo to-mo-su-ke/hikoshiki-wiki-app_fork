@@ -1,8 +1,8 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import { NotificationPage } from '../007Pages/notification/notificationPages';
-import { DMListPage } from '../007Pages/notification/DMpages';
-import { DMDetailPage } from '../007Pages/notification/DMpages';
+import { NotificationPage } from '../007Pages/0Anotification/notificationPages';
+import { DMListPage } from '../007Pages/0Anotification/DMpages';
+import { DMDetailPage } from '../007Pages/0Anotification/DMpages';
 
 const Stack = createStackNavigator();
 

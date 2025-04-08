@@ -1,116 +1,90 @@
+// ===== ライブラリ関連のインポート =====
 import React, { useState, useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-import LoadingScreen from "./007Pages/homeScreenPages/LoadingScreen";
-import TestHomeScreen from "./007Pages/TestHomeScreen";
-import HomeScreenNavigator from "./001Navigation/homeScreenNavi";
-import MessageScreenNavigator from "./001Navigation/messageScreenNavi";
-import LoginScreenNavigator from "./001Navigation/logInScreenNavi";
-import ClubInfo from './007Pages/userhome/Cubinfo';
-import ClubMakeEdit from './007Pages/homeScreenPages/002club/clubmake_edit';
-import Club from "./001Navigation/clubnavi";
-import Inputnavi from "./001Navigation/inputnavi";
-import TimeTable from "./007Pages/timetableCreatePages/TimeTable";
-import CourseDetail from "./007Pages/timetableCreatePages/CourseDetail";
-import ClassSelection from "./007Pages/timetableCreatePages/ClassSelection";
-import Clubdetail from "./007Pages/homeScreenPages/002club/Clubdetail";
-import UserInfo from "./007Pages/userhome/Userinfo";
-import Userinfoedit from "./007Pages/userhome/Userinfoedit";
-import ShinkanConfirmforuser from "./007Pages/userhome/Shinkanconfirmforuser";
-import NotificationNavi from "./001Navigation/notificationnavi";
-import { Notification } from "./007Pages/notification/notificationService";
-
-import { DMListPage } from "./007Pages/notification/DMpages";
-import { DMDetailPage } from "./007Pages/notification/DMpages";
-import ShinkanConfirm from "./007Pages/clubEvevntPages/ShinkanConfirm";
 import { Provider } from "react-redux";
 import store from "./010Redux/store";
-import { NotificationPage } from "./007Pages/notification/notificationPages";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StyleSheet, StatusBar } from "react-native";
-import ClubSearchSubmit from "./007Pages/homeScreenPages/002club/clubmake";
+
+// ===== ナビゲーター関連のインポート =====
+import LoginScreenNavigator from "./001Navigation/00logInScreenNavi";
+import HomeScreenNavigator from "./001Navigation/01homeScreenNavi";
+import MessageScreenNavigator from "./001Navigation/messageScreenNavi";
+import Club from "./001Navigation/clubnavi";
+import NotificationNavi from "./001Navigation/notificationnavi";
 import Gradenavi from "./001Navigation/gradenavi";
-import ClassReviewAdd from "./007Pages/homeScreenPages/Class/Classrreviewadd";
-import ClubConfirmSubmit from "./007Pages/homeScreenPages/002club/clubmake2";
-import EventSearch from "./007Pages/clubEvevntPages/Search";
-import GradeInfo from "./007Pages/userhome/gradeinfo";
-import EventRegist from "./007Pages/clubEvevntPages/EventRegist";
-import SearchDetail from "./007Pages/clubEvevntPages/Searchdetail";
-import * as authContext from "./011Context/authContext";
+
+// ===== ページファイル関連のインポート =====
+import ClubInfo from './007Pages/01homeScreenPages/06userhome/Cubinfo';
+import ClubMakeEdit from './007Pages/01homeScreenPages/02-1club/clubmake_edit';
+import TimeTable from "./007Pages/01homeScreenPages/timetableCreatePages/TimeTable";
+import CourseDetail from "./007Pages/01homeScreenPages/01home/CourseDetail";
+import ClassSelection from "./007Pages/01homeScreenPages/timetableCreatePages/ClassSelection";
+import Clubdetail from "./007Pages/01homeScreenPages/02-1club/Clubdetail";
+import UserInfo from "./007Pages/01homeScreenPages/06userhome/Userinfo";
+import Userinfoedit from "./007Pages/01homeScreenPages/06userhome/Userinfoedit";
+import ShinkanConfirmforuser from "./007Pages/01homeScreenPages/06userhome/Shinkanconfirmforuser";
+import { Notification } from "./007Pages/0Anotification/notificationService";
+import { DMListPage, DMDetailPage } from "./007Pages/0Anotification/DMpages";
+import ShinkanConfirm from "./007Pages/01homeScreenPages/02-2clubEvevnt/ShinkanConfirm";
+import { NotificationPage } from "./007Pages/0Anotification/notificationPages";
+import ClubSearchSubmit from "./007Pages/01homeScreenPages/02-1club/clubmake";
+import ClassReviewAdd from "./007Pages/01homeScreenPages/06userhome/Class/Classrreviewadd";
+import ClubConfirmSubmit from "./007Pages/01homeScreenPages/02-1club/clubmake2";
+import EventSearch from "./007Pages/01homeScreenPages/02-2clubEvevnt/Search";
+import GradeInfo from "./007Pages/01homeScreenPages/06userhome/gradeinfo";
+import EventRegist from "./007Pages/01homeScreenPages/02-2clubEvevnt/EventRegist";
+import SearchDetail from "./007Pages/01homeScreenPages/02-2clubEvevnt/Searchdetail";
 
 const Stack = createStackNavigator();
 
 const App = () => {
-  // const [loading, setLoading] = useState(true);
-
-  // useEffect(() => {
-  //   const loadApp = async () => {
-  //     await new Promise((resolve) => setTimeout(resolve, 2000)); // 2秒待つ
-  //     setLoading(false);
-  //   };
-
-  //   loadApp();
-  // }, []);
-
-  // if (loading) {
-  //   return <LoadingScreen />;
-  // }
-
-  const [authState, setAuthState] = useState(authContext.creatInitialAuthState());
-
   return (
     <SafeAreaView style={styles.root}>
       <StatusBar />
       <Provider store={store}>
-        <authContext.authContext.Provider value={{ authState, setAuthState }}>
-          <NavigationContainer>
-            <Stack.Navigator initialRouteName="LoginNavigator">
-              <Stack.Screen name="TestHome" component={TestHomeScreen} />
-              <Stack.Screen
-                name="HomeNavigator"
-                component={HomeScreenNavigator}
-              />
-              <Stack.Screen
-                name="MessageNavigator"
-                component={MessageScreenNavigator}
-              />
-              <Stack.Screen
-                name="LoginNavigator"
-                component={LoginScreenNavigator}
-              />
+        <NavigationContainer>
+          <Stack.Navigator initialRouteName="LoginNavigator">
+            <Stack.Screen
+              name="LoginNavigator"
+              component={LoginScreenNavigator}
+            />
+            <Stack.Screen
+              name="HomeNavigator"
+              component={HomeScreenNavigator}
+            />
+            <Stack.Screen
+              name="MessageNavigator"
+              component={MessageScreenNavigator}
+            />
+            <Stack.Screen name="Club" component={Club} />
+            <Stack.Screen name="NotificationNavi" component={NotificationNavi} />
+            <Stack.Screen name="Grade" component={Gradenavi} />
             
-              <Stack.Screen name="Club" component={Club} />
-              
-              <Stack.Screen name="TimeTable" component={TimeTable} />
-              <Stack.Screen name="ClassSelection" component={ClassSelection} />
-              <Stack.Screen name="CourseDetail" component={CourseDetail} />
-              <Stack.Screen name="Clubdetail" component={Clubdetail} />
-              <Stack.Screen name="UserInfo" component={UserInfo} />
-              <Stack.Screen name="ClassReviewAdd" component={ClassReviewAdd} />
-
-            
-              <Stack.Screen name="ShinkanConfirm" component={ShinkanConfirm} />
-              <Stack.Screen name="ShinkanConfirmforuser" component={ShinkanConfirmforuser} />
-              
-              <Stack.Screen name="NotificationNavi" component={NotificationNavi} />
-              <Stack.Screen name="NotificationPage" component={NotificationPage} />
-              <Stack.Screen name="DMListPage" component={DMListPage} />
-
-
-              <Stack.Screen name="ClubInfo" component={ClubInfo}  />
-              <Stack.Screen name="ClubMakeEdit" component={ClubMakeEdit} />
-              <Stack.Screen name="GradeInfo" component={GradeInfo} /> 
-              <Stack.Screen name="ClubSearchSubmit" component={ClubSearchSubmit} />
-              <Stack.Screen name="Input" component={Inputnavi} />
-              <Stack.Screen name="Grade" component={Gradenavi} />
-              <Stack.Screen name="clubmake2" component={ClubConfirmSubmit} />
-              <Stack.Screen name="Userinfoedit" component={Userinfoedit} />
-              <Stack.Screen name="EventRegist" component={EventRegist} />
-              <Stack.Screen name="EventSearch" component={EventSearch} />
-              <Stack.Screen name="SearchDetail" component={SearchDetail} />
-            </Stack.Navigator>
-          </NavigationContainer>
-        </authContext.authContext.Provider>
+            {/* 直接ページへのナビゲーション */}
+            <Stack.Screen name="TimeTable" component={TimeTable} />
+            <Stack.Screen name="ClassSelection" component={ClassSelection} />
+            <Stack.Screen name="CourseDetail" component={CourseDetail} />
+            <Stack.Screen name="UserInfo" component={UserInfo} />
+            <Stack.Screen name="Userinfoedit" component={Userinfoedit} />
+            <Stack.Screen name="GradeInfo" component={GradeInfo} />
+            <Stack.Screen name="ClubInfo" component={ClubInfo} />
+            <Stack.Screen name="ClassReviewAdd" component={ClassReviewAdd} />
+            <Stack.Screen name="ShinkanConfirmforuser" component={ShinkanConfirmforuser} />
+            <Stack.Screen name="NotificationPage" component={NotificationPage} />
+            <Stack.Screen name="DMListPage" component={DMListPage} />
+            <Stack.Screen name="DMDetailPage" component={DMDetailPage} />
+            <Stack.Screen name="Clubdetail" component={Clubdetail} />
+            <Stack.Screen name="ClubMakeEdit" component={ClubMakeEdit} />
+            <Stack.Screen name="ClubSearchSubmit" component={ClubSearchSubmit} />
+            <Stack.Screen name="ClubConfirmSubmit" component={ClubConfirmSubmit} />
+            <Stack.Screen name="EventSearch" component={EventSearch} />
+            <Stack.Screen name="EventRegist" component={EventRegist} />
+            <Stack.Screen name="SearchDetail" component={SearchDetail} />
+            <Stack.Screen name="ShinkanConfirm" component={ShinkanConfirm} />
+          </Stack.Navigator>
+        </NavigationContainer>
       </Provider>
     </SafeAreaView>
   );

@@ -1,5 +1,6 @@
 // ログイン処理に必要な関数
-import { auth } from "../messageMetod/firebase";
+
+import { auth } from "../firebaseMetod/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { Alert } from "react-native";
 import { ErrorWithCode } from "./errorWithCode";

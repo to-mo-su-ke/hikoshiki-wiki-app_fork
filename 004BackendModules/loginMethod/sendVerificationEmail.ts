@@ -1,6 +1,6 @@
 //サインアップ後にメールアドレスの確認メールを送信する関数です
 
-import { auth } from '../messageMetod/firebase';
+import { auth } from '../firebaseMetod/firebase';
 import { sendEmailVerification } from 'firebase/auth';
 
 const sendVerificationEmail = async () => {
