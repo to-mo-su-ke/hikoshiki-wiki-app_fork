@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import DropDownPicker from "react-native-dropdown-picker";
 import { useSelector, useDispatch } from "react-redux";
-import { setDegree, setDepartment,setTermDayPeriod } from "../../../010Redux/actions";
+import { setDegree, setDepartment, setTermDayPeriod } from "../../../010Redux/actions";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 import app from "../../../004BackendModules/firebaseMetod/firestore";
 import { timeTableStyles } from "../../../002Styles/homescreenstyles";
+import { Picker } from "@react-native-picker/picker";
+
 
 const TimeTableView = ({ navigation }) => {
   const degree = useSelector((state) => state.degree);
@@ -250,58 +251,68 @@ const TimeTableView = ({ navigation }) => {
   return (
     <View style={timeTableStyles.container}>
       <View style={timeTableStyles.headerConstainer}>
-        <View style={timeTableStyles.headerLeft}>
-          <View style={timeTableStyles.degree}>
-            <DropDownPicker
-              open={degreeOpen}
-              value={degree}
-              items={degrees}
-              setOpen={setDegreeOpen}
-              setValue={(callback) => {
-                const newDegree = callback(degree);
-                dispatch(setDegree(newDegree));
-                dispatch(setDepartment(null));
-              }}
-              placeholder="学部を選択"
-              style={timeTableStyles.degree}
-              containerStyle={timeTableStyles.label}
-              dropDownContainerStyle={timeTableStyles.drop}
-            />
-          </View>
-          {departments.length > 0 && (
-            <View style={timeTableStyles.department}>
-              <DropDownPicker
-                open={departmentOpen}
-                value={department}
-                items={departments}
-                setOpen={setDepartmentOpen}
-                setValue={(callback) => {
-                  const newDepartment = callback(department);
-                  dispatch(setDepartment(newDepartment));
+        <View style={timeTableStyles.headerRow}>
+          <View style={timeTableStyles.headerLeft}>
+            <View style={timeTableStyles.degree}>
+              <Picker
+                selectedValue={degree}
+                onValueChange={(itemValue) => {
+                  dispatch(setDegree(itemValue));
+                  dispatch(setDepartment(null));
                 }}
-                placeholder="学科を選択"
-                style={timeTableStyles.department}
-                containerStyle={timeTableStyles.label}
-                dropDownContainerStyle={timeTableStyles.drop}
-              />
+                style={timeTableStyles.picker}
+              >
+                <Picker.Item label="学部を選択" value={null} />
+                {degrees.map((item) => (
+                  <Picker.Item
+                    key={item.value}
+                    label={item.label}
+                    value={item.value}
+                  />
+                ))}
+              </Picker>
             </View>
-          )}
+            {departments.length > 0 && (
+              <View style={timeTableStyles.department}>
+                <Picker
+                  selectedValue={department}
+                  onValueChange={(itemValue) => {
+                    dispatch(setDepartment(itemValue));
+                  }}
+                  style={timeTableStyles.picker}
+                >
+                  <Picker.Item label="学科を選択" value={null} />
+                  {departments.map((item) => (
+                    <Picker.Item
+                      key={item.value}
+                      label={item.label}
+                      value={item.value}
+                    />
+                  ))}
+                </Picker>
+              </View>
+            )}
+          </View>
         </View>
-        <View style={timeTableStyles.headerRight}>
-          <DropDownPicker
-            open={termDayPeriodOpen}
-            value={termDayPeriod}
-            items={termDayPeriods}
-            setOpen={setTermDayPeriodOpen}
-            setValue={(callback) => {
-              const newTermDayPeriod = callback(termDayPeriod);
-              dispatch(setTermDayPeriod(newTermDayPeriod));
-            }}
-            placeholder="学年を選択"
-            style={timeTableStyles.grade}
-            containerStyle={timeTableStyles.label}
-            dropDownContainerStyle={timeTableStyles.drop}
-          />
+        <View style={timeTableStyles.headerRow}>
+          <View style={[timeTableStyles.headerRight, timeTableStyles.grade]}>
+            <Picker
+              selectedValue={termDayPeriod}
+              onValueChange={(itemValue) => {
+                dispatch(setTermDayPeriod(itemValue));
+              }}
+              style={timeTableStyles.picker}
+            >
+              <Picker.Item label="学年を選択" value={null} />
+              {termDayPeriods.map((item) => (
+                <Picker.Item
+                  key={item.value}
+                  label={item.label}
+                  value={item.value}
+                />
+              ))}
+            </Picker>
+          </View>
         </View>
       </View>
       

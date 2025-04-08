@@ -175,23 +175,28 @@ export const timeTableStyles = StyleSheet.create({
     padding: 16,
     backgroundColor: "#f8f9fa",
   },
+  
   headerConstainer: {
     marginBottom: 16,
-    height: 50,
-    flexDirection: "row",
+    flexDirection: "column", // 横並び→縦並びに変更
     width: "100%",
+  },
+  headerRow: {
+    flexDirection: "row",
+    marginBottom: 8, // 行間の余白（必要に応じて調整）
   },
   headerLeft: {
     flex: 1,
     flexDirection: "row",
-    marginRight: 8,
   },
   headerRight: {
-    width: 110,
+    flex: 1,
     flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
   },
   degree: {
-    flex: 1,
+    flex: 2,
     borderWidth: 0,
     backgroundColor: "#ffffff",
     borderRadius: 8,
@@ -202,7 +207,7 @@ export const timeTableStyles = StyleSheet.create({
     elevation: 2,
   },
   department: {
-    flex: 2,
+    flex: 3,
     borderWidth: 0,
     backgroundColor: "#ffffff",
     borderRadius: 8,
@@ -223,6 +228,9 @@ export const timeTableStyles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
+  },
+  picker: {
+    width: "100%"
   },
   label: {
     borderWidth: 0,
