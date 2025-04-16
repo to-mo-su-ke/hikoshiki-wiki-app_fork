@@ -177,7 +177,7 @@ const Userinfoedit = ({ navigation }) => {
       <View style={styles.menu}>
         <TouchableOpacity 
           style={styles.menuItem} 
-          onPress={() => navigation.navigate("ChangePasswordScreen")}>
+          onPress={() => navigation.navigate('ChangePasswordScreen')}>
           <Text style={styles.menuText}>パスワード変更</Text>
         </TouchableOpacity>
       </View>

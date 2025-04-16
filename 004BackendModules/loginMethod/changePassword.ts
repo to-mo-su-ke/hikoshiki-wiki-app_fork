@@ -1,6 +1,6 @@
 // パスワード変更のための関数
 
-import { auth } from "../messageMetod/firebase";
+import { auth } from "../firebaseMetod/firebase";
 import { updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
 
 export async function changePassword(oldPassword: string, newPassword: string) {

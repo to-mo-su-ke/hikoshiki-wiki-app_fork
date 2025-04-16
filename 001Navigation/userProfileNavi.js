@@ -6,6 +6,7 @@ import GradeInfo from "../007Pages/01homeScreenPages/06userhome/gradeinfo";
 import ClubInfo from '../007Pages/01homeScreenPages/06userhome/Cubinfo';
 import ClassReviewAdd from "../007Pages/01homeScreenPages/06userhome/Class/Classrreviewadd";
 import ShinkanConfirmforuser from "../007Pages/01homeScreenPages/06userhome/Shinkanconfirmforuser";
+import ChangePasswordScreen from "../007Pages/01homeScreenPages/06userhome/ChangePasswordScreen";
 
 const Stack = createStackNavigator();
 
@@ -18,6 +19,7 @@ const UserProfileNavi = () => {
       <Stack.Screen name="ClubInfo" component={ClubInfo} />
       <Stack.Screen name="ClassReviewAdd" component={ClassReviewAdd} />
       <Stack.Screen name="ShinkanConfirmforuser" component={ShinkanConfirmforuser} />
+      <Stack.Screen name="ChangePasswordScreen" component={ChangePasswordScreen} />
     </Stack.Navigator>
   );
 };

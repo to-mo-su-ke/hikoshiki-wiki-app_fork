@@ -12,8 +12,8 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { changePassword } from "../../004BackendModules/loginMethod/changePassword";
-import { doSignOut } from "../../004BackendModules/loginMethod/signOut";
+import { changePassword } from "../../../004BackendModules/loginMethod/changePassword";
+import { doSignOut } from "../../../004BackendModules/loginMethod/signOut";
 
 export default function ChangePasswordScreen({ navigation }) {
   const [oldPassword, setOldPassword] = useState("");
