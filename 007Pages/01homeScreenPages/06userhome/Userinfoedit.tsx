@@ -3,6 +3,7 @@ import { View, Text, TextInput, StyleSheet, Button, Alert, ScrollView, Touchable
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../../006Configs/firebaseConfig';
 import { getAuth } from 'firebase/auth';
+import ChangePasswordScreen from './ChangePasswordScreen';
 
 const Userinfoedit = ({ navigation }) => {
   const [userInfo, setUserInfo] = useState(null); // ユーザー情報
@@ -177,7 +178,7 @@ const Userinfoedit = ({ navigation }) => {
       <View style={styles.menu}>
         <TouchableOpacity 
           style={styles.menuItem} 
-          onPress={() => navigation.navigate('ChangePasswordScreen')}>
+          onPress={() => navigation.navigate("UserInfo")} >
           <Text style={styles.menuText}>パスワード変更</Text>
         </TouchableOpacity>
       </View>
