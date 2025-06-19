@@ -4,6 +4,8 @@ import { getAuth } from 'firebase/auth';
 import { doc, getDoc , collection, query, getDocs, updateDoc } from 'firebase/firestore';
 import { db } from '../../../006Configs/firebaseConfig';
 import { doSignOut } from '../../../004BackendModules/loginMethod/signOut';
+// 検証用
+import { useNavigationState, useNavigation } from '@react-navigation/native';
 
 const UserInfoScreen = ({ navigation }) => {
   const [userName, setUserName] = useState(''); // ユーザー名
@@ -15,6 +17,29 @@ const UserInfoScreen = ({ navigation }) => {
   const [Id, setId] = useState(''); // ユーザーID
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState<boolean>(false); // 未読通知の有無
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  // 検出用
+  const CurrentScreenNavigator = () => {
+    const state = useNavigationState((state) => state);
+  
+    console.log('Current navigator state:', state);
+  
+    return null;
+  };
+  CurrentScreenNavigator(); // 検出用
+  const CheckParentNavigator = () => {
+    const navigation = useNavigation();
+  
+    const parentNavigator = navigation.getParent();
+  
+    if (parentNavigator) {
+      console.log('This screen belongs to:', parentNavigator.getId());
+    } else {
+      console.log('No parent navigator found');
+    }
+  
+    return null;
+  };
+  CheckParentNavigator(); // 検出用  
   // サインアウト確認
   const handleSignOut = async () => {
     Alert.alert(
@@ -165,13 +190,25 @@ const UserInfoScreen = ({ navigation }) => {
         <TouchableOpacity style={styles.menuItem}>
           <Text style={styles.menuText}>フリマ</Text>
         </TouchableOpacity>
+        {/*パスワード変更 */}
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => navigation.navigate('ChangePasswordScreen')} // ユーザー情報編集画面に遷移
+        >
+          <Text style={styles.menuText}>パスワード変更</Text>
+        </TouchableOpacity>
         <TouchableOpacity 
           style={styles.menuItem} 
           onPress={() => handleSignOut()} // サインアウト処理
         >
           <Text style={styles.signoutText}>サインアウト</Text>
         </TouchableOpacity>
-       
+        <TouchableOpacity 
+          style={styles.menuItem} 
+          onPress={() => console.log()} // サインアウト処理
+        >
+          <Text style={styles.signoutText}>navigation</Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
